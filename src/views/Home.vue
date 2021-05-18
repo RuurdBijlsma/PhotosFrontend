@@ -34,7 +34,9 @@
 <script lang="ts">
 //TODO
 // Get actual viewport with excluding scrollbar
-// dont start new day on very narrow space
+// Separate functions
+// Separate into vue component
+// Update layout on window resize
 import Vue from 'vue'
 
 export default Vue.extend({
