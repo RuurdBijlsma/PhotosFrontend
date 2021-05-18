@@ -1,10 +1,12 @@
 <template>
-    <v-app>
-        <v-app-bar app dark elevation="0">
+    <v-app class="app">
+        <v-app-bar elevation="0" app clipped-left>
+            <img class="logo-icon" src="./assets/transparent-icon-512.png" alt="icon">
+            <v-app-bar-title class="logo-text">Photos</v-app-bar-title>
 
             <v-spacer></v-spacer>
 
-            <v-text-field dense solo-inverted hide-details label="Search..." prepend-icon="mdi-magnify"/>
+            <v-text-field dense solo hide-details label="Search..." append-icon="mdi-magnify"/>
 
             <v-spacer></v-spacer>
 
@@ -13,14 +15,7 @@
             </v-btn>
         </v-app-bar>
 
-        <v-navigation-drawer permanent app>
-            <div class="logo">
-                <img class="logo-icon" src="./assets/192icon.png" alt="icon"/>
-                <span class="logo-text">Photos</span>
-            </div>
-
-            <v-divider></v-divider>
-
+        <v-navigation-drawer permanent app floating clipped hide-overlay>
             <v-list dense nav>
                 <v-list-item to="/" exact>
                     <v-list-item-icon>
@@ -71,11 +66,9 @@ export default Vue.extend({
 </script>
 
 <style>
-.logo {
-    width: 100%;
-    height: 65px;
-    display: flex;
-    align-items: center;
+html, body {
+    font-family: Roboto, Arial, sans-serif;
+    overflow-y: hidden !important;
 }
 
 .logo-icon {
@@ -85,8 +78,10 @@ export default Vue.extend({
 }
 
 .logo-text {
-    font-weight: thin;
-    font-size: 25px;
     margin-left: 20px;
+}
+
+.logo-text > * {
+    min-width: 100% !important;
 }
 </style>
