@@ -15,7 +15,7 @@
             </v-btn>
         </v-app-bar>
 
-        <v-navigation-drawer permanent app floating clipped hide-overlay>
+        <v-navigation-drawer :expand-on-hover="true" permanent app floating clipped hide-overlay>
             <v-list dense nav>
                 <v-list-item to="/" exact>
                     <v-list-item-icon>
