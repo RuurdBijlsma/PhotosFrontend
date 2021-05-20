@@ -6,7 +6,8 @@
 
             <v-spacer></v-spacer>
 
-            <v-text-field dense solo hide-details label="Search..." append-icon="mdi-magnify"/>
+            <v-text-field dense solo hide-details @keydown.enter="startSearch" label="Search..."
+                          v-model="$route.query.q" append-icon="mdi-magnify"/>
 
             <v-spacer></v-spacer>
 
@@ -62,6 +63,18 @@ export default Vue.extend({
     data: () => ({
         //
     }),
+    methods: {
+        startSearch() {
+            console.log(this.$route.query.q);
+            if (this.$route.name === 'Search') {
+                this.$store.dispatch('search', this.$route.query.q);
+            } else
+                this.$router.push({
+                    query: {q: this.$route.query.q},
+                    path: '/search',
+                })
+        },
+    }
 });
 </script>
 

@@ -6,18 +6,16 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         api: 'http://localhost:3000',
+        searchResults: [],
     },
-    mutations: {},
+    mutations: {
+        searchResults: (state, v) => state.searchResults = v,
+    },
     actions: {
-        async getPhotos({state}, {limit=50, offset=0}) {
-            let res = await fetch(`${state.api}/photos/list?limit=${limit}&offset=${offset}`).then(f => f.text());
-            try {
-
-                return JSON.parse(res);
-            } catch (e) {
-                console.warn(`Can't parse api response ${res}`, e);
-            }
-        },
+        async search({commit, state}, query: string) {
+            let results = await fetch(`${state.api}/photos/search?q=${query}`).then(j => j.json());
+            commit('searchResults', results);
+        }
     },
     modules: {}
 })

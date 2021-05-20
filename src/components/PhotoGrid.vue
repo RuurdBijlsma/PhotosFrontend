@@ -62,7 +62,8 @@ export default Vue.extend({
     },
     methods: {
         async calculateLayout() {
-            if (this.photos.length === 0) {
+            let photos = this.photos as any[];
+            if (photos.length === 0) {
                 this.photoRows = [];
                 return;
             }
@@ -83,10 +84,10 @@ export default Vue.extend({
                     return ds.substr(0, ds.length - 5);
                 else return ds;
             }
-            let firstDay = getDateString(this.photos[0].createDate);
+            let firstDay = getDateString(photos[0].createDate);
             let photosByDay = [];
             let dayPhotos: { day: string, photos: any[] } = {day: firstDay, photos: []};
-            for (let photo of this.photos) {
+            for (let photo of photos) {
                 let photoDay = getDateString(photo.createDate);
                 if (dayPhotos.day !== photoDay) {
                     photosByDay.push(dayPhotos);
@@ -94,14 +95,16 @@ export default Vue.extend({
                 }
                 dayPhotos.photos.push(photo);
             }
+            photosByDay.push(dayPhotos);
+
 
             // Calculate visual size for photos given viewport size
-            const scrollDomheid = 17;
+            const scrollDomheid = 0;
+            // const scrollDomheid = 17;
             const allowedWidth = this.frameWidth - scrollDomheid;
-            console.log({allowedWidth})
             const minHeight = 150 + Math.min(window.innerWidth / 30, 64);
             let rows: any[][] = [];
-            let row = [];
+            let row: any[] = [];
             let block: { photos: any[], day: string, width: number, hideDate: boolean } = {
                 photos: [],
                 day: firstDay,
@@ -142,6 +145,8 @@ export default Vue.extend({
                 }
                 prevDaySize = dayPhotos.photos.length;
             }
+            row.push(block);
+            rows.push(row);
 
 
             const imageMargin = 5;
@@ -171,14 +176,14 @@ export default Vue.extend({
                     }
                 }
             }
+
             this.photoRows = rows;
         },
-        onResize(){
+        onResize() {
             requestAnimationFrame(this.calculateLayout);
         },
         updateFrameWidth() {
             this.frameWidth = (this.$refs.frame as HTMLElement).clientWidth;
-            console.log("Calculated frameWidth", this.frameWidth);
         },
         playVideo(id: string) {
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];
