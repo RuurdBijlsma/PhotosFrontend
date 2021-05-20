@@ -99,9 +99,7 @@ export default Vue.extend({
 
 
             // Calculate visual size for photos given viewport size
-            const scrollDomheid = 0;
-            // const scrollDomheid = 17;
-            const allowedWidth = this.frameWidth - scrollDomheid;
+            const allowedWidth = this.frameWidth;
             const minHeight = 150 + Math.min(window.innerWidth / 30, 64);
             let rows: any[][] = [];
             let row: any[] = [];

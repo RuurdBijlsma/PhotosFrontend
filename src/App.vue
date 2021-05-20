@@ -63,6 +63,11 @@ export default Vue.extend({
     data: () => ({
         //
     }),
+    async mounted() {
+        if (!this.$store.getters.isLoggedIn && this.$route.name !== 'Login')
+            await this.$router.push('/login');
+        console.log(this.$store);
+    },
     methods: {
         startSearch() {
             console.log(this.$route.query.q);

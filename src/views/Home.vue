@@ -6,11 +6,16 @@
 
 <script lang="ts">
 //TODO
-// Get actual viewport with excluding scrollbar
-// Separate functions
-// Separate into vue component
-// Update layout on window resize
-// After 2nd half of photos is added a padding seems to be added to the right (or just when the second calculate layout is called)
+// replace scrollbar with scrub bar
+// click photo to view it large
+// albums
+// world with photos
+// explore page with location tags and label tags
+// show logged in state in app bar
+// Delete photo
+// Upload photo
+// Download photo
+
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 
@@ -26,7 +31,7 @@ export default Vue.extend({
         gettingPhotos: false,
     }),
     async mounted() {
-        this.photosPerMonth = await fetch(`${this.api}/photos/months`).then(t => t.json());
+        this.photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
         let [photos, newMonths] = await this.getPhotos({monthOffset: 0});
         this.photos = photos;
         this.scrollMonthOffset = newMonths;
@@ -56,14 +61,10 @@ export default Vue.extend({
                 if (requestMinimum < 0)
                     break;
             }
-            let photos = await fetch(
-                `${this.api}/photos/month-photos`,
-                {
-                    method: "POST",
-                    headers: {'Content-Type': 'application/json',},
-                    body: JSON.stringify(requestedMonths.map(m => [m.year, m.month]))
-                }
-            ).then(j => j.json());
+            let photos = await this.$store.dispatch('apiRequest', {
+                url: 'photos/month-photos',
+                body: {months: requestedMonths.map(m => [m.year, m.month])}
+            });
             console.log(this.photosPerMonth, photos);
             this.gettingPhotos = false;
             return [photos.flat(), requestedMonths.length];
@@ -77,7 +78,7 @@ export default Vue.extend({
 .home {
     padding: 10px 10px 10px 10px;
     max-height: calc(100vh - 64px);
-    overflow-y: auto;
+    overflow-y: scroll;
     width: 100%;
 }
 
