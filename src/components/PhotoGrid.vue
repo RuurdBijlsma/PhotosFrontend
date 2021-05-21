@@ -51,6 +51,7 @@ export default Vue.extend({
         photoRows: [] as any[][],
         frameWidth: window.innerWidth - 256,
         api: "http://localhost:3000",
+        unshifting: false,
     }),
     beforeDestroy() {
         window.removeEventListener('resize', this.onResize);
@@ -191,11 +192,29 @@ export default Vue.extend({
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];
             video?.pause?.();
         },
+        prepareUnshift() {
+            this.unshifting = true;
+        },
     },
     computed: {},
     watch: {
         photos() {
-            requestAnimationFrame(this.calculateLayout);
+            if (this.unshifting) {
+                this.unshifting = false;
+                let home = document.querySelector('.home');
+                let heightBefore = home?.scrollHeight ?? 0;
+                this.calculateLayout();
+                this.$nextTick(() => {
+                    let addedHeight = (home?.scrollHeight ?? 0) - heightBefore;
+                    console.log(addedHeight, heightBefore, home?.scrollHeight);
+                    home?.scrollBy({
+                        top: addedHeight,
+                        left: 0,
+                    });
+                })
+            } else {
+                requestAnimationFrame(this.calculateLayout);
+            }
         }
     }
 })
