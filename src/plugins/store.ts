@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import {api} from "@/ts/constants"
 // @ts-ignore
 import VuexPersistence from "vuex-persist"
 
@@ -16,7 +17,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        api: 'http://localhost:3000',
+        api,
         searchResults: [],
         email: '',
         password: '',

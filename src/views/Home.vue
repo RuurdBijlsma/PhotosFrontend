@@ -11,6 +11,9 @@
 // if scrubbing to something loaded, then just scroll
 // scroll to exact spot
 
+// Add settings page
+// Change api constant to setting in settings page
+// Werkt zoeken naar "gibraltar pizza"?
 // replace scrollbar with scrub bar
 // click photo to view it large
 // albums
@@ -23,6 +26,7 @@
 
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
+import {api} from "@/ts/constants"
 
 export default Vue.extend({
     name: 'Home',
@@ -30,7 +34,7 @@ export default Vue.extend({
     data: () => ({
         photosPerMonth: [] as any[],
         photos: [] as any[],
-        api: "http://localhost:3000",
+        api,
         homeElement: {} as HTMLElement,
         scrollMonthStart: 0,
         scrollMonthLength: 0,

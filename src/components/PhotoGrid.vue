@@ -38,6 +38,7 @@
 // Separate into vue component
 // Update layout on window resize
 import Vue from 'vue'
+import {api} from "@/ts/constants"
 
 export default Vue.extend({
     name: 'PhotoGrid',
@@ -50,7 +51,7 @@ export default Vue.extend({
     data: () => ({
         photoRows: [] as any[][],
         frameWidth: window.innerWidth - 256,
-        api: "http://localhost:3000",
+        api,
         unshifting: false,
     }),
     beforeDestroy() {
