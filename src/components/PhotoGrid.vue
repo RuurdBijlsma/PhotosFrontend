@@ -1,9 +1,9 @@
 <template>
     <div class="photo-grid" ref="frame">
-        <div class="block-row" v-for="row in photoRows">
+        <div class="block-row" v-for="row in photoRows" ref="rows">
             <div class="photo-block" v-for="block in row">
                 <div class="block-day" :title="block.day" :class="{'hide-date':block.hideDate}"
-                     :style="{maxWidth: block.width + 'px'}">
+                     :style="{maxWidth: Math.floor(block.width) + 'px'}">
                     {{ block.day }}
                 </div>
                 <div class="photos">
@@ -47,12 +47,12 @@ export default Vue.extend({
             type: Array,
             required: true,
         },
+        directPhotosUpdate: {type: Boolean, default: false},
     },
     data: () => ({
         photoRows: [] as any[][],
         frameWidth: window.innerWidth - 256,
         api,
-        unshifting: false,
     }),
     beforeDestroy() {
         window.removeEventListener('resize', this.onResize);
@@ -75,25 +75,32 @@ export default Vue.extend({
             const currentYear = new Date().getFullYear();
             const currentDate = new Date().toDateString();
             const yesterday = new Date(new Date().getTime() - 1000 * 60 * 60 * 24).toDateString()
-            const getDateString = (date: string) => {
+            const parseDate = (date: string): [string, number, number] => {
                 let d = new Date(date);
                 let ds = d.toDateString();
+                let month = d.getMonth() + 1;
+                let unix = d.getTime();
                 if (ds === currentDate)
-                    return 'Today';
+                    return ['Today', month, unix];
                 if (ds === yesterday)
-                    return 'Yesterday';
+                    return ['Yesterday', month, unix];
                 if (d.getFullYear() === currentYear)
-                    return ds.substr(0, ds.length - 5);
-                else return ds;
+                    return [ds.substr(0, ds.length - 5), month, unix];
+                else return [ds, month, unix];
             }
-            let firstDay = getDateString(photos[0].createDate);
+            let [firstDay, firstMonth, firstDate] = parseDate(photos[0].createDate);
             let photosByDay = [];
-            let dayPhotos: { day: string, photos: any[] } = {day: firstDay, photos: []};
+            let dayPhotos: { day: string, month: number, photos: any[], date: number } = {
+                day: firstDay,
+                month: firstMonth,
+                date: firstDate,
+                photos: [],
+            };
             for (let photo of photos) {
-                let photoDay = getDateString(photo.createDate);
-                if (dayPhotos.day !== photoDay) {
+                let [day, month, date] = parseDate(photo.createDate);
+                if (dayPhotos.day !== day) {
                     photosByDay.push(dayPhotos);
-                    dayPhotos = {day: photoDay, photos: []};
+                    dayPhotos = {day, month, photos: [], date};
                 }
                 dayPhotos.photos.push(photo);
             }
@@ -105,9 +112,14 @@ export default Vue.extend({
             const minHeight = 150 + Math.min(window.innerWidth / 30, 64);
             let rows: any[][] = [];
             let row: any[] = [];
-            let block: { photos: any[], day: string, width: number, hideDate: boolean } = {
+            let block: {
+                photos: any[], day: string, month: number,
+                width: number, hideDate: boolean, date: number
+            } = {
                 photos: [],
                 day: firstDay,
+                month: firstMonth,
+                date: firstDate,
                 width: 0,
                 hideDate: false,
             };
@@ -115,6 +127,7 @@ export default Vue.extend({
             let prevDaySize = 0
             for (let dayPhotos of photosByDay) {
                 let day = dayPhotos.day;
+                let month = dayPhotos.month;
                 for (let photo of dayPhotos.photos) {
                     photo.ratio = photo.width / photo.height;
                     let preferredWidth = minHeight * photo.ratio;
@@ -123,15 +136,21 @@ export default Vue.extend({
                     let currentDaySize = dayPhotos.photos.length;
 
                     // If this photo doesn't fit in the block, or it's a different day, make new block
+                    let newMonth = month !== block.month;
                     let newDay = day !== block.day;
                     let newRow = updatedWidth > allowedWidth ||
                         (newDay && remainingWidth - preferredWidth < 100) ||
                         (newDay && currentDaySize > 3) ||
-                        (newDay && prevDaySize > 3)
+                        (newDay && prevDaySize > 3) ||
+                        newMonth;
                     if (newRow || newDay) {
                         if (block.photos.length > 0)
                             row.push(block);
-                        block = {photos: [], day: day, width: 0, hideDate: newRow && !newDay};
+                        block = {
+                            photos: [], day, width: 0,
+                            hideDate: newRow && !newDay,
+                            month, date: dayPhotos.date
+                        };
 
                         if (newRow) {
                             if (row.length > 0)
@@ -193,29 +212,39 @@ export default Vue.extend({
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];
             video?.pause?.();
         },
-        prepareUnshift() {
-            this.unshifting = true;
+        scrollIntoView(day: number, month: number, year: number) {
+            let targetDate = new Date();
+            targetDate.setFullYear(year);
+            targetDate.setMonth(month - 1);
+            targetDate.setDate(day);
+            let target = targetDate.getTime();
+
+            // List is ordered highest date -> lowest date
+            let list = this.photoRows;
+            while (true) {
+                let i = Math.floor(list.length / 2);
+                let date = list[i][0].date;
+                if (target < date)
+                    list = list.slice(i);
+                else
+                    list = list.slice(0, i);
+                if (list.length === 1)
+                    break;
+            }
+            let rows = this.$refs.rows as HTMLElement[];
+            console.log("Scrolling into view", day, month, year);
+            rows[this.photoRows.indexOf(list[0])].scrollIntoView();
         },
     },
     computed: {},
     watch: {
         photos() {
-            if (this.unshifting) {
-                this.unshifting = false;
-                let home = document.querySelector('.home');
-                let heightBefore = home?.scrollHeight ?? 0;
+            if (this.directPhotosUpdate) {
                 this.calculateLayout();
-                this.$nextTick(() => {
-                    let addedHeight = (home?.scrollHeight ?? 0) - heightBefore;
-                    console.log(addedHeight, heightBefore, home?.scrollHeight);
-                    home?.scrollBy({
-                        top: addedHeight,
-                        left: 0,
-                    });
-                })
             } else {
                 requestAnimationFrame(this.calculateLayout);
             }
+            this.$emit('photosUpdate');
         }
     }
 })

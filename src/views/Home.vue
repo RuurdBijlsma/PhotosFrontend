@@ -1,6 +1,6 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
-        <photo-grid ref="photoGrid" class="grid" :photos="photos"></photo-grid>
+        <photo-grid :direct-photos-update="directUpdate" ref="photoGrid" class="grid" :photos="photos"></photo-grid>
         <div class="scrubber" @click="scrub" @mousemove="showScrub"></div>
     </div>
 </template>
@@ -10,6 +10,7 @@
 // if too much is loaded remove far away pictures
 // if scrubbing to something loaded, then just scroll
 // scroll to exact spot
+// scrubbing to last date in list removes scrollbar >:(
 
 // Add settings page
 // Change api constant to setting in settings page
@@ -32,10 +33,12 @@ export default Vue.extend({
     name: 'Home',
     components: {PhotoGrid},
     data: () => ({
+        directUpdate: false,
         photosPerMonth: [] as any[],
         photos: [] as any[],
         api,
         homeElement: {} as HTMLElement,
+        photoGrid: null as any,
         scrollMonthStart: 0,
         scrollMonthLength: 0,
         gettingPhotos: false,
@@ -49,6 +52,7 @@ export default Vue.extend({
         this.photos = photos;
         this.scrollMonthLength = newMonths;
         this.homeElement = (this.$refs.home as HTMLElement);
+        this.photoGrid = this.$refs.photoGrid;
 
         console.log(this.photosPerMonth);
     },
@@ -82,7 +86,9 @@ export default Vue.extend({
             let [index, day, month, year] = this.dateFromScrubEvent(e);
 
             console.log('scroll to :', [day, month, year]);
-            let [photos, newMonths] = await this.getPhotos({monthOffset: index});
+            let [photos, newMonths] = await this.getPhotos({
+                monthOffset: Math.max(0, index)
+            });
             this.scrollMonthStart = index;
             this.scrollMonthLength = newMonths;
             this.photosPerMonth.forEach(p => p.loaded = false);
@@ -90,7 +96,14 @@ export default Vue.extend({
                 let month = this.photosPerMonth[i];
                 month.loaded = i > index && i <= index + newMonths;
             }
+
+            this.directUpdate = true;
+            this.scrollTimeout = true;
             this.photos = photos;
+            this.photoGrid.$once('photosUpdate', () => this.$nextTick((() => {
+                this.photoGrid.scrollIntoView(day, month, year);
+                setTimeout(() => this.scrollTimeout = false, 200);
+            })));
         },
         async homeScroll() {
             if (this.scrollTimeout) return;
@@ -112,8 +125,19 @@ export default Vue.extend({
                 });
                 this.scrollMonthStart -= newMonths;
 
-                this.$refs.photoGrid.prepareUnshift();
+                let home = this.$refs.home as HTMLElement;
+                let heightBefore = home.scrollHeight ?? 0;
+                this.directUpdate = true;
                 this.photos.unshift(...photos);
+                this.photoGrid.$once('photosUpdate', () => this.$nextTick(() => {
+                    this.directUpdate = false;
+                    let addedHeight = (home.scrollHeight ?? 0) - heightBefore;
+                    console.log(addedHeight, heightBefore, home.scrollHeight);
+                    home.scrollBy({
+                        top: addedHeight,
+                        left: 0,
+                    });
+                }));
             }
             if (scrollBottom < 2000 && !this.gettingPhotos) {
                 let bottomReached = this.photosPerMonth[this.photosPerMonth.length - 1].loaded ?? false;
@@ -138,6 +162,7 @@ export default Vue.extend({
                 if (requestMinimum < 0)
                     break;
             }
+            console.log("Requesting months", requestedMonths.map(m => [m.year, m.month].join(', ')));
             let photos = await this.$store.dispatch('apiRequest', {
                 url: 'photos/month-photos',
                 body: {months: requestedMonths.map(m => [m.year, m.month])}
