@@ -48,6 +48,7 @@ export default Vue.extend({
             required: true,
         },
         directPhotosUpdate: {type: Boolean, default: false},
+        timeline: {type: Boolean, default: false},
     },
     data: () => ({
         photoRows: [] as any[][],
@@ -114,13 +115,14 @@ export default Vue.extend({
             let row: any[] = [];
             let block: {
                 photos: any[], day: string, month: number,
-                width: number, hideDate: boolean, date: number
+                width: number, height: number, hideDate: boolean, date: number
             } = {
                 photos: [],
                 day: firstDay,
                 month: firstMonth,
                 date: firstDate,
                 width: 0,
+                height: 0,
                 hideDate: false,
             };
             let rowW = 0;
@@ -142,12 +144,12 @@ export default Vue.extend({
                         (newDay && remainingWidth - preferredWidth < 100) ||
                         (newDay && currentDaySize > 3) ||
                         (newDay && prevDaySize > 3) ||
-                        newMonth;
+                        (this.timeline && newMonth);
                     if (newRow || newDay) {
                         if (block.photos.length > 0)
                             row.push(block);
                         block = {
-                            photos: [], day, width: 0,
+                            photos: [], day, width: 0, height: 0,
                             hideDate: newRow && !newDay,
                             month, date: dayPhotos.date
                         };
@@ -183,12 +185,13 @@ export default Vue.extend({
                 let blockMargins = (row.length - 1) * blockMargin;
                 let margins = imageMargins.reduce((a, b) => a + b) + blockMargins;
                 let sizeMultiplier = (allowedWidth - margins) / pixelWidth;
-                if (sizeMultiplier > 2) {
+                if (sizeMultiplier > 2.1) {
                     sizeMultiplier = 1;
                 }
                 // sizeMultiplier = 1;
                 // sizeMultiplier = Math.min(sizeMultiplier, 1.5);
                 for (let block of row) {
+                    block.height = minHeight * sizeMultiplier;
                     for (let photo of block.photos) {
                         photo.visualHeight = minHeight * sizeMultiplier;
                         photo.visualWidth = minHeight * photo.ratio * sizeMultiplier;
@@ -202,7 +205,8 @@ export default Vue.extend({
             requestAnimationFrame(this.calculateLayout);
         },
         updateFrameWidth() {
-            this.frameWidth = (this.$refs.frame as HTMLElement).clientWidth;
+            this.frameWidth = (this.$refs.frame as HTMLElement)?.clientWidth ??
+                window.innerWidth - this.$vuetify.application.left;
         },
         playVideo(id: string) {
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];

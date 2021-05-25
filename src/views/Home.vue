@@ -1,16 +1,24 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
-        <photo-grid :direct-photos-update="directUpdate" ref="photoGrid" class="grid" :photos="photos"></photo-grid>
-        <div class="scrubber" @click="scrub" @mousemove="showScrub"></div>
+        <photo-grid timeline :direct-photos-update="directUpdate" ref="photoGrid" class="grid"
+                    :photos="photos"></photo-grid>
+
+        <canvas :width="100"
+                :height="canvasHeight"
+                ref="scrubber" class="scrubber"/>
+        <div class="scrubber scrubber-events"
+             @mouseenter="overScrub=true"
+             @mouseleave="overScrub=false"
+             @mousedown="scrubStart"/>
     </div>
 </template>
 
 <script lang="ts">
 //TODO
 // if too much is loaded remove far away pictures
-// if scrubbing to something loaded, then just scroll
-// scroll to exact spot
 // scrubbing to last date in list removes scrollbar >:(
+// search might return too many results for one page :hmm not sure
+//      Google photos uses limit+offset for this
 
 // Add settings page
 // Change api constant to setting in settings page
@@ -25,10 +33,12 @@
 // Upload photo
 // Download photo
 
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',];
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {api} from "@/ts/constants"
 
+const d = new Date();
 export default Vue.extend({
     name: 'Home',
     components: {PhotoGrid},
@@ -42,25 +52,129 @@ export default Vue.extend({
         scrollMonthStart: 0,
         scrollMonthLength: 0,
         gettingPhotos: false,
-        scrollBuffer: 0,
+        scrollLoadPromise: null as any,
+        scrubbing: false,
+        canvas: {} as HTMLCanvasElement,
+        context: {} as CanvasRenderingContext2D,
+        scrubTimeout: -1,
+        lastScrubTimestamp: -1,
+        overScrub: false,
+        scrubData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         scrolling: false,
-        scrollTimeout: false,
+        scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
+        scrollTimeout: -1,
+        prevScroll: -2000,
     }),
+    beforeDestroy() {
+        document.removeEventListener('mousemove', this.scrubMove);
+        document.removeEventListener('mouseup', this.scrubEnd);
+    },
     async mounted() {
+        document.addEventListener('mousemove', this.scrubMove, false);
+        document.addEventListener('mouseup', this.scrubEnd, false);
+
+        this.canvas = this.$refs.scrubber as HTMLCanvasElement;
+        this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+
         this.photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
         let [photos, newMonths] = await this.getPhotos({monthOffset: 0});
         this.photos = photos;
         this.scrollMonthLength = newMonths;
         this.homeElement = (this.$refs.home as HTMLElement);
         this.photoGrid = this.$refs.photoGrid;
+        this.render();
 
-        console.log(this.photosPerMonth);
+        this.photoGrid.$once('photosUpdate', () => this.$nextTick((() => {
+            this.scrollData = this.getScrollData();
+        })));
     },
     methods: {
+        render() {
+            requestAnimationFrame(this.render);
+            let greyedYears = !this.scrubbing && !this.overScrub;
+            this.resetCanvas(greyedYears);
+            if (this.overScrub || this.scrubbing) {
+                this.drawScrollThumb(
+                    this.scrubData.y, this.scrubData.year, this.scrubData.month,
+                );
+            } else if (this.scrolling) {
+                this.drawScrollThumb(
+                    this.scrollData.y, this.scrollData.year, this.scrollData.month,
+                    true,
+                );
+            } else {
+                this.drawScrollThumb(
+                    this.scrollData.y, this.scrollData.year, this.scrollData.month,
+                    true,
+                    false,
+                );
+            }
+        },
+        drawScrollThumb(y: number, year: number, month: number, smallLine = false, includeText = true) {
+            let textSize = 15;
+            let boxHeight = textSize + 10 + 3;
+            if (y < boxHeight)
+                y = boxHeight;
+            let isDark = this.$vuetify.theme.dark as boolean;
+            this.context.fillStyle = this.$vuetify.theme.themes[isDark ? 'dark' : 'light'].primary as string;
+            let lineWidth = smallLine ? 35 : 50;
+            this.context.fillRect(this.canvas.width - lineWidth, y, lineWidth, smallLine ? 2 : 3);
+            this.context.fillStyle = 'rgba(255,255,255,0.8)';
+
+            if (includeText) {
+                let text = `${monthNames[month - 1]} ${year}`;
+                let {width} = this.context.measureText(text);
+                this.context.fillRect(this.canvas.width - width - 10, y - textSize - 10,
+                    width + 10, textSize + 10);
+                this.context.fillStyle = 'black';
+                this.context.fillText(text, this.canvas.width - width - 5, y - textSize + 5);
+            }
+        },
+        resetCanvas(greyedYears = false) {
+            console.log({greyedYears})
+            this.context.fillStyle = greyedYears ? 'rgba(0,0,0,0.5)' : 'black';
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            let y = 0;
+            let currentYear = -1;
+            let textSize = 12;
+            this.context.font = `${textSize}px Roboto`;
+            for (let month of this.photosPerMonth) {
+                if (month.year !== currentYear) {
+                    currentYear = month.year;
+                    let text = currentYear.toString();
+                    let {width} = this.context.measureText(text);
+                    this.context.fillText(text, this.canvas.width - width - 5, y + textSize);
+                }
+                y += Math.round(month.count / this.totalPhotos * (this.canvas.height - textSize));
+            }
+        },
+        scrubStart(e: MouseEvent) {
+            this.scrubbing = true;
+            this.scrubByEvent(e);
+        },
+        scrubMove(e: MouseEvent) {
+            let index: number = 0, day: number = 0, month: number = 0, year: number = 0;
+            if (this.overScrub || this.scrubbing)
+                [index, day, month, year] = this.dateFromScrubEvent(e);
+            if (this.scrubbing)
+                this.scrub(index, day, month, year);
+            if (this.overScrub || this.scrubbing) {
+                let y = e.pageY - this.$vuetify.application.top;
+                this.scrubData = {y, year, month};
+            }
+        },
+        scrubEnd(e: MouseEvent) {
+            if (this.scrubbing) {
+                this.scrubbing = false;
+                clearTimeout(this.scrubTimeout);
+                let [index, day, month, year] = this.dateFromScrubEvent(e);
+                this.loadScrubData(index, day, month, year);
+            }
+        },
         dateFromScrubEvent(e: MouseEvent) {
-            let percent = (e.pageY - this.$vuetify.application.top) / (this.$vuetify.breakpoint.height - this.$vuetify.application.top)
+            let percent = (e.pageY - this.$vuetify.application.top) / (this.$vuetify.breakpoint.height - this.$vuetify.application.top);
             percent = Math.max(0, Math.min(1, percent * 1.01))
-            let totalCount = this.photosPerMonth.map(t => t.count).reduce((a, b) => a + b);
+            let totalCount = this.totalPhotos;
             let targetPhoto = totalCount * percent;
             let counter = 0;
             let index = 0, day = 0, month = 0, year = 0;
@@ -78,52 +192,116 @@ export default Vue.extend({
             }
             return [index, day, month, year];
         },
-        async showScrub(e: MouseEvent) {
+        async scrubByEvent(e: MouseEvent) {
             let [index, day, month, year] = this.dateFromScrubEvent(e);
-            console.log(day, month, year, this.photosPerMonth[index])
+            await this.scrub(index, day, month, year);
         },
-        async scrub(e: MouseEvent) {
-            let [index, day, month, year] = this.dateFromScrubEvent(e);
+        async scrub(index: number, day: number, month: number, year: number) {
+            if (index >= this.scrollMonthStart && index < this.scrollMonthStart + this.scrollMonthLength) {
+                console.log('scroll to :', [day, month, year]);
+                this.photoGrid.scrollIntoView(day, month, year);
+                return;
+            }
 
-            console.log('scroll to :', [day, month, year]);
+            // pas als je de scrub loslaat of een tijdje niet beweegt moet ie echt scrubben!
+            let now = performance.now();
+            this.lastScrubTimestamp = now;
+            this.scrubTimeout = setTimeout(() => {
+                // haven't moved in a while
+                if (now === this.lastScrubTimestamp)
+                    this.loadScrubData(index, day, month, year);
+            }, 300);
+        },
+        async loadScrubData(index: number, day: number, month: number, year: number) {
+            console.log('scrub to :', [day, month, year]);
             let [photos, newMonths] = await this.getPhotos({
                 monthOffset: Math.max(0, index)
             });
             this.scrollMonthStart = index;
             this.scrollMonthLength = newMonths;
-            this.photosPerMonth.forEach(p => p.loaded = false);
-            for (let i = 0; i < this.photosPerMonth.length; i++) {
-                let month = this.photosPerMonth[i];
-                month.loaded = i > index && i <= index + newMonths;
-            }
-
+            console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
             this.directUpdate = true;
-            this.scrollTimeout = true;
             this.photos = photos;
+            // Prevent scroll event from loading data for 200ms
+            // Reason: scroll data isn't accurate right this millisecond
+            // because vue needs to put the photos in the html grid
+            this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
             this.photoGrid.$once('photosUpdate', () => this.$nextTick((() => {
                 this.photoGrid.scrollIntoView(day, month, year);
-                setTimeout(() => this.scrollTimeout = false, 200);
             })));
         },
+        getScrollData() {
+            let year = d.getFullYear();
+            let month = d.getMonth() + 1;
+            let scrollTop = this.homeElement.scrollTop + 100;
+            let rows = this.photoGrid.photoRows;
+            if (rows.length === 0)
+                return {y: 0, year, month};
+
+            let viewedRow = null;
+            const marginBottom = 4;
+            for (let row of rows) {
+                let rowHeight = row[0].height + marginBottom;
+                for (let block of row)
+                    if (!block.hideDate) {
+                        rowHeight += 22;
+                        break;
+                    }
+                scrollTop -= rowHeight;
+                if (scrollTop <= 0) {
+                    viewedRow = row;
+                    break;
+                }
+            }
+            if (viewedRow === null)
+                viewedRow = rows[rows.length - 1];
+
+            let date = new Date(viewedRow[0].date);
+            month = date.getMonth() + 1;
+            year = date.getFullYear();
+
+            let beforeY = 0;
+            for (let i = 0; i < this.scrollMonthStart; i++) {
+                let month = this.photosPerMonth[i];
+                beforeY += month.count / this.totalPhotos;
+            }
+            scrollTop = this.homeElement.scrollTop;
+            let viewportPart = this.photos.length / this.totalPhotos;
+            let scrollPercentage = (scrollTop + this.homeElement.clientHeight) / this.homeElement.scrollHeight;
+            let y = (beforeY + viewportPart * scrollPercentage) * this.canvas.height;
+            return {y, year, month};
+        },
         async homeScroll() {
-            if (this.scrollTimeout) return;
-            this.scrollTimeout = true;
-            setTimeout(() => this.scrollTimeout = false, 500);
+            this.scrolling = true;
+            clearTimeout(this.scrollTimeout);
+            this.scrollTimeout = setTimeout(() => this.scrolling = false, 1000);
+
+            this.scrollData = this.getScrollData();
 
             let scrollTop = this.homeElement.scrollTop;
+            // If we haven't scrolled more than 180px since last scroll fire just return
+            if (Math.abs(this.prevScroll - scrollTop) < 180)
+                return;
+            this.prevScroll = scrollTop;
+
             let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
+
+            if (scrollTop < 2000 || scrollBottom < 2000) {
+                await this.scrollLoadPromise;
+                this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
+            }
+        },
+        async loadScrollData(scrollBottom: number, scrollTop: number) {
             if (scrollTop < 2000 && !this.gettingPhotos) {
-                let topReached = this.photosPerMonth[0].loaded ?? false;
-                if (topReached) {
-                    console.log("Reached top")
-                    return;
-                }
+                let topReached = this.scrollMonthStart === 0;
+                if (topReached) return;
 
                 let [photos, newMonths] = await this.getPhotos({
-                    monthOffset: this.scrollMonthStart,
+                    monthOffset: this.scrollMonthStart - 1,
                     up: true,
                 });
                 this.scrollMonthStart -= newMonths;
+                this.scrollMonthLength += newMonths;
 
                 let home = this.$refs.home as HTMLElement;
                 let heightBefore = home.scrollHeight ?? 0;
@@ -132,7 +310,6 @@ export default Vue.extend({
                 this.photoGrid.$once('photosUpdate', () => this.$nextTick(() => {
                     this.directUpdate = false;
                     let addedHeight = (home.scrollHeight ?? 0) - heightBefore;
-                    console.log(addedHeight, heightBefore, home.scrollHeight);
                     home.scrollBy({
                         top: addedHeight,
                         left: 0,
@@ -140,7 +317,7 @@ export default Vue.extend({
                 }));
             }
             if (scrollBottom < 2000 && !this.gettingPhotos) {
-                let bottomReached = this.photosPerMonth[this.photosPerMonth.length - 1].loaded ?? false;
+                let bottomReached = this.scrollMonthStart + this.scrollMonthLength === this.photosPerMonth.length;
                 if (bottomReached) return;
 
                 let [photos, newMonths] = await this.getPhotos({
@@ -156,7 +333,6 @@ export default Vue.extend({
             let requestedMonths = [];
             for (let i = monthOffset; up ? i >= 0 : i < this.photosPerMonth.length; i += up ? -1 : 1) {
                 let month = this.photosPerMonth[i];
-                month.loaded = true;
                 requestedMonths.push(month);
                 requestMinimum -= month.count;
                 if (requestMinimum < 0)
@@ -167,11 +343,23 @@ export default Vue.extend({
                 url: 'photos/month-photos',
                 body: {months: requestedMonths.map(m => [m.year, m.month])}
             });
+            if (up)
+                photos = photos.reverse();
             this.gettingPhotos = false;
             return [photos.flat(), requestedMonths.length];
         }
     },
-    computed: {},
+    computed: {
+        canvasHeight() {
+            return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;
+        },
+        totalPhotos() {
+            let n = 0;
+            for (let month of this.photosPerMonth)
+                n += month.count;
+            return n;
+        },
+    },
 })
 </script>
 
@@ -181,19 +369,29 @@ export default Vue.extend({
     max-height: calc(100vh - 64px);
     overflow-y: scroll;
     width: 100%;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.home::-webkit-scrollbar {
+    display: none;
 }
 
 .grid {
-    width: 100%;
+    width: calc(100% - 40px);
     position: relative;
     left: 0;
     bottom: 0;
     height: 100%;
 }
 
+.scrubber-events {
+    width: 50px !important;
+    cursor: pointer;
+}
+
 .scrubber {
-    width: 40px;
-    background-color: rgba(255, 0, 0, 0.5);
+    width: 100px;
     height: 100%;
     position: absolute;
     right: 0;
