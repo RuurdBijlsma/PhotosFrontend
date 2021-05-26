@@ -15,15 +15,14 @@
 
 <script lang="ts">
 //TODO
+// Scrolling sometimes loads new data twice when only once is supposed to happen
 // if too much is loaded remove far away pictures
 // scrubbing to last date in list removes scrollbar >:(
 // search might return too many results for one page :hmm not sure
 //      Google photos uses limit+offset for this
+// it's possible to scrub to an exact border and scroll up won't work
 
 // Add settings page
-// Change api constant to setting in settings page
-// Werkt zoeken naar "gibraltar pizza"?
-// replace scrollbar with scrub bar
 // click photo to view it large
 // albums
 // world with photos
@@ -91,13 +90,16 @@ export default Vue.extend({
     methods: {
         render() {
             requestAnimationFrame(this.render);
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             let greyedYears = !this.scrubbing && !this.overScrub;
-            this.resetCanvas(greyedYears);
+            this.drawLoadedRegion();
+            this.drawYears(greyedYears);
             if (this.overScrub || this.scrubbing) {
                 this.drawScrollThumb(
                     this.scrubData.y, this.scrubData.year, this.scrubData.month,
                 );
-            } else if (this.scrolling) {
+            }
+            if (this.scrolling) {
                 this.drawScrollThumb(
                     this.scrollData.y, this.scrollData.year, this.scrollData.month,
                     true,
@@ -110,10 +112,24 @@ export default Vue.extend({
                 );
             }
         },
+        drawLoadedRegion() {
+            let start = 0, regionPart = 0;
+            for (let i = 0; i < this.scrollMonthStart; i++) {
+                let month = this.photosPerMonth[i];
+                start += month.count / this.totalPhotos;
+            }
+            for (let i = this.scrollMonthStart; i < this.scrollMonthStart + this.scrollMonthLength; i++) {
+                let month = this.photosPerMonth[i];
+                regionPart += month.count / this.totalPhotos;
+            }
+            this.context.fillStyle = 'rgba(50,255,100,0.3)';
+            let width = 50;
+            this.context.fillRect(this.canvas.width - width, start * this.canvas.height, width, regionPart * this.canvas.height);
+        },
         drawScrollThumb(y: number, year: number, month: number, smallLine = false, includeText = true) {
             let textSize = 15;
             let boxHeight = textSize + 10 + 3;
-            if (y < boxHeight)
+            if (y < boxHeight && includeText)
                 y = boxHeight;
             let isDark = this.$vuetify.theme.dark as boolean;
             this.context.fillStyle = this.$vuetify.theme.themes[isDark ? 'dark' : 'light'].primary as string;
@@ -130,10 +146,8 @@ export default Vue.extend({
                 this.context.fillText(text, this.canvas.width - width - 5, y - textSize + 5);
             }
         },
-        resetCanvas(greyedYears = false) {
-            console.log({greyedYears})
+        drawYears(greyedYears = false) {
             this.context.fillStyle = greyedYears ? 'rgba(0,0,0,0.5)' : 'black';
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             let y = 0;
             let currentYear = -1;
             let textSize = 12;
@@ -168,7 +182,7 @@ export default Vue.extend({
                 this.scrubbing = false;
                 clearTimeout(this.scrubTimeout);
                 let [index, day, month, year] = this.dateFromScrubEvent(e);
-                this.loadScrubData(index, day, month, year);
+                this.scrub(index, day, month, year);
             }
         },
         dateFromScrubEvent(e: MouseEvent) {
@@ -286,13 +300,13 @@ export default Vue.extend({
 
             let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
 
-            if (scrollTop < 2000 || scrollBottom < 2000) {
+            if (scrollTop < 3000 || scrollBottom < 3000) {
                 await this.scrollLoadPromise;
                 this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
             }
         },
         async loadScrollData(scrollBottom: number, scrollTop: number) {
-            if (scrollTop < 2000 && !this.gettingPhotos) {
+            if (scrollTop < 3000 && !this.gettingPhotos) {
                 let topReached = this.scrollMonthStart === 0;
                 if (topReached) return;
 
@@ -316,7 +330,7 @@ export default Vue.extend({
                     });
                 }));
             }
-            if (scrollBottom < 2000 && !this.gettingPhotos) {
+            if (scrollBottom < 3000 && !this.gettingPhotos) {
                 let bottomReached = this.scrollMonthStart + this.scrollMonthLength === this.photosPerMonth.length;
                 if (bottomReached) return;
 

@@ -87,6 +87,7 @@ export default Vue.extend({
 html, body {
     font-family: Roboto, Arial, sans-serif;
     overflow-y: hidden !important;
+    user-select: none;
 }
 
 .logo-icon {
