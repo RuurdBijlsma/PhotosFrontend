@@ -13,6 +13,5 @@ export default new Vuetify({
                 primary: '#318bd5',
             }
         }
-
     }
 });

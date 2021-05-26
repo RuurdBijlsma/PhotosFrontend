@@ -47,7 +47,6 @@ export default Vue.extend({
             type: Array,
             required: true,
         },
-        directPhotosUpdate: {type: Boolean, default: false},
         timeline: {type: Boolean, default: false},
     },
     data: () => ({
@@ -200,6 +199,7 @@ export default Vue.extend({
             }
 
             this.photoRows = rows;
+            this.$emit('photoRowsUpdate');
         },
         onResize() {
             requestAnimationFrame(this.calculateLayout);
@@ -243,12 +243,7 @@ export default Vue.extend({
     computed: {},
     watch: {
         photos() {
-            if (this.directPhotosUpdate) {
-                this.calculateLayout();
-            } else {
-                requestAnimationFrame(this.calculateLayout);
-            }
-            this.$emit('photosUpdate');
+            requestAnimationFrame(this.calculateLayout);
         }
     }
 })

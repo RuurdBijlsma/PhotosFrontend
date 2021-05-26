@@ -1,6 +1,6 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
-        <photo-grid timeline :direct-photos-update="directUpdate" ref="photoGrid" class="grid"
+        <photo-grid timeline ref="photoGrid" class="grid"
                     :photos="photos"></photo-grid>
 
         <canvas :width="100"
@@ -42,7 +42,6 @@ export default Vue.extend({
     name: 'Home',
     components: {PhotoGrid},
     data: () => ({
-        directUpdate: false,
         photosPerMonth: [] as any[],
         photos: [] as any[],
         api,
@@ -83,7 +82,7 @@ export default Vue.extend({
         this.photoGrid = this.$refs.photoGrid;
         this.render();
 
-        this.photoGrid.$once('photosUpdate', () => this.$nextTick((() => {
+        this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
             this.scrollData = this.getScrollData();
         })));
     },
@@ -234,15 +233,14 @@ export default Vue.extend({
             this.scrollMonthStart = index;
             this.scrollMonthLength = newMonths;
             console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
-            this.directUpdate = true;
             this.photos = photos;
             // Prevent scroll event from loading data for 200ms
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
             this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
-            this.photoGrid.$once('photosUpdate', () => this.$nextTick((() => {
+            this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
                 this.photoGrid.scrollIntoView(day, month, year);
-            })));
+            }));
         },
         getScrollData() {
             let year = d.getFullYear();
@@ -319,10 +317,8 @@ export default Vue.extend({
 
                 let home = this.$refs.home as HTMLElement;
                 let heightBefore = home.scrollHeight ?? 0;
-                this.directUpdate = true;
                 this.photos.unshift(...photos);
-                this.photoGrid.$once('photosUpdate', () => this.$nextTick(() => {
-                    this.directUpdate = false;
+                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
                     let addedHeight = (home.scrollHeight ?? 0) - heightBefore;
                     home.scrollBy({
                         top: addedHeight,
@@ -341,7 +337,7 @@ export default Vue.extend({
                 this.photos.push(...photos);
             }
         },
-        async getPhotos({requestMinimum = 80, monthOffset = 0, up = false}) {
+        async getPhotos({requestMinimum = 150, monthOffset = 0, up = false}) {
             this.gettingPhotos = true;
             // Get's at least 100 photos based on given start month/year
             let requestedMonths = [];
