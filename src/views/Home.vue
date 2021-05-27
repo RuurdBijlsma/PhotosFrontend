@@ -17,7 +17,7 @@
 //TODO
 // search might return too many results for one page :hmm not sure
 //      Google photos uses limit+offset for this
-// Use Media.ts in PhotoGrid
+// Fix search page url not updating when searching
 
 // Add settings page
 // click photo to view it large
