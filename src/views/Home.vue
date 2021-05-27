@@ -1,7 +1,7 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
         <photo-grid timeline ref="photoGrid" class="grid"
-                    :photos="photos"></photo-grid>
+                    :photos="flatPhotos"/>
 
         <canvas :width="100"
                 :height="canvasHeight"
@@ -42,26 +42,29 @@ export default Vue.extend({
     name: 'Home',
     components: {PhotoGrid},
     data: () => ({
-        photosPerMonth: [] as any[],
-        photos: [] as any[],
         api,
+        photosPerMonth: [] as any[],
+        photos: [] as any[][],
         homeElement: {} as HTMLElement,
-        photoGrid: null as any,
-        scrollMonthStart: 0,
-        scrollMonthLength: 0,
-        gettingPhotos: false,
-        scrollLoadPromise: null as any,
-        scrubbing: false,
         canvas: {} as HTMLCanvasElement,
         context: {} as CanvasRenderingContext2D,
-        scrubTimeout: -1,
-        lastScrubTimestamp: -1,
-        overScrub: false,
-        scrubData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
+        photoGrid: null as any,
+
+        scrollMonthStart: 0,
+        scrollLoadPromise: null as any,
         scrolling: false,
         scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         scrollTimeout: -1,
         prevScroll: -2000,
+        scrollThreshold: 4000,
+
+        gettingPhotos: false,
+        scrubbing: false,
+        scrubTimeout: -1,
+        lastScrubTimestamp: -1,
+        overScrub: false,
+        scrubData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
+        maxPhotos: 800,
     }),
     beforeDestroy() {
         document.removeEventListener('mousemove', this.scrubMove);
@@ -75,9 +78,7 @@ export default Vue.extend({
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
         this.photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
-        let [photos, newMonths] = await this.getPhotos({monthOffset: 0});
-        this.photos = photos;
-        this.scrollMonthLength = newMonths;
+        this.photos = await this.getPhotos({monthOffset: 0});
         this.homeElement = (this.$refs.home as HTMLElement);
         this.photoGrid = this.$refs.photoGrid;
         this.render();
@@ -98,12 +99,12 @@ export default Vue.extend({
                     this.scrubData.y, this.scrubData.year, this.scrubData.month,
                 );
             }
-            if (this.scrolling) {
+            if (this.scrolling && !this.scrubbing) {
                 this.drawScrollThumb(
                     this.scrollData.y, this.scrollData.year, this.scrollData.month,
                     true,
                 );
-            } else {
+            } else if (!this.scrubbing) {
                 this.drawScrollThumb(
                     this.scrollData.y, this.scrollData.year, this.scrollData.month,
                     true,
@@ -227,13 +228,14 @@ export default Vue.extend({
         },
         async loadScrubData(index: number, day: number, month: number, year: number) {
             console.log('scrub to :', [day, month, year]);
-            let [photos, newMonths] = await this.getPhotos({
-                monthOffset: Math.max(0, index)
+            index = Math.max(0, index - 1);
+            let monthPhotos = await this.getPhotos({
+                monthOffset: index,
+                minimumMonths: 2,
             });
             this.scrollMonthStart = index;
-            this.scrollMonthLength = newMonths;
             console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
-            this.photos = photos;
+            this.photos = monthPhotos;
             // Prevent scroll event from loading data for 200ms
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
@@ -278,7 +280,7 @@ export default Vue.extend({
                 beforeY += month.count / this.totalPhotos;
             }
             scrollTop = this.homeElement.scrollTop;
-            let viewportPart = this.photos.length / this.totalPhotos;
+            let viewportPart = this.flatPhotos.length / this.totalPhotos;
             let scrollPercentage = (scrollTop + this.homeElement.clientHeight) / this.homeElement.scrollHeight;
             let y = (beforeY + viewportPart * scrollPercentage) * this.canvas.height;
             return {y, year, month};
@@ -299,45 +301,93 @@ export default Vue.extend({
             let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
 
             if (scrollTop < 3000 || scrollBottom < 3000) {
-                await this.scrollLoadPromise;
-                this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
+                let loading = await Promise.race([this.scrollLoadPromise, this.waitSleep(1)]);
+                if (!loading)
+                    this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
+            }
+        },
+        unloadMonths() {
+            if (this.flatPhotos.length > this.maxPhotos) {
+                let removeNPhotos = this.flatPhotos.length - Math.round(this.maxPhotos / 2);
+                let scrollPercent = (this.homeElement.scrollTop + this.homeElement.clientHeight / 2) / this.homeElement.scrollHeight;
+
+                let scrollTop = this.homeElement.scrollTop;
+                let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
+                console.log(`too many photos! scrollPercent: ${scrollPercent.toFixed(2)}, scrollTop: ${scrollTop}, scrollBottom: ${scrollBottom}`);
+                if (scrollPercent < 0.5 && scrollBottom > this.scrollThreshold) {
+                    // remove some from bottom
+                    let removeNMonths = 0;
+                    for (let i = this.scrollMonthStart + this.scrollMonthLength - 1; i >= this.scrollMonthStart; i--) {
+                        removeNPhotos -= this.photosPerMonth[i].count;
+                        if (removeNPhotos <= 0) break;
+                        removeNMonths++;
+                    }
+                    console.log({removeNMonths});
+                    this.photos.splice(this.photos.length - removeNMonths, removeNMonths);
+                } else if (scrollPercent >= 0.5 && scrollTop > this.scrollThreshold) {
+                    // remove some from top
+                    let removeNMonths = 0;
+                    for (let i = this.scrollMonthStart; i < this.scrollMonthStart + this.photos.length; i++) {
+                        removeNPhotos -= this.photosPerMonth[i].count;
+                        if (removeNPhotos <= 0) break;
+                        removeNMonths++;
+                    }
+                    console.log({removeNMonths});
+                    this.scrollMonthStart += removeNMonths;
+                    this.updatePhotosKeepScroll(() => this.photos.splice(0, removeNMonths));
+                }
             }
         },
         async loadScrollData(scrollBottom: number, scrollTop: number) {
-            if (scrollTop < 3000 && !this.gettingPhotos) {
+            if (scrollTop < this.scrollThreshold && !this.gettingPhotos) {
                 let topReached = this.scrollMonthStart === 0;
                 if (topReached) return;
 
-                let [photos, newMonths] = await this.getPhotos({
+                let monthPhotos = await this.getPhotos({
                     monthOffset: this.scrollMonthStart - 1,
                     up: true,
                 });
-                this.scrollMonthStart -= newMonths;
-                this.scrollMonthLength += newMonths;
+                this.scrollMonthStart -= monthPhotos.length;
 
-                let home = this.$refs.home as HTMLElement;
-                let heightBefore = home.scrollHeight ?? 0;
-                this.photos.unshift(...photos);
-                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
-                    let addedHeight = (home.scrollHeight ?? 0) - heightBefore;
-                    home.scrollBy({
-                        top: addedHeight,
-                        left: 0,
-                    });
-                }));
+                await this.updatePhotosKeepScroll(() => this.photos.unshift(...monthPhotos));
+                this.unloadMonths();
             }
-            if (scrollBottom < 3000 && !this.gettingPhotos) {
+            if (scrollBottom < this.scrollThreshold && !this.gettingPhotos) {
                 let bottomReached = this.scrollMonthStart + this.scrollMonthLength === this.photosPerMonth.length;
                 if (bottomReached) return;
 
-                let [photos, newMonths] = await this.getPhotos({
+                let monthPhotos = await this.getPhotos({
                     monthOffset: this.scrollMonthStart + this.scrollMonthLength
                 });
-                this.scrollMonthLength += newMonths;
-                this.photos.push(...photos);
+                this.photos.push(...monthPhotos);
+                await this.waitForLayoutUpdate();
+                this.unloadMonths();
             }
         },
-        async getPhotos({requestMinimum = 150, monthOffset = 0, up = false}) {
+        async updatePhotosKeepScroll(updateFun: Function) {
+            let heightBefore = this.homeElement.scrollHeight ?? 0;
+            let topBefore = this.homeElement.scrollTop + this.homeElement.clientHeight;
+            updateFun();
+            await this.waitForLayoutUpdate();
+            let deltaTop = 0;
+            let heightAfter = this.homeElement.scrollHeight;
+            if (topBefore > heightAfter) {
+                deltaTop = topBefore - this.homeElement.scrollTop;
+            }
+            let addedHeight = heightAfter - heightBefore;
+            this.homeElement.scrollBy({
+                top: addedHeight + deltaTop,
+                left: 0,
+            });
+        },
+        waitForLayoutUpdate(): Promise<void> {
+            return new Promise(resolve => {
+                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
+                    resolve();
+                }));
+            })
+        },
+        async getPhotos({requestMinimum = 50, monthOffset = 0, minimumMonths = 0, up = false}) {
             this.gettingPhotos = true;
             // Get's at least 100 photos based on given start month/year
             let requestedMonths = [];
@@ -345,7 +395,7 @@ export default Vue.extend({
                 let month = this.photosPerMonth[i];
                 requestedMonths.push(month);
                 requestMinimum -= month.count;
-                if (requestMinimum < 0)
+                if (requestMinimum < 0 && requestedMonths.length >= minimumMonths)
                     break;
             }
             console.log("Requesting months", requestedMonths.map(m => [m.year, m.month].join(', ')));
@@ -356,10 +406,19 @@ export default Vue.extend({
             if (up)
                 photos = photos.reverse();
             this.gettingPhotos = false;
-            return [photos.flat(), requestedMonths.length];
-        }
+            return photos;
+        },
+        waitSleep(ms = 1000) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
     },
     computed: {
+        scrollMonthLength() {
+            return this.photos.length;
+        },
+        flatPhotos() {
+            return this.photos.flat();
+        },
         canvasHeight() {
             return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;
         },

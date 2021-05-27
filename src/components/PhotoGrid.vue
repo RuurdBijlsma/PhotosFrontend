@@ -293,5 +293,6 @@ export default Vue.extend({
 .photo > * {
     width: 100%;
     height: 100%;
+    display: block;
 }
 </style>
