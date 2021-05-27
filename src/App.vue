@@ -7,7 +7,7 @@
             <v-spacer></v-spacer>
 
             <v-text-field dense solo hide-details @keydown.enter="startSearch" label="Search..."
-                          v-model="$route.query.q" append-icon="mdi-magnify"/>
+                          v-model="query" append-icon="mdi-magnify"/>
 
             <v-spacer></v-spacer>
 
@@ -61,9 +61,13 @@ export default Vue.extend({
     name: 'App',
 
     data: () => ({
-        //
+        query: '',
     }),
     async mounted() {
+        if (this.$route.params.query) {
+            console.warn('setting query')
+            this.query = this.$route.params.query;
+        }
         if (!this.$store.getters.isLoggedIn && this.$route.name !== 'Login')
             await this.$router.push('/login');
         console.log(this.$store);
@@ -72,13 +76,18 @@ export default Vue.extend({
         startSearch() {
             console.log(this.$route.query.q);
             if (this.$route.name === 'Search') {
-                this.$store.dispatch('search', this.$route.query.q);
+                this.$router.push(`/search/${this.query}`)
+                this.$store.dispatch('search', this.query);
             } else
                 this.$router.push({
-                    query: {q: this.$route.query.q},
-                    path: '/search',
+                    path: `/search/${this.query}`,
                 })
         },
+    },
+    watch: {
+        '$route.params.query'() {
+            this.query = this.$route.params.query;
+        }
     }
 });
 </script>

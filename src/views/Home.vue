@@ -18,7 +18,8 @@
 // search might return too many results for one page :hmm not sure
 //      Google photos uses limit+offset for this
 // Fix search page url not updating when searching
-
+// Search by year/month/day/date
+//      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017"
 // Add settings page
 // click photo to view it large
 // albums
@@ -101,7 +102,7 @@ export default Vue.extend({
             requestAnimationFrame(this.render);
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             let greyedYears = !this.scrubbing && !this.overScrub;
-            this.drawLoadedRegion();
+            if (false) this.drawLoadedRegion();
             this.drawYears(greyedYears);
             if (this.overScrub || this.scrubbing) {
                 this.drawScrollThumb(
