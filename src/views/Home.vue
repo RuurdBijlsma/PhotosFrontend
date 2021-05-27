@@ -15,12 +15,9 @@
 
 <script lang="ts">
 //TODO
-// Scrolling sometimes loads new data twice when only once is supposed to happen
-// if too much is loaded remove far away pictures
-// scrubbing to last date in list removes scrollbar >:(
 // search might return too many results for one page :hmm not sure
 //      Google photos uses limit+offset for this
-// it's possible to scrub to an exact border and scroll up won't work
+// Use MediaItem.ts in PhotoGrid
 
 // Add settings page
 // click photo to view it large
