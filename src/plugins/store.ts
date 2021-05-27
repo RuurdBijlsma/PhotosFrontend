@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import {api} from "@/ts/constants"
-// @ts-ignore
 import VuexPersistence from "vuex-persist"
+import {Media} from "@/ts/Media";
 
 const vuexLocal = new VuexPersistence({
     reducer: (state: any) => ({
@@ -18,7 +18,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         api,
-        searchResults: [],
+        searchResults: [] as Media[],
         email: '',
         password: '',
     },
@@ -26,7 +26,7 @@ export default new Vuex.Store({
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
-        searchResults: (state, v) => state.searchResults = v,
+        searchResults: (state, v: Media[]) => state.searchResults = v,
         login: (state, {email, password}) => {
             state.email = email;
             state.password = password;
@@ -60,8 +60,10 @@ export default new Vuex.Store({
             return result;
         },
         async search({dispatch, commit, state}, query: string) {
-            let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`})
-            commit('searchResults', result);
+            let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
+            let items = result.map(Media.fromObject);
+            console.log(result, items);
+            commit('searchResults', items);
         }
     },
     modules: {},

@@ -7,23 +7,23 @@
                     {{ block.day }}
                 </div>
                 <div class="photos">
-                    <div class="photo" v-for="photo in block.photos"
+                    <div class="photo" v-for="{media, visualWidth, visualHeight} in block.layoutMedias"
                          :style="{
-                        height: photo.visualHeight + 'px',
-                        width: photo.visualWidth + 'px',
+                        height: visualHeight + 'px',
+                        width: visualWidth + 'px',
                      }">
-                        <div v-if="photo.type === 'image'"
+                        <div v-if="media.type === 0"
                              :style="{
-                        backgroundImage: `url(${api}/photo/small/${photo.id}.webp)`
+                        backgroundImage: `url(${api}/photo/small/${media.id}.webp)`
                      }"
-                             :src="`${api}/photo/small/${photo.id}.webp`"
-                             :alt="photo.filename"></div>
-                        <video @mouseleave="pauseVideo(photo.id)"
-                               @mouseenter="playVideo(photo.id)"
-                               :poster="`${api}/photo/small/${photo.id}.webp`"
+                             :src="`${api}/photo/small/${media.id}.webp`"
+                             :alt="media.filename"></div>
+                        <video @mouseleave="pauseVideo(media.id)"
+                               @mouseenter="playVideo(media.id)"
+                               :poster="`${api}/photo/small/${media.id}.webp`"
                                muted loop
-                               :ref="`video${photo.id}`" v-else
-                               :src="`${api}/photo/webm/${photo.id}.webm`"></video>
+                               :ref="`video${media.id}`" v-else
+                               :src="`${api}/photo/webm/${media.id}.webm`"></video>
                     </div>
                 </div>
             </div>
@@ -32,25 +32,25 @@
 </template>
 
 <script lang="ts">
-//TODO
+// TODO
 // Get actual viewport with excluding scrollbar
 // Separate functions
 // Separate into vue component
 // Update layout on window resize
-import Vue from 'vue'
+import Vue, {PropType} from 'vue'
 import {api} from "@/ts/constants"
+import {ILayoutBlock} from "@/ts/ILayoutBlock";
+import {Media} from "@/ts/Media";
+import {ILayoutMedia} from "@/ts/ILayoutMedia";
 
 export default Vue.extend({
     name: 'PhotoGrid',
     props: {
-        photos: {
-            type: Array,
-            required: true,
-        },
+        photos: {type: Array as PropType<Media[]>, required: true},
         timeline: {type: Boolean, default: false},
     },
     data: () => ({
-        photoRows: [] as any[][],
+        photoRows: [] as ILayoutBlock[][],
         frameWidth: window.innerWidth - 256,
         api,
     }),
@@ -64,7 +64,7 @@ export default Vue.extend({
     },
     methods: {
         async calculateLayout() {
-            let photos = this.photos as any[];
+            let photos: ILayoutMedia[] = this.photos.map(p => ({media: p, visualWidth: 0, visualHeight: 0}));
             if (photos.length === 0) {
                 this.photoRows = [];
                 return;
@@ -75,48 +75,51 @@ export default Vue.extend({
             const currentYear = new Date().getFullYear();
             const currentDate = new Date().toDateString();
             const yesterday = new Date(new Date().getTime() - 1000 * 60 * 60 * 24).toDateString()
-            const parseDate = (date: string): [string, number, number] => {
-                let d = new Date(date);
-                let ds = d.toDateString();
-                let month = d.getMonth() + 1;
-                let unix = d.getTime();
+            const parseDate = (date: Date): [string, number, number] => {
+                let ds = date.toDateString();
+                let month = date.getMonth() + 1;
+                let unix = date.getTime();
                 if (ds === currentDate)
                     return ['Today', month, unix];
                 if (ds === yesterday)
                     return ['Yesterday', month, unix];
-                if (d.getFullYear() === currentYear)
+                if (date.getFullYear() === currentYear)
                     return [ds.substr(0, ds.length - 5), month, unix];
                 else return [ds, month, unix];
             }
-            let [firstDay, firstMonth, firstDate] = parseDate(photos[0].createDate);
-            let photosByDay = [];
-            let dayPhotos: { day: string, month: number, photos: any[], date: number } = {
+            let [firstDay, firstMonth, firstDate] = parseDate(photos[0].media.createDate);
+
+            interface DayPhotos {
+                day: string,
+                month: number,
+                layoutMedias: ILayoutMedia[],
+                date: number,
+            }
+
+            let dayPhotos: DayPhotos = {
                 day: firstDay,
                 month: firstMonth,
                 date: firstDate,
-                photos: [],
+                layoutMedias: [],
             };
+            let photosByDay: DayPhotos[] = [];
             for (let photo of photos) {
-                let [day, month, date] = parseDate(photo.createDate);
+                let [day, month, date] = parseDate(photo.media.createDate);
                 if (dayPhotos.day !== day) {
                     photosByDay.push(dayPhotos);
-                    dayPhotos = {day, month, photos: [], date};
+                    dayPhotos = {day, month, layoutMedias: [], date};
                 }
-                dayPhotos.photos.push(photo);
+                dayPhotos.layoutMedias.push(photo);
             }
             photosByDay.push(dayPhotos);
-
 
             // Calculate visual size for photos given viewport size
             const allowedWidth = this.frameWidth;
             const minHeight = 150 + Math.min(window.innerWidth / 30, 64);
-            let rows: any[][] = [];
-            let row: any[] = [];
-            let block: {
-                photos: any[], day: string, month: number,
-                width: number, height: number, hideDate: boolean, date: number
-            } = {
-                photos: [],
+            let rows: ILayoutBlock[][] = [];
+            let row: ILayoutBlock[] = [];
+            let block: ILayoutBlock = {
+                layoutMedias: [] as ILayoutMedia[],
                 day: firstDay,
                 month: firstMonth,
                 date: firstDate,
@@ -129,12 +132,11 @@ export default Vue.extend({
             for (let dayPhotos of photosByDay) {
                 let day = dayPhotos.day;
                 let month = dayPhotos.month;
-                for (let photo of dayPhotos.photos) {
-                    photo.ratio = photo.width / photo.height;
-                    let preferredWidth = minHeight * photo.ratio;
+                for (let layoutMedia of dayPhotos.layoutMedias) {
+                    let preferredWidth = minHeight * layoutMedia.media.ratio;
                     let updatedWidth = rowW + preferredWidth;
                     let remainingWidth = allowedWidth - rowW;
-                    let currentDaySize = dayPhotos.photos.length;
+                    let currentDaySize = dayPhotos.layoutMedias.length;
 
                     // If this photo doesn't fit in the block, or it's a different day, make new block
                     let newMonth = month !== block.month;
@@ -145,10 +147,10 @@ export default Vue.extend({
                         (newDay && prevDaySize > 3) ||
                         (this.timeline && newMonth);
                     if (newRow || newDay) {
-                        if (block.photos.length > 0)
+                        if (block.layoutMedias.length > 0)
                             row.push(block);
                         block = {
-                            photos: [], day, width: 0, height: 0,
+                            layoutMedias: [], day, width: 0, height: 0,
                             hideDate: newRow && !newDay,
                             month, date: dayPhotos.date
                         };
@@ -161,9 +163,9 @@ export default Vue.extend({
                         }
                     }
                     rowW += preferredWidth;
-                    block.photos.push(photo);
+                    block.layoutMedias.push(layoutMedia);
                 }
-                prevDaySize = dayPhotos.photos.length;
+                prevDaySize = dayPhotos.layoutMedias.length;
             }
             row.push(block);
             rows.push(row);
@@ -174,26 +176,24 @@ export default Vue.extend({
             for (let row of rows) {
                 let blockWidths = [];
                 for (let block of row) {
-                    block.width = block.photos
-                        .map((p: any) => p.ratio * minHeight)
-                        .reduce((a: number, b: number) => a + b);
+                    block.width = block.layoutMedias
+                        .map(p => p.media.ratio * minHeight)
+                        .reduce((a, b) => a + b);
                     blockWidths.push(block.width);
                 }
                 let pixelWidth = blockWidths.reduce((a, b) => a + b);
-                let imageMargins = row.map(block => (block.photos.length - 1) * imageMargin);
+                let imageMargins = row.map(block => (block.layoutMedias.length - 1) * imageMargin);
                 let blockMargins = (row.length - 1) * blockMargin;
                 let margins = imageMargins.reduce((a, b) => a + b) + blockMargins;
                 let sizeMultiplier = (allowedWidth - margins) / pixelWidth;
                 if (sizeMultiplier > 2.1) {
                     sizeMultiplier = 1;
                 }
-                // sizeMultiplier = 1;
-                // sizeMultiplier = Math.min(sizeMultiplier, 1.5);
                 for (let block of row) {
                     block.height = minHeight * sizeMultiplier;
-                    for (let photo of block.photos) {
+                    for (let photo of block.layoutMedias) {
                         photo.visualHeight = minHeight * sizeMultiplier;
-                        photo.visualWidth = minHeight * photo.ratio * sizeMultiplier;
+                        photo.visualWidth = minHeight * photo.media.ratio * sizeMultiplier;
                     }
                 }
             }

@@ -17,7 +17,7 @@
 //TODO
 // search might return too many results for one page :hmm not sure
 //      Google photos uses limit+offset for this
-// Use MediaItem.ts in PhotoGrid
+// Use Media.ts in PhotoGrid
 
 // Add settings page
 // click photo to view it large
@@ -29,10 +29,19 @@
 // Upload photo
 // Download photo
 
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',];
+import {Media} from "@/ts/Media";
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {api} from "@/ts/constants"
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',];
+
+interface MonthPhotos {
+    year: number,
+    month: number,
+    count: number,
+    loaded: boolean,
+}
 
 const d = new Date();
 export default Vue.extend({
@@ -40,15 +49,15 @@ export default Vue.extend({
     components: {PhotoGrid},
     data: () => ({
         api,
-        photosPerMonth: [] as any[],
-        photos: [] as any[][],
+        photosPerMonth: [] as MonthPhotos[],
+        photos: [] as Media[][],
         homeElement: {} as HTMLElement,
         canvas: {} as HTMLCanvasElement,
         context: {} as CanvasRenderingContext2D,
         photoGrid: null as any,
 
         scrollMonthStart: 0,
-        scrollLoadPromise: null as any,
+        scrollLoadPromise: null as Promise<void> | null,
         scrolling: false,
         scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         scrollTimeout: -1,
@@ -74,7 +83,10 @@ export default Vue.extend({
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
-        this.photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
+        let photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
+        this.photosPerMonth = photosPerMonth.map(({year = 0, month = 0, count = 0}) => ({
+            year, month, count, loaded: false
+        }));
         this.photos = await this.getPhotos({monthOffset: 0});
         this.homeElement = (this.$refs.home as HTMLElement);
         this.photoGrid = this.$refs.photoGrid;
@@ -384,7 +396,7 @@ export default Vue.extend({
                 }));
             })
         },
-        async getPhotos({requestMinimum = 50, monthOffset = 0, minimumMonths = 0, up = false}) {
+        async getPhotos({requestMinimum = 50, monthOffset = 0, minimumMonths = 0, up = false}): Promise<Media[][]> {
             this.gettingPhotos = true;
             // Get's at least 100 photos based on given start month/year
             let requestedMonths = [];
@@ -400,10 +412,9 @@ export default Vue.extend({
                 url: 'photos/month-photos',
                 body: {months: requestedMonths.map(m => [m.year, m.month])}
             });
-            if (up)
-                photos = photos.reverse();
+            if (up) photos = photos.reverse();
             this.gettingPhotos = false;
-            return photos;
+            return photos.map((p: Object[]) => p.map(Media.fromObject));
         },
         waitSleep(ms = 1000) {
             return new Promise(resolve => setTimeout(resolve, ms));
