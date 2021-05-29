@@ -17,15 +17,15 @@
                      }">
                         <div v-if="media.type === 0"
                              :style="{
-                                backgroundImage: `url(${api}/photo/small/${media.id}.webp)`
+                                backgroundImage: `url(${api}/photos/small/${media.id}.webp)`
                              }"
                              :alt="media.filename"></div>
                         <video @mouseleave="pauseVideo(media.id)"
                                @mouseenter="playVideo(media.id)"
-                               :poster="`${api}/photo/small/${media.id}.webp`"
+                               :poster="`${api}/photos/small/${media.id}.webp`"
                                muted loop
                                :ref="`video${media.id}`" v-else
-                               :src="`${api}/photo/webm/${media.id}.webm`"></video>
+                               :src="`${api}/photos/webm/${media.id}.webm`"></video>
                     </router-link>
                 </div>
             </div>

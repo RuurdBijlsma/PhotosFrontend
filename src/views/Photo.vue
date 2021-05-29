@@ -2,13 +2,13 @@
     <div class="media-photo" v-if="media !== null">
         <div v-if="media.type === 0"
              :style="{
-                        backgroundImage: `url(${api}/photo/big/${media.id}.webp)`
+                        backgroundImage: `url(${api}/photos/big/${media.id}.webp)`
                      }"
              :alt="media.filename"></div>
-        <video :poster="`${api}/photo/big/${media.id}.webp`"
+        <video :poster="`${api}/photos/big/${media.id}.webp`"
                controls
                :ref="`video${media.id}`" v-else
-               :src="`${api}/photo/webm/${media.id}.webm`"></video>
+               :src="`${api}/photos/webm/${media.id}.webm`"></video>
     </div>
 </template>
 
