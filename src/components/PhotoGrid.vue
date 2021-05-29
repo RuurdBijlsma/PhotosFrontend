@@ -7,16 +7,18 @@
                     {{ block.day }}
                 </div>
                 <div class="photos">
-                    <div class="photo" v-for="{media, visualWidth, visualHeight} in block.layoutMedias"
-                         :style="{
+                    <router-link class="photo"
+                                 :to="`${currentPath}/photo/${media.id}`"
+                                 v-for="{media, visualWidth, visualHeight} in block.layoutMedias"
+                                 :key="media.id"
+                                 :style="{
                         height: visualHeight + 'px',
                         width: visualWidth + 'px',
                      }">
                         <div v-if="media.type === 0"
                              :style="{
-                        backgroundImage: `url(${api}/photo/small/${media.id}.webp)`
-                     }"
-                             :src="`${api}/photo/small/${media.id}.webp`"
+                                backgroundImage: `url(${api}/photo/small/${media.id}.webp)`
+                             }"
                              :alt="media.filename"></div>
                         <video @mouseleave="pauseVideo(media.id)"
                                @mouseenter="playVideo(media.id)"
@@ -24,7 +26,7 @@
                                muted loop
                                :ref="`video${media.id}`" v-else
                                :src="`${api}/photo/webm/${media.id}.webm`"></video>
-                    </div>
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -32,11 +34,6 @@
 </template>
 
 <script lang="ts">
-// TODO
-// Get actual viewport with excluding scrollbar
-// Separate functions
-// Separate into vue component
-// Update layout on window resize
 import Vue, {PropType} from 'vue'
 import {api} from "@/ts/constants"
 import {ILayoutBlock} from "@/ts/ILayoutBlock";
@@ -240,7 +237,14 @@ export default Vue.extend({
             rows[this.photoRows.indexOf(list[0])].scrollIntoView();
         },
     },
-    computed: {},
+    computed: {
+        currentPath() {
+            let path = this.$route.path;
+            if (path.endsWith('/'))
+                return path.substr(0, path.length - 1)
+            return path;
+        }
+    },
     watch: {
         photos() {
             requestAnimationFrame(this.calculateLayout);
@@ -278,6 +282,7 @@ export default Vue.extend({
     display: inline-block;
     margin-right: 5px;
     margin-bottom: -3px;
+    background-color: black;
 }
 
 .photo:last-child {

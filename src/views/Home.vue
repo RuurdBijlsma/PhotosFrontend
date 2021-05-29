@@ -1,5 +1,7 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
+        <router-view/>
+
         <photo-grid timeline ref="photoGrid" class="grid"
                     :photos="flatPhotos"/>
 

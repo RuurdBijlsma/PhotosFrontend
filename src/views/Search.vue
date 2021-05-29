@@ -1,6 +1,12 @@
 <template>
     <div class="search">
-        <photo-grid v-if="$store.state.searchResults.length > 0" :photos="$store.state.searchResults"></photo-grid>
+        <router-view/>
+        <div v-if="loading">
+            <div class="progress-center">
+                <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate></v-progress-circular>
+            </div>
+        </div>
+        <photo-grid v-else-if="$store.state.searchResults.length > 0" :photos="$store.state.searchResults"></photo-grid>
         <div v-else class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
@@ -17,13 +23,18 @@ import PhotoGrid from "@/components/PhotoGrid.vue";
 export default Vue.extend({
     name: 'Search',
     components: {PhotoGrid},
+    data: () => ({
+        loading: false,
+    }),
     async mounted() {
         await this.updateSearch();
     },
     methods: {
         async updateSearch() {
+            this.loading = true;
             await this.$store.dispatch('search', this.query);
             console.log("search photos", this.$store.state.searchResults);
+            this.loading = false;
         },
     },
     computed: {
@@ -34,7 +45,7 @@ export default Vue.extend({
     watch: {
         query() {
             this.updateSearch();
-        }
+        },
     }
 })
 </script>
@@ -46,6 +57,14 @@ export default Vue.extend({
     overflow-y: scroll;
     width: 100%;
     height: 100%;
+}
+
+.progress-center {
+    display: flex;
+    place-content: center;
+    height: 100%;
+    width: 100%;
+    padding: 20px;
 }
 
 .no-results {
@@ -66,4 +85,5 @@ export default Vue.extend({
     font-size: 3vw !important;
     opacity: 0.8;
 }
+
 </style>

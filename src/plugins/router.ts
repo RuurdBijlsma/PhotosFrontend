@@ -8,12 +8,22 @@ const routes: Array<RouteConfig> = [
     {
         path: '/',
         name: 'Home',
-        component: Home
+        component: Home,
+        children: [{
+            path: '/photo/:id',
+            name: 'Photo',
+            component: () => import('../views/Photo.vue')
+        }],
     },
     {
         path: '/search/:query',
         name: 'Search',
-        component: () => import('../views/Search.vue')
+        component: () => import('../views/Search.vue'),
+        children: [{
+            path: '/search/:query/photo/:id',
+            name: 'Photo',
+            component: () => import('../views/Photo.vue')
+        }],
     },
     {
         path: '/login',
