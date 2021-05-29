@@ -31,7 +31,7 @@ export default Vue.extend({
     },
     methods: {
         async updateFromId() {
-            let media = await this.$store.dispatch('apiRequest', {url: `photo/${this.id}`});
+            let media = await this.$store.dispatch('apiRequest', {url: `photos/${this.id}`});
             this.media = Media.fromObject(media);
             console.log(this.media);
         },

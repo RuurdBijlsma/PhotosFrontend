@@ -282,7 +282,7 @@ export default Vue.extend({
     display: inline-block;
     margin-right: 5px;
     margin-bottom: -3px;
-    background-color: black;
+    background-color: rgb(222, 222, 222);
 }
 
 .photo:last-child {
