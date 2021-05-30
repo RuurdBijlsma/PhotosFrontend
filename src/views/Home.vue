@@ -2,8 +2,16 @@
     <div class="home" ref="home" @scroll="homeScroll">
         <router-view/>
 
-        <photo-grid timeline ref="photoGrid" class="grid"
-                    :photos="flatPhotos"/>
+        <div class="grid">
+            <div class="loading-top" v-if="!topLoaded">
+                <v-progress-linear indeterminate></v-progress-linear>
+            </div>
+            <photo-grid timeline ref="photoGrid"
+                        :photos="flatPhotos"/>
+            <div class="loading-bottom" v-if="!bottomLoaded">
+                <v-progress-linear indeterminate></v-progress-linear>
+            </div>
+        </div>
 
         <canvas :width="100"
                 :height="canvasHeight"
@@ -17,20 +25,22 @@
 
 <script lang="ts">
 //TODO
-// search might return too many results for one page :hmm not sure
-//      Google photos uses limit+offset for this
-// Fix search page url not updating when searching
+// Search suggestions
+// Keep scroll position on window resize
 // Search by year/month/day/date
 //      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017"
 // Add settings page
 // click photo to view it large
 // albums
+// When searching location, show map with images like the photos app
+// When searching {month} {year} just scrub to that place? (add support for /date/6/1/2020 in url for homepage)
 // world with photos
 // explore page with location tags and label tags
 // show logged in state in app bar
 // Delete photo
 // Upload photo
 // Download photo
+// If randomLabels or randomLocations is not fast enough, add a level field to the suggestions table and use that
 
 import {Media} from "@/ts/Media";
 import Vue from 'vue'
@@ -43,7 +53,6 @@ interface MonthPhotos {
     year: number,
     month: number,
     count: number,
-    loaded: boolean,
 }
 
 const d = new Date();
@@ -424,7 +433,13 @@ export default Vue.extend({
         },
     },
     computed: {
-        scrollMonthLength() {
+        topLoaded() {
+            return this.scrollMonthStart === 0;
+        },
+        bottomLoaded(): boolean {
+            return this.scrollMonthStart + this.scrollMonthLength === this.photosPerMonth.length;
+        },
+        scrollMonthLength(): number {
             return this.photos.length;
         },
         flatPhotos() {

@@ -11,7 +11,7 @@ const routes: Array<RouteConfig> = [
         component: Home,
         children: [{
             path: '/photo/:id',
-            name: 'Photo',
+            name: 'HomePhoto',
             component: () => import('../views/Photo.vue')
         }],
     },
@@ -21,7 +21,7 @@ const routes: Array<RouteConfig> = [
         component: () => import('../views/Search.vue'),
         children: [{
             path: '/search/:query/photo/:id',
-            name: 'Photo',
+            name: 'SearchPhoto',
             component: () => import('../views/Photo.vue')
         }],
     },

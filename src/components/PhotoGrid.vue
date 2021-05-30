@@ -15,17 +15,40 @@
                         height: visualHeight + 'px',
                         width: visualWidth + 'px',
                      }">
-                        <div v-if="media.type === 0"
-                             :style="{
-                                backgroundImage: `url(${api}/photos/small/${media.id}.webp)`
-                             }"
-                             :alt="media.filename"></div>
-                        <video @mouseleave="pauseVideo(media.id)"
-                               @mouseenter="playVideo(media.id)"
-                               :poster="`${api}/photos/small/${media.id}.webp`"
-                               muted loop
-                               :ref="`video${media.id}`" v-else
-                               :src="`${api}/photos/webm/${media.id}.webm`"></video>
+                        <div v-if="media.type === 'photo'"
+                             class="image-container">
+                            <div class="image-background"
+                                 :style="{backgroundImage: `url(${api}/photos/small/${media.id}.webp)`}"/>
+                            <div class="image-overlay">
+                                <div class="image-info">
+                                    <v-icon v-if="media.subType === 'vr'" class="icon" color="white">
+                                        mdi-rotate-3d-variant
+                                    </v-icon>
+                                    <v-icon v-else-if="media.subType === 'portrait'" class="icon" color="white">
+                                        mdi-face-recognition
+                                    </v-icon>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-container" v-else
+                             @mouseleave="pauseVideo(media.id)"
+                             @mouseenter="playVideo(media.id)">
+                            <video :poster="`${api}/photos/small/${media.id}.webp`"
+                                   muted loop
+                                   :ref="`video${media.id}`"
+                                   :src="`${api}/photos/webm/${media.id}.webm`"/>
+                            <div class="video-overlay">
+                                <div class="video-info">
+                                    <span class="video-duration">{{ toHms(media.duration / 1000) }}</span>
+                                    <v-icon v-if="media.subType === 'none'" class="icon" color="white">
+                                        mdi-play-circle-outline
+                                    </v-icon>
+                                    <v-icon v-else-if="media.subType === 'slomo'" class="icon" color="white">
+                                        mdi-play-speed
+                                    </v-icon>
+                                </div>
+                            </div>
+                        </div>
                     </router-link>
                 </div>
             </div>
@@ -39,6 +62,7 @@ import {api} from "@/ts/constants"
 import {ILayoutBlock} from "@/ts/ILayoutBlock";
 import {Media} from "@/ts/Media";
 import {ILayoutMedia} from "@/ts/ILayoutMedia";
+import {secondsToHms} from "@/ts/utils";
 
 export default Vue.extend({
     name: 'PhotoGrid',
@@ -111,7 +135,7 @@ export default Vue.extend({
             photosByDay.push(dayPhotos);
 
             // Calculate visual size for photos given viewport size
-            const allowedWidth = this.frameWidth;
+            const allowedWidth = this.frameWidth - 2;
             const minHeight = 150 + Math.min(window.innerWidth / 30, 64);
             let rows: ILayoutBlock[][] = [];
             let row: ILayoutBlock[] = [];
@@ -236,6 +260,9 @@ export default Vue.extend({
             console.log("Scrolling into view", day, month, year);
             rows[this.photoRows.indexOf(list[0])].scrollIntoView();
         },
+        toHms(seconds: number) {
+            return secondsToHms(seconds);
+        }
     },
     computed: {
         currentPath() {
@@ -289,15 +316,68 @@ export default Vue.extend({
     margin-right: 0;
 }
 
-.photo > div {
+.photo > * {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.image-background {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
 }
 
-.photo > * {
+.image-overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.image-info {
+    padding: 5px;
+}
+
+.image-icon {
+    font-size: 20px !important;
+}
+
+.video-container > video {
     width: 100%;
     height: 100%;
     display: block;
+    position: absolute;
+}
+
+.video-overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    background-image: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.2));
+}
+
+.video-info {
+    padding: 5px;
+}
+
+.video-duration {
+    font-size: 13px;
+    color: white;
+    margin-right: 10px;
+}
+
+.icon {
+    font-size: 20px !important;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
 }
 </style>

@@ -1,10 +1,5 @@
-export enum MediaType {
-    Photo, Video,
-}
-
-export enum MediaSubType {
-    None, Portrait, VR, Slomo,
-}
+export type MediaType = 'photo' | 'video';
+export type MediaSubType = 'none' | 'portrait' | 'vr' | 'slomo';
 
 export class Media {
     id: string;
@@ -44,17 +39,14 @@ export class Media {
                           height = 0,
                           type = '',
                           subType = '',
-                          duration = null
+                          durationMs = null
                       }) {
-        let dictionary: { [index: string]: MediaSubType } = {
-            'vr': MediaSubType.VR,
-            'slomo': MediaSubType.Slomo,
-            'portrait': MediaSubType.Portrait,
-        }
+        subType = subType.toLowerCase();
+        type = type.toLowerCase();
         return new Media(id, filename, new Date(createDate), width, height,
-            type === 'image' ? MediaType.Photo : MediaType.Video,
-            dictionary[subType.toLowerCase()] ?? MediaSubType.None,
-            duration,
-        );
+            type === 'image' ? 'photo' : 'video',
+            (['portrait', 'vr', 'slomo'].includes(subType) ? subType : 'none') as MediaSubType,
+            durationMs,
+        )
     }
 }

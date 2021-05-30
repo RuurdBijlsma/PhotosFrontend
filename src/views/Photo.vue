@@ -1,6 +1,6 @@
 <template>
     <div class="media-photo" v-if="media !== null">
-        <div v-if="media.type === 0"
+        <div v-if="media.type === 'photo'"
              :style="{
                         backgroundImage: `url(${api}/photos/big/${media.id}.webp)`
                      }"

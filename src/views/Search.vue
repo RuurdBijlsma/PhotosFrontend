@@ -1,12 +1,13 @@
 <template>
-    <div class="search">
+    <div class="search" ref="search" @scroll="homeScroll">
         <router-view/>
         <div v-if="loading">
             <div class="progress-center">
-                <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate></v-progress-circular>
+                <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4"
+                                     indeterminate></v-progress-circular>
             </div>
         </div>
-        <photo-grid v-else-if="$store.state.searchResults.length > 0" :photos="$store.state.searchResults"></photo-grid>
+        <photo-grid v-else-if="$store.state.searchResults.length > 0" :photos="slicedPhotos"></photo-grid>
         <div v-else class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
@@ -25,8 +26,12 @@ export default Vue.extend({
     components: {PhotoGrid},
     data: () => ({
         loading: false,
+        endIndex: 100,
+        prevScroll: -10000,
+        searchElement: {} as HTMLDivElement,
     }),
     async mounted() {
+        this.searchElement = this.$refs.search as HTMLDivElement;
         await this.updateSearch();
     },
     methods: {
@@ -36,8 +41,22 @@ export default Vue.extend({
             console.log("search photos", this.$store.state.searchResults);
             this.loading = false;
         },
+        async homeScroll() {
+            let scrollTop = this.searchElement.scrollTop;
+            // If we haven't scrolled more than 180px since last scroll fire just return
+            if (Math.abs(this.prevScroll - scrollTop) < 180)
+                return;
+            this.prevScroll = scrollTop;
+
+            let scrollBottom = this.searchElement.scrollHeight - scrollTop - this.searchElement.clientHeight;
+            if (scrollBottom < 3000)
+                this.endIndex += 100;
+        },
     },
     computed: {
+        slicedPhotos() {
+            return this.$store.state.searchResults.slice(0, this.endIndex);
+        },
         query() {
             return this.$route.params.query;
         },
