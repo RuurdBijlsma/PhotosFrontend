@@ -1,14 +1,21 @@
 <template>
     <div class="home" ref="home" @scroll="homeScroll">
         <router-view/>
-
+        <div v-if="initialLoading" class="progress-center">
+            <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
+        </div>
+        <div v-else-if="flatPhotos.length === 0" class="no-results">
+            <div class="no-results-center">
+                <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
+                <div class="caption">No results found for "{{ query }}"</div>
+            </div>
+        </div>
         <div class="grid">
-            <div class="loading-top" v-if="!topLoaded">
+            <div class="loading-top" v-if="!topLoaded&& !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
-            <photo-grid timeline ref="photoGrid"
-                        :photos="flatPhotos"/>
-            <div class="loading-bottom" v-if="!bottomLoaded">
+            <photo-grid timeline ref="photoGrid" :photos="flatPhotos"/>
+            <div class="loading-bottom" v-if="!bottomLoaded && !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
         </div>
@@ -27,8 +34,8 @@
 //TODO
 // Search suggestions
 // Keep scroll position on window resize
-// Search by year/month/day/date
-//      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017"
+// Search by year/month/day/date (separate api call when date search is detected)
+//      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
 // Add settings page
 // click photo to view it large
 // albums
@@ -83,6 +90,7 @@ export default Vue.extend({
         overScrub: false,
         scrubData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         maxPhotos: 800,
+        initialLoading: true,
     }),
     beforeDestroy() {
         document.removeEventListener('mousemove', this.scrubMove);
@@ -100,6 +108,7 @@ export default Vue.extend({
             year, month, count, loaded: false
         }));
         this.photos = await this.getPhotos({monthOffset: 0});
+        this.initialLoading = false;
         this.homeElement = (this.$refs.home as HTMLElement);
         this.photoGrid = this.$refs.photoGrid;
         this.render();
@@ -470,6 +479,34 @@ export default Vue.extend({
 
 .home::-webkit-scrollbar {
     display: none;
+}
+
+.progress-center {
+    display: flex;
+    width: 100%;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    height: calc(80vh - 64px);
+}
+
+.no-results {
+    display: flex;
+    width: 100%;
+    height: 70%;
+    place-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.no-results .icon {
+    font-size: 40vw !important;
+    opacity: 0.3;
+}
+
+.no-results .caption {
+    font-size: 3vw !important;
+    opacity: 0.8;
 }
 
 .grid {

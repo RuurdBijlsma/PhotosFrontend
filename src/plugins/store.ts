@@ -62,7 +62,6 @@ export default new Vuex.Store({
         async search({dispatch, commit, state}, query: string) {
             let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
             let items = result.map(Media.fromObject);
-            console.log(result, items);
             commit('searchResults', items);
         }
     },

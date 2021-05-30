@@ -1,11 +1,8 @@
 <template>
     <div class="search" ref="search" @scroll="homeScroll">
         <router-view/>
-        <div v-if="loading">
-            <div class="progress-center">
-                <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4"
-                                     indeterminate></v-progress-circular>
-            </div>
+        <div v-if="loading" class="progress-center">
+            <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
         <photo-grid v-else-if="$store.state.searchResults.length > 0" :photos="slicedPhotos"></photo-grid>
         <div v-else class="no-results">
@@ -38,7 +35,6 @@ export default Vue.extend({
         async updateSearch() {
             this.loading = true;
             await this.$store.dispatch('search', this.query);
-            console.log("search photos", this.$store.state.searchResults);
             this.loading = false;
         },
         async homeScroll() {
@@ -80,10 +76,11 @@ export default Vue.extend({
 
 .progress-center {
     display: flex;
-    place-content: center;
-    height: 100%;
+    height: calc(80vh - 64px);
     width: 100%;
     padding: 20px;
+    align-items: center;
+    justify-content: center;
 }
 
 .no-results {

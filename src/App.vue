@@ -74,8 +74,11 @@ export default Vue.extend({
     },
     methods: {
         startSearch() {
-            console.log(this.$route.query.q);
-            if (this.$route.name === 'Search') {
+            if (this.query === '' || this.query === undefined)
+                return;
+            if (this.$route.params.query === this.query) {
+                this.$store.dispatch('search', this.query);
+            } else if (this.$route.name === 'Search') {
                 this.$router.push(`/search/${this.query}`)
                 this.$store.dispatch('search', this.query);
             } else
