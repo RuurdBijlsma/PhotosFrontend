@@ -61,6 +61,9 @@ export default Vue.extend({
         query() {
             this.updateSearch();
         },
+        '$store.state.searchResults'() {
+            this.$store.commit('viewerQueue', this.$store.state.searchResults);
+        },
     }
 })
 </script>

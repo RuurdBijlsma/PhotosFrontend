@@ -21,11 +21,13 @@ export default new Vuex.Store({
         searchResults: [] as Media[],
         email: '',
         password: '',
+        viewerQueue: [] as Media[],
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
+        viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         searchResults: (state, v: Media[]) => state.searchResults = v,
         login: (state, {email, password}) => {
             state.email = email;

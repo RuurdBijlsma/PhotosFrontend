@@ -6,8 +6,8 @@
         </div>
         <div v-else-if="flatPhotos.length === 0" class="no-results">
             <div class="no-results-center">
-                <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
-                <div class="caption">No results found for "{{ query }}"</div>
+                <v-icon class="icon" x-large>mdi-image</v-icon>
+                <div class="caption">No photos"</div>
             </div>
         </div>
         <div class="grid">
@@ -32,11 +32,13 @@
 
 <script lang="ts">
 //TODO
+// Click on home button in nav drawer to scroll up all the way
 // Search suggestions
-// Search by year/month/day/date (separate api call when date search is detected)
+// Search by year/month/day/date (separate api call when date search is detected, detect this in App.vue)
 //      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
 // Add settings page
 // click photo to view it large
+// Large photo needs next button (secretly scroll that photo into view in background when doing that to keep the list loaded)
 // albums
 // When searching location, show map with images like the photos app
 // When searching {month} {year} just scrub to that place? (add support for /date/6/1/2020 in url for homepage)
@@ -453,7 +455,7 @@ export default Vue.extend({
         scrollMonthLength(): number {
             return this.photos.length;
         },
-        flatPhotos() {
+        flatPhotos(): Media[] {
             return this.photos.flat();
         },
         canvasHeight() {
@@ -466,6 +468,11 @@ export default Vue.extend({
             return n;
         },
     },
+    watch: {
+        flatPhotos() {
+            this.$store.commit('viewerQueue', this.flatPhotos);
+        },
+    }
 })
 </script>
 
