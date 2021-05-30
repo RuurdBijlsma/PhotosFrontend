@@ -29,7 +29,7 @@
                 </v-list-item>
                 <v-list-item to="/explore" exact>
                     <v-list-item-icon>
-                        <v-icon>mdi-earth</v-icon>
+                        <v-icon>mdi-magnify</v-icon>
                     </v-list-item-icon>
 
                     <v-list-item-content>
@@ -38,7 +38,7 @@
                 </v-list-item>
                 <v-list-item to="/map" exact>
                     <v-list-item-icon>
-                        <v-icon>mdi-map-marker-circle</v-icon>
+                        <v-icon>mdi-earth</v-icon>
                     </v-list-item-icon>
 
                     <v-list-item-content>

@@ -25,7 +25,7 @@
                                         mdi-rotate-3d-variant
                                     </v-icon>
                                     <v-icon v-else-if="media.subType === 'portrait'" class="icon" color="white">
-                                        mdi-face-recognition
+                                        mdi-blur
                                     </v-icon>
                                 </div>
                             </div>
@@ -223,6 +223,9 @@ export default Vue.extend({
             this.$emit('photoRowsUpdate');
         },
         onResize() {
+            if (this.$vuetify.breakpoint.width === window.innerWidth && this.$vuetify.breakpoint.height === window.innerHeight) {
+                return;
+            }
             requestAnimationFrame(this.calculateLayout);
         },
         updateFrameWidth() {

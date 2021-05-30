@@ -33,7 +33,6 @@
 <script lang="ts">
 //TODO
 // Search suggestions
-// Keep scroll position on window resize
 // Search by year/month/day/date (separate api call when date search is detected)
 //      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
 // Add settings page
@@ -78,7 +77,7 @@ export default Vue.extend({
         scrollMonthStart: 0,
         scrollLoadPromise: null as Promise<void> | null,
         scrolling: false,
-        scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
+        scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate()},
         scrollTimeout: -1,
         prevScroll: -2000,
         scrollThreshold: 4000,
@@ -272,15 +271,17 @@ export default Vue.extend({
             this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
             this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
                 this.photoGrid.scrollIntoView(day, month, year);
+                this.homeScroll();
             }));
         },
         getScrollData() {
             let year = d.getFullYear();
             let month = d.getMonth() + 1;
+            let day = d.getDate();
             let scrollTop = this.homeElement.scrollTop + 100;
             let rows = this.photoGrid.photoRows;
             if (rows.length === 0)
-                return {y: 0, year, month};
+                return {y: 0, year, month, day};
 
             let viewedRow = null;
             const marginBottom = 4;
@@ -303,6 +304,7 @@ export default Vue.extend({
             let date = new Date(viewedRow[0].date);
             month = date.getMonth() + 1;
             year = date.getFullYear();
+            day = date.getDate();
 
             let beforeY = 0;
             for (let i = 0; i < this.scrollMonthStart; i++) {
@@ -313,7 +315,7 @@ export default Vue.extend({
             let viewportPart = this.flatPhotos.length / this.totalPhotos;
             let scrollPercentage = (scrollTop + this.homeElement.clientHeight) / this.homeElement.scrollHeight;
             let y = (beforeY + viewportPart * scrollPercentage) * this.canvas.height;
-            return {y, year, month};
+            return {y, year, month, day};
         },
         async homeScroll() {
             this.scrolling = true;
