@@ -1,5 +1,5 @@
 <template>
-    <div class="media-photo" v-if="media">
+    <div class="media-photo">
         <div class="left-pane">
             <div class="controls">
                 <div class="control-top">
@@ -24,17 +24,21 @@
                 </div>
             </div>
 
+<!--            <div-->
+<!--                :style="{backgroundImage: `url(${api}/photos/full/${media.id})`}"-->
+<!--                class="media-item media-div"-->
+<!--                v-if="media && media.type === 'photo'"/>-->
             <v-img
-                :lazy-src="`${api}/photos/small/${media.id}.webp`"
-                :src="`${api}/photos/full/${media.id}`"
+                :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
+                :src="`${api}/photos/big/${media.id}.webp`"
                 :key="media.id"
                 class="media-item"
                 contain
-                v-if="media.type === 'photo'"/>
+                v-if="media && media.type === 'photo'"/>
             <video class="media-item" :poster="`${api}/photos/big/${media.id}.webp`"
                    controls
                    autoplay
-                   :ref="`video${media.id}`" v-else
+                   :ref="`video${media.id}`" v-else-if="media"
                    :src="`${api}/photos/webm/${media.id}.webm`"></video>
         </div>
         <v-sheet class="right-pane" :style="{
@@ -47,13 +51,15 @@
                 <span>Info</span>
             </div>
             <v-subheader class="subheader-caption">DETAILS</v-subheader>
-            <div>{{ media.createDate }}</div>
-            <div v-if="media.filename">{{ media.filename }}</div>
-            <div>{{ media.width }} × {{ media.height }}</div>
-            <div v-if="media.classifications">
-                {{ media.classifications[0].levels[0] }}
+            <div class="info-content" v-if="media" >
+                <div>{{ media.createDate }}</div>
+                <div v-if="media.filename">{{ media.filename }}</div>
+                <div>{{ media.width }} × {{ media.height }}</div>
+                <div v-if="media.classifications">
+                    {{ media.classifications[0].levels[0] }}
+                </div>
+                <div v-if="media.location">{{ media.location }}</div>
             </div>
-            <div v-if="media.location">{{ media.location }}</div>
         </v-sheet>
     </div>
 </template>
@@ -75,6 +81,7 @@ export default Vue.extend({
     beforeDestroy() {
     },
     async mounted() {
+        this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
     },
     methods: {
@@ -186,6 +193,14 @@ export default Vue.extend({
     height: 100%;
 }
 
+.media-div {
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    width: 100%;
+    height: 100%;
+}
+
 .media-photo > * {
     width: 100%;
     height: 100%;
@@ -204,6 +219,9 @@ export default Vue.extend({
     min-width: 400px;
     margin-right: 0;
     padding: 20px;
+}
+.info-content{
+    user-select: text;
 }
 
 .subheader-caption {

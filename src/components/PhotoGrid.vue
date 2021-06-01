@@ -18,7 +18,7 @@
                         <div v-if="media.type === 'photo'"
                              class="image-container">
                             <div class="image-background"
-                                 :style="{backgroundImage: `url(${api}/photos/small/${media.id}.webp)`}"/>
+                                 :style="{backgroundImage: `url(${getThumbUrl(media.id, block.height)})`}"/>
                             <div class="image-overlay">
                                 <div class="image-info">
                                     <v-icon v-if="media.subType === 'vr'" class="icon" color="white">
@@ -33,7 +33,7 @@
                         <div class="video-container" v-else
                              @mouseleave="pauseVideo(media.id)"
                              @mouseenter="playVideo(media.id)">
-                            <video :poster="`${api}/photos/small/${media.id}.webp`"
+                            <video :poster="`${getThumbUrl(media.id, block.height)}`"
                                    muted loop
                                    :ref="`video${media.id}`"
                                    :src="`${api}/photos/webm/${media.id}.webm`"/>
@@ -84,6 +84,9 @@ export default Vue.extend({
         window.addEventListener('resize', this.onResize, false);
     },
     methods: {
+        getThumbUrl(id: string, height:number) {
+            return `${api}/photos/${height > 260 ? 'small' : 'tiny'}/${id}.webp`;
+        },
         async calculateLayout() {
             let photos: ILayoutMedia[] = this.photos.map(p => ({media: p, visualWidth: 0, visualHeight: 0}));
             if (photos.length === 0) {

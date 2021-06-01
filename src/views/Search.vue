@@ -79,7 +79,7 @@ export default Vue.extend({
 
 .progress-center {
     display: flex;
-    height: calc(80vh - 64px);
+    height: calc(70vh - 64px);
     width: 100%;
     padding: 20px;
     align-items: center;
@@ -96,12 +96,12 @@ export default Vue.extend({
 }
 
 .no-results .icon {
-    font-size: 40vw !important;
+    font-size: 40vh !important;
     opacity: 0.3;
 }
 
 .no-results .caption {
-    font-size: 3vw !important;
+    font-size: 3vh !important;
     opacity: 0.8;
 }
 
