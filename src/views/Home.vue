@@ -32,6 +32,7 @@
 
 <script lang="ts">
 //TODO
+// Mogelijk probleemkind: 20150720_200752, komt wss door fiximgdims
 // CHeck if "20 7" works to go to /date/20/july
 // Remember show info state
 // Search by year/month/day/date (separate api call when date search is detected, detect this in App.vue)

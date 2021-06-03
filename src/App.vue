@@ -129,12 +129,12 @@ export default Vue.extend({
             } else if (writtenMonthSecond && +parts[0] <= 31 && +parts[0] >= 0) {
                 // 6 jan
                 return {type: 'dayMonth', month: (lowerMonths.indexOf(parts[1]) % 12) + 1, day: +parts[0]};
-            } else if (highNumberSecond && +parts[0] <= 31 && +parts[0] >= 0 && +parts[1] <= 31 && +parts[1] >= 0) {
+            } else if (highNumberSecond && +parts[0] <= 12 && +parts[0] >= 0 && +parts[1] <= 31 && +parts[1] >= 0) {
                 // 6 18
-                return {type: 'dayMonth', month: +parts[1], day: +parts[0]};
-            } else if (+parts[0] <= 31 && +parts[0] >= 0 && +parts[1] <= 31 && +parts[1] >= 0) {
-                // 6 1
                 return {type: 'dayMonth', month: +parts[0], day: +parts[1]};
+            } else if (+parts[0] <= 31 && +parts[0] >= 0 && +parts[1] <= 12 && +parts[1] >= 0) {
+                // 26 1
+                return {type: 'dayMonth', month: +parts[1], day: +parts[0]};
             }
 
             return {type: 'none'};
@@ -161,6 +161,7 @@ export default Vue.extend({
             let newPath = null;
 
             let {type, month, day} = this.isDate(this.query);
+            console.log({type, month, day});
             if (type === 'month') {
                 newPath = `/date/${months[(month ?? 1) - 1]}`
             } else if (type === 'dayMonth') {
