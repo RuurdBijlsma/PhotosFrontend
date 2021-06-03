@@ -11,7 +11,7 @@
             </div>
         </div>
         <photo-grid v-if="!loading" ref="photoGrid" v-show="highResults.length > 0" :photos="highSlice"/>
-        <h2 class="mt-5 mb-5" v-if="endIndex >= highResults.length">Less related results</h2>
+        <h2 class="mt-5 mb-5" v-if="endIndex >= highResults.length && highResults.length !== 0">Less related results</h2>
         <photo-grid v-if="!loading" ref="photoGrid" v-show="lowResults.length > 0" :photos="lowSlice"/>
     </div>
 </template>
