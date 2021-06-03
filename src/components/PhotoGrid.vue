@@ -253,7 +253,7 @@ export default Vue.extend({
                 });
             });
         },
-        scrollMediaIntoView(media: Media) {
+        async scrollMediaIntoView(media: Media) {
             let index = 0;
             row: for (let i = 0; i < this.photoRows.length; i++)
                 for (let block of this.photoRows[i])
@@ -262,10 +262,10 @@ export default Vue.extend({
                             index = i;
                             break row;
                         }
-            let rows = this.$refs.rows as HTMLElement[];
+            let rows = await this.getRowElements();
             rows[index].scrollIntoView({block: 'center'});
         },
-        scrollDateIntoView(day: number, month: number, year: number) {
+        async scrollDateIntoView(day: number, month: number, year: number) {
             let targetDate = new Date();
             targetDate.setFullYear(year);
             targetDate.setMonth(month - 1);
@@ -295,7 +295,7 @@ export default Vue.extend({
                     }
                 }
             }
-            let rows = this.$refs.rows as HTMLElement[];
+            let rows = await this.getRowElements();
             rows[index].scrollIntoView({block: 'center'});
         },
         toHms(seconds: number) {

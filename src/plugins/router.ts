@@ -28,7 +28,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/date/:month',
         name: 'DateMonth',
-        component: () => import('../views/Search.vue'),
+        component: () => import('../views/Date.vue'),
         children: [{
             path: '/date/:month/photo/:id',
             name: 'DateMonthPhoto',
@@ -38,7 +38,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/date/:day/:month',
         name: 'DateDay',
-        component: () => import('../views/Search.vue'),
+        component: () => import('../views/Date.vue'),
         children: [{
             path: '/date/:day/:month/photo/:id',
             name: 'DateDayPhoto',

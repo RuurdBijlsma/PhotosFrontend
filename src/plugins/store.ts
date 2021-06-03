@@ -19,7 +19,9 @@ export default new Vuex.Store({
     state: {
         api,
         scrollToTop: false,
-        searchResults: [] as Media[],
+        searchResultsHigh: [] as Media[],
+        searchResultsLow: [] as Media[],
+        dateResults: [] as Media[],
         email: '',
         password: '',
         viewerQueue: [] as Media[],
@@ -32,7 +34,9 @@ export default new Vuex.Store({
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
-        searchResults: (state, v: Media[]) => state.searchResults = v,
+        dateResults: (state, v: Media[]) => state.dateResults = v,
+        searchResultsHigh: (state, v: Media[]) => state.searchResultsHigh = v,
+        searchResultsLow: (state, v: Media[]) => state.searchResultsLow = v,
         login: (state, {email, password}) => {
             state.email = email;
             state.password = password;
@@ -71,12 +75,16 @@ export default new Vuex.Store({
         }) {
             let result = await dispatch('apiRequest', {url: `photos/dateSearch?m=${month}&d=${day}`});
             let items = result.map(Media.fromObject);
-            commit('searchResults', items);
+            commit('dateResults', items);
         },
         async search({dispatch, commit, state}, query: string) {
             let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
-            let items = result.map(Media.fromObject);
-            commit('searchResults', items);
+            console.log('search result', result.map((r: any) => r.rank));
+            const threshold = 1;
+            let itemsLow = result.filter((r: any) => r.rank < threshold).map(Media.fromObject);
+            let itemsHigh = result.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
+            commit('searchResultsLow', itemsLow);
+            commit('searchResultsHigh', itemsHigh);
         },
     },
     modules: {},

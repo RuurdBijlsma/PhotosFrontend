@@ -79,13 +79,25 @@ export default Vue.extend({
         isLoading: new Set(),
     }),
     beforeDestroy() {
+        document.removeEventListener('keydown', this.handleKey);
     },
     async mounted() {
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
         this.$store.commit('keepInView', this.media);
+        document.addEventListener('keydown', this.handleKey, false);
     },
     methods: {
+        handleKey(e: KeyboardEvent) {
+            switch (true) {
+                case e.key === 'ArrowRight':
+                    this.next();
+                    break;
+                case e.key === 'ArrowLeft':
+                    this.previous();
+                    break;
+            }
+        },
         close() {
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
             console.log(path);

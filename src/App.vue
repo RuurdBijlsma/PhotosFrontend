@@ -86,7 +86,7 @@ export default Vue.extend({
         console.log(this.$store);
     },
     methods: {
-        enterPressed(e: KeyboardEvent) {
+        enterPressed() {
             this.querySelect = this.query
             let searchComponent: any = this.$refs.search;
             searchComponent.isMenuActive = false;
@@ -156,28 +156,28 @@ export default Vue.extend({
             return {isDate: !isNaN(date.getDate()), date};
         },
         startSearch() {
-            if (this.query === '' || this.query === undefined)
+            if (this.querySelect === '' || this.querySelect === undefined || this.querySelect === null)
                 return;
             let newPath = null;
 
-            let {type, month, day} = this.isDate(this.query);
+            let {type, month, day} = this.isDate(this.querySelect);
             console.log({type, month, day});
             if (type === 'month') {
                 newPath = `/date/${months[(month ?? 1) - 1]}`
             } else if (type === 'dayMonth') {
                 newPath = `/date/${day}/${months[(month ?? 1) - 1]}`
             } else {
-                let {isDate, date} = this.isScrubDate(this.query);
+                let {isDate, date} = this.isScrubDate(this.querySelect);
                 if (isDate) {
                     newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
                 } else {
-                    if (this.$route.params.query === this.query) {
-                        this.$store.dispatch('search', this.query);
+                    if (this.$route.params.query === this.querySelect) {
+                        this.$store.dispatch('search', this.querySelect);
                     } else if (this.$route.name === 'Search') {
-                        this.$store.dispatch('search', this.query);
-                        newPath = `/search/${this.query}`;
+                        // this.$store.dispatch('search', this.query);
+                        newPath = `/search/${this.querySelect}`;
                     } else
-                        newPath = `/search/${this.query}`;
+                        newPath = `/search/${this.querySelect}`;
                 }
             }
 
@@ -189,7 +189,7 @@ export default Vue.extend({
         querySelect(val) {
             if (val === null) return;
             console.log("Search!", val);
-            this.query = val;
+            // this.query = val;
             console.log(this.querySelect);
             this.startSearch();
         },

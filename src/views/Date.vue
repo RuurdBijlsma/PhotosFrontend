@@ -4,15 +4,13 @@
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
-        <div v-else-if="allResults.length === 0" class="no-results">
+        <div v-else-if="results.length === 0" class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
-                <div class="caption">No results found for "{{ query }}"</div>
+                <div class="caption">No results found for "{{ day }} - {{ month }}"</div>
             </div>
         </div>
-        <photo-grid v-if="!loading" ref="photoGrid" v-show="highResults.length > 0" :photos="highSlice"/>
-        <h2 class="mt-5 mb-5" v-if="endIndex >= highResults.length">Less related results</h2>
-        <photo-grid v-if="!loading" ref="photoGrid" v-show="lowResults.length > 0" :photos="lowSlice"/>
+        <photo-grid ref="photoGrid" v-show="results.length > 0" :photos="slicedPhotos"/>
     </div>
 </template>
 
@@ -40,7 +38,7 @@ export default Vue.extend({
     methods: {
         async updateSearch() {
             this.loading = true;
-            await this.$store.dispatch('search', this.query);
+                await this.$store.dispatch('dateSearch', {day: this.day, month: this.month});
             this.loading = false;
         },
         async homeScroll() {
@@ -56,31 +54,32 @@ export default Vue.extend({
         },
     },
     computed: {
-        query(): string {
-            return this.$route.params.query;
+        day(): number | null {
+            let day = +this.$route.params.day;
+            return isNaN(day) ? null : day;
         },
-        highSlice(): Media[] {
-            return this.highResults.slice(0, this.endIndex);
+        month(): number | null {
+            let monthString = this.$route.params.month;
+            if (monthString === undefined || monthString === null)
+                return null;
+            return months.indexOf(monthString as string) + 1;
         },
-        lowSlice(): Media[] {
-            return this.lowResults.slice(0, this.endIndex - this.lowResults.length);
+        slicedPhotos(): Media[] {
+            return this.results.slice(0, this.endIndex);
         },
-        highResults(): Media[] {
-            return this.$store.state.searchResultsHigh;
-        },
-        lowResults(): Media[] {
-            return this.$store.state.searchResultsLow;
-        },
-        allResults(): Media[] {
-            return this.highResults.concat(this.lowResults);
+        results(): Media[] {
+            return this.$store.state.dateResults;
         },
     },
     watch: {
-        query() {
+        day() {
+            this.updateSearch();
+        },
+        month() {
             this.updateSearch();
         },
         results() {
-            this.$store.commit('viewerQueue', this.allResults);
+            this.$store.commit('viewerQueue', this.results);
         },
         '$store.state.keepInView'() {
             if (this.$store.state.keepInView !== null)

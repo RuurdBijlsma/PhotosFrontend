@@ -34,7 +34,6 @@
 //TODO
 // ui button for reprocess item
 // ui for changing date
-// Keybinds for next/prev photo
 // Test out grouping search results in 2 groups, rank high and rank low then sort by date within those ranks
 // Mogelijk probleemkind: 20150720_200752, komt wss door fiximgdims
 // CHeck if "20 7" works to go to /date/20/july
