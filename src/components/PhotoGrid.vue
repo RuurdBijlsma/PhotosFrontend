@@ -243,7 +243,29 @@ export default Vue.extend({
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];
             video?.pause?.();
         },
-        scrollIntoView(day: number, month: number, year: number) {
+        async getRowElements(): Promise<HTMLElement[]> {
+            return new Promise(resolve => {
+                let rows = this.$refs.rows;
+                if (Array.isArray(rows))
+                    resolve(rows as HTMLElement[]);
+                setTimeout(async () => {
+                    resolve(await this.getRowElements());
+                });
+            });
+        },
+        scrollMediaIntoView(media: Media) {
+            let index = 0;
+            row: for (let i = 0; i < this.photoRows.length; i++)
+                for (let block of this.photoRows[i])
+                    for (let layoutMedia of block.layoutMedias)
+                        if (layoutMedia.media.id === media.id) {
+                            index = i;
+                            break row;
+                        }
+            let rows = this.$refs.rows as HTMLElement[];
+            rows[index].scrollIntoView({block: 'center'});
+        },
+        scrollDateIntoView(day: number, month: number, year: number) {
             let targetDate = new Date();
             targetDate.setFullYear(year);
             targetDate.setMonth(month - 1);
@@ -274,9 +296,7 @@ export default Vue.extend({
                 }
             }
             let rows = this.$refs.rows as HTMLElement[];
-            console.log("Scrolling into view", day, month, year, list[0],
-                rows[index], this.photoRows[index], index, this.photoRows.indexOf(list[0]));
-            rows[index].scrollIntoView();
+            rows[index].scrollIntoView({block: 'center'});
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);

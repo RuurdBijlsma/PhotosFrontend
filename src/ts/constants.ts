@@ -1,2 +1,3 @@
-// export const api = "https://api.ruurd.dev"
-export const api = "http://localhost:3000"
+export const api = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://api.ruurd.dev'

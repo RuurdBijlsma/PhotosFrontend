@@ -4,13 +4,13 @@
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
-        <photo-grid v-else-if="results.length > 0" :photos="slicedPhotos"></photo-grid>
-        <div v-else class="no-results">
+        <div v-else-if="results.length === 0" class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
                 <div class="caption">No results found for "{{ query }}"</div>
             </div>
         </div>
+        <photo-grid ref="photoGrid" v-show="results.length > 0" :photos="slicedPhotos"/>
     </div>
 </template>
 
@@ -28,8 +28,10 @@ export default Vue.extend({
         endIndex: 100,
         prevScroll: -10000,
         searchElement: {} as HTMLDivElement,
+        photoGrid: null as any,
     }),
     async mounted() {
+        this.photoGrid = this.$refs.photoGrid;
         this.searchElement = this.$refs.search as HTMLDivElement;
         await this.updateSearch();
     },
@@ -81,10 +83,10 @@ export default Vue.extend({
         },
     },
     watch: {
-        day(){
+        day() {
             this.updateSearch();
         },
-        month(){
+        month() {
             this.updateSearch();
         },
         query() {
@@ -92,6 +94,10 @@ export default Vue.extend({
         },
         results() {
             this.$store.commit('viewerQueue', this.results);
+        },
+        '$store.state.keepInView'() {
+            if (this.$store.state.keepInView !== null)
+                this.photoGrid.scrollMediaIntoView(this.$store.state.keepInView);
         },
     }
 })

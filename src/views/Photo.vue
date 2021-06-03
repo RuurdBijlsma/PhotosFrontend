@@ -83,6 +83,7 @@ export default Vue.extend({
     async mounted() {
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
+        this.$store.commit('keepInView', this.media);
     },
     methods: {
         close() {
@@ -95,6 +96,7 @@ export default Vue.extend({
             let prev = this.queue[this.index - 1];
             if (!prev) return;
             this.media = prev;
+            this.$store.commit('keepInView', this.media);
             this.fullMediaLoad();
             let path = this.$route.path.split('/');
             this.$router.replace([...path.slice(0, path.length - 1), prev.id].join('/'));
@@ -103,6 +105,7 @@ export default Vue.extend({
             let next = this.queue[this.index + 1];
             if (!next) return;
             this.media = next;
+            this.$store.commit('keepInView', this.media);
             this.fullMediaLoad();
             let path = this.$route.path.split('/');
             this.$router.replace([...path.slice(0, path.length - 1), next.id].join('/'));
@@ -113,18 +116,9 @@ export default Vue.extend({
                 return;
             this.isLoading.add(id);
 
-            let keptInView = false;
-            if (this.media?.id === id) {
-                keptInView = true;
-                this.$store.commit('keepInView', this.media);
-            }
-
             let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
             if (this.media === null || id === this.media?.id) {
                 console.log(media);
-                if (!keptInView) {
-                    this.$store.commit('keepInView', media);
-                }
                 this.media = media;
             }
             this.isLoading.delete(id);
@@ -138,7 +132,7 @@ export default Vue.extend({
             return this.index > 0;
         },
         canSkipRight(): boolean {
-            return this.index + 1 < this.queue.length - 1;
+            return this.index + 1 < this.queue.length;
         },
         index(): number {
             return this.queue.findIndex(i => i.id === this.id);

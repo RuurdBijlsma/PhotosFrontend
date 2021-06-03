@@ -32,6 +32,10 @@
 
 <script lang="ts">
 //TODO
+// ui button for reprocess item
+// ui for changing date
+// Keybinds for next/prev photo
+// Test out grouping search results in 2 groups, rank high and rank low then sort by date within those ranks
 // Mogelijk probleemkind: 20150720_200752, komt wss door fiximgdims
 // CHeck if "20 7" works to go to /date/20/july
 // Remember show info state
@@ -93,6 +97,7 @@ export default Vue.extend({
         scrubData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         maxPhotos: 800,
         initialLoading: true,
+        waitPpm: null as null | Promise<{ year: number, month: number, count: number }[]>,
     }),
     beforeDestroy() {
         document.removeEventListener('mousemove', this.scrubMove);
@@ -107,7 +112,8 @@ export default Vue.extend({
         this.homeElement = (this.$refs.home as HTMLElement);
         this.photoGrid = this.$refs.photoGrid;
 
-        let photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
+        this.waitPpm = this.$store.dispatch('apiRequest', {url: 'photos/months'})
+        let photosPerMonth = await this.waitPpm;
         this.photosPerMonth = photosPerMonth.map(({year = 0, month = 0, count = 0}) => ({
             year, month, count, loaded: false
         }));
@@ -249,10 +255,10 @@ export default Vue.extend({
             let [index, day, month, year] = this.dateFromScrubEvent(e);
             await this.scrub(index, day, month, year);
         },
-        async scrub(index: number, day: number, month: number, year: number, delay = 300) {
+        async scrub(index: number, day: number, month: number, year: number, delay = 300, scroll = true) {
             if (index >= this.scrollMonthStart && index < this.scrollMonthStart + this.scrollMonthLength) {
                 console.log('scroll to :', [day, month, year]);
-                this.photoGrid.scrollIntoView(day, month, year);
+                this.photoGrid.scrollDateIntoView(day, month, year);
                 return;
             }
 
@@ -260,16 +266,19 @@ export default Vue.extend({
             let now = performance.now();
             this.lastScrubTimestamp = now;
             if (delay === 0) {
-                await this.loadScrubData(index, day, month, year);
+                await this.loadScrubData(index, day, month, year, scroll);
             } else {
-                this.scrubTimeout = setTimeout(() => {
-                    // haven't moved in a while
-                    if (now === this.lastScrubTimestamp)
-                        this.loadScrubData(index, day, month, year);
-                }, delay);
+                return new Promise<void>(resolve => {
+                    this.scrubTimeout = setTimeout(async () => {
+                        // haven't moved in a while
+                        if (now === this.lastScrubTimestamp)
+                            await this.loadScrubData(index, day, month, year, scroll);
+                        resolve();
+                    }, delay);
+                })
             }
         },
-        async loadScrubData(index: number, day: number, month: number, year: number) {
+        async loadScrubData(index: number, day: number, month: number, year: number, scroll = true) {
             console.log('scrub to :', [day, month, year]);
             index = Math.max(0, index - 1);
             let monthPhotos = await this.getPhotos({
@@ -283,10 +292,15 @@ export default Vue.extend({
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
             this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
-            this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
-                this.photoGrid.scrollIntoView(day, month, year);
-                this.homeScroll();
-            }));
+            return new Promise<void>(resolve => {
+                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
+                    if (scroll) {
+                        this.photoGrid.scrollDateIntoView(day, month, year);
+                        this.homeScroll();
+                    }
+                    resolve();
+                }));
+            })
         },
         getScrollData() {
             let year = d.getFullYear();
@@ -453,14 +467,20 @@ export default Vue.extend({
             this.gettingPhotos = false;
             return photos.map((p: Object[]) => p.map(Media.fromObject));
         },
-        scrubIntoView(media: Media | null) {
+        async scrubIntoView(media: Media | null) {
             if (media === null)
                 return;
-            let date = media?.createDate;
-            if (!date) return;
-            this.scrubToDate(date);
+            await this.waitPpm;
+            await this.scrubToDate(media.createDate, false);
+            this.photoGrid.scrollMediaIntoView(media);
+            setTimeout(() => {
+                this.photoGrid.scrollMediaIntoView(media);
+                this.homeScroll();
+            }, 500);
         },
-        scrubToDate(date: Date) {
+        async scrubToDate(date: Date, scroll = true) {
+            await this.waitPpm;
+
             let day = date.getDate();
             let month = date.getMonth() + 1;
             let year = date.getFullYear();
@@ -485,7 +505,7 @@ export default Vue.extend({
             if (index === -1)
                 return console.warn('cant keep in view, date', date, 'not in photosPerMonth', this.photosPerMonth);
 
-            this.scrub(index, day, month, year, 0);
+            await this.scrub(index, day, month, year, 0, scroll);
         },
         updateFromDateQuery() {
             if (this.$route.query.date === undefined || this.$route.query.date === null) return;
