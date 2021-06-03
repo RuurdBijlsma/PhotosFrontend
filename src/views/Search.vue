@@ -4,7 +4,7 @@
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
-        <photo-grid v-else-if="$store.state.searchResults.length > 0" :photos="slicedPhotos"></photo-grid>
+        <photo-grid v-else-if="results.length > 0" :photos="slicedPhotos"></photo-grid>
         <div v-else class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
@@ -17,6 +17,8 @@
 <script lang="ts">
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
+import {Media} from "@/ts/Media";
+import {months} from "@/ts/utils";
 
 export default Vue.extend({
     name: 'Search',
@@ -34,7 +36,12 @@ export default Vue.extend({
     methods: {
         async updateSearch() {
             this.loading = true;
-            await this.$store.dispatch('search', this.query);
+            console.log(this.isDateSearch, this.month, this.day);
+            if (this.isDateSearch) {
+                await this.$store.dispatch('dateSearch', {day: this.day, month: this.month});
+            } else {
+                await this.$store.dispatch('search', this.query);
+            }
             this.loading = false;
         },
         async homeScroll() {
@@ -50,19 +57,41 @@ export default Vue.extend({
         },
     },
     computed: {
-        slicedPhotos() {
-            return this.$store.state.searchResults.slice(0, this.endIndex);
+        isDateSearch(): boolean {
+            return this.$route.name?.startsWith?.('Date') ?? false;
         },
-        query() {
+        day(): number | null {
+            let day = +this.$route.params.day;
+            return isNaN(day) ? null : day;
+        },
+        month(): number | null {
+            let monthString = this.$route.params.month;
+            if (monthString === undefined || monthString === null)
+                return null;
+            return months.indexOf(monthString as string) + 1;
+        },
+        query(): string {
             return this.$route.params.query;
+        },
+        slicedPhotos(): Media[] {
+            return this.results.slice(0, this.endIndex);
+        },
+        results(): Media[] {
+            return this.$store.state.searchResults;
         },
     },
     watch: {
+        day(){
+            this.updateSearch();
+        },
+        month(){
+            this.updateSearch();
+        },
         query() {
             this.updateSearch();
         },
-        '$store.state.searchResults'() {
-            this.$store.commit('viewerQueue', this.$store.state.searchResults);
+        results() {
+            this.$store.commit('viewerQueue', this.results);
         },
     }
 })

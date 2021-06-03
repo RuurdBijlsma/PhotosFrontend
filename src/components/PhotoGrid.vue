@@ -84,7 +84,7 @@ export default Vue.extend({
         window.addEventListener('resize', this.onResize, false);
     },
     methods: {
-        getThumbUrl(id: string, height:number) {
+        getThumbUrl(id: string, height: number) {
             return `${api}/photos/${height > 260 ? 'small' : 'tiny'}/${id}.webp`;
         },
         async calculateLayout() {
@@ -217,7 +217,7 @@ export default Vue.extend({
                     block.height = minHeight * sizeMultiplier;
                     for (let photo of block.layoutMedias) {
                         photo.visualHeight = minHeight * sizeMultiplier;
-                        photo.visualWidth = minHeight * photo.media.ratio * sizeMultiplier;
+                        photo.visualWidth = Math.floor(minHeight * photo.media.ratio * sizeMultiplier);
                     }
                 }
             }
@@ -262,9 +262,21 @@ export default Vue.extend({
                 if (list.length === 1)
                     break;
             }
+            let index = this.photoRows.indexOf(list[0]);
+            row: for (let i = index; i >= 0; i--) {
+                let row = this.photoRows[i];
+                for (let {date} of row) {
+                    let d = new Date(date);
+                    if (d.getDate() !== day || d.getMonth() + 1 !== month || d.getFullYear() !== year) {
+                        index = i + 1;
+                        break row;
+                    }
+                }
+            }
             let rows = this.$refs.rows as HTMLElement[];
-            console.log("Scrolling into view", day, month, year);
-            rows[this.photoRows.indexOf(list[0])].scrollIntoView();
+            console.log("Scrolling into view", day, month, year, list[0],
+                rows[index], this.photoRows[index], index, this.photoRows.indexOf(list[0]));
+            rows[index].scrollIntoView();
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);
@@ -276,13 +288,13 @@ export default Vue.extend({
             if (path.endsWith('/'))
                 return path.substr(0, path.length - 1)
             return path;
-        }
+        },
     },
     watch: {
         photos() {
             requestAnimationFrame(this.calculateLayout);
-        }
-    }
+        },
+    },
 })
 </script>
 

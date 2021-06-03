@@ -24,10 +24,10 @@
                 </div>
             </div>
 
-<!--            <div-->
-<!--                :style="{backgroundImage: `url(${api}/photos/full/${media.id})`}"-->
-<!--                class="media-item media-div"-->
-<!--                v-if="media && media.type === 'photo'"/>-->
+            <!--            <div-->
+            <!--                :style="{backgroundImage: `url(${api}/photos/full/${media.id})`}"-->
+            <!--                class="media-item media-div"-->
+            <!--                v-if="media && media.type === 'photo'"/>-->
             <v-img
                 :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
                 :src="`${api}/photos/big/${media.id}.webp`"
@@ -51,11 +51,11 @@
                 <span>Info</span>
             </div>
             <v-subheader class="subheader-caption">DETAILS</v-subheader>
-            <div class="info-content" v-if="media" >
+            <div class="info-content" v-if="media">
                 <div>{{ media.createDate }}</div>
                 <div v-if="media.filename">{{ media.filename }}</div>
                 <div>{{ media.width }} × {{ media.height }}</div>
-                <div v-if="media.classifications">
+                <div v-if="media.classifications && media.classifications.length > 0">
                     {{ media.classifications[0].levels[0] }}
                 </div>
                 <div v-if="media.location">{{ media.location }}</div>
@@ -86,7 +86,8 @@ export default Vue.extend({
     },
     methods: {
         close() {
-            let path = this.$route.path.split('/');
+            let path = this.$route.path.split('/').filter(p => p.length !== 0);
+            console.log(path);
             let newPath = '/' + path.slice(0, path.length - 2).join('/');
             this.$router.push(newPath);
         },
@@ -111,9 +112,19 @@ export default Vue.extend({
             if (this.isLoading.has(id))
                 return;
             this.isLoading.add(id);
+
+            let keptInView = false;
+            if (this.media?.id === id) {
+                keptInView = true;
+                this.$store.commit('keepInView', this.media);
+            }
+
             let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
             if (this.media === null || id === this.media?.id) {
                 console.log(media);
+                if (!keptInView) {
+                    this.$store.commit('keepInView', media);
+                }
                 this.media = media;
             }
             this.isLoading.delete(id);
@@ -220,7 +231,8 @@ export default Vue.extend({
     margin-right: 0;
     padding: 20px;
 }
-.info-content{
+
+.info-content {
     user-select: text;
 }
 

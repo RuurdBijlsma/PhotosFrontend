@@ -26,6 +26,26 @@ const routes: Array<RouteConfig> = [
         }],
     },
     {
+        path: '/date/:month',
+        name: 'Date',
+        component: () => import('../views/Search.vue'),
+        children: [{
+            path: '/date/:month/photo/:id',
+            name: 'DateMonthPhoto',
+            component: () => import('../views/Photo.vue')
+        }],
+    },
+    {
+        path: '/date/:day/:month',
+        name: 'Date',
+        component: () => import('../views/Search.vue'),
+        children: [{
+            path: '/date/:day/:month/photo/:id',
+            name: 'DateDayPhoto',
+            component: () => import('../views/Photo.vue')
+        }],
+    },
+    {
         path: '/login',
         name: 'Login',
         component: () => import('../views/Login.vue')

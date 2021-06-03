@@ -22,7 +22,7 @@
 
         <canvas :width="100"
                 :height="canvasHeight"
-                ref="scrubber" class="scrubber"/>
+                ref="scrubber" class="scrubber scrubber-canvas"/>
         <div class="scrubber scrubber-events"
              @mouseenter="overScrub=true"
              @mouseleave="overScrub=false"
@@ -32,8 +32,8 @@
 
 <script lang="ts">
 //TODO
-// Click on home button in nav drawer to scroll up all the way
-// Search suggestions
+// CHeck if "20 7" works to go to /date/20/july
+// Remember show info state
 // Search by year/month/day/date (separate api call when date search is detected, detect this in App.vue)
 //      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
 // Add settings page
@@ -103,20 +103,27 @@ export default Vue.extend({
 
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+        this.homeElement = (this.$refs.home as HTMLElement);
+        this.photoGrid = this.$refs.photoGrid;
 
         let photosPerMonth = await this.$store.dispatch('apiRequest', {url: 'photos/months'});
         this.photosPerMonth = photosPerMonth.map(({year = 0, month = 0, count = 0}) => ({
             year, month, count, loaded: false
         }));
-        this.photos = await this.getPhotos({monthOffset: 0});
-        this.initialLoading = false;
-        this.homeElement = (this.$refs.home as HTMLElement);
-        this.photoGrid = this.$refs.photoGrid;
-        this.render();
 
-        this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
-            this.scrollData = this.getScrollData();
-        })));
+        if (this.$route.name === 'Home') {
+            this.updateFromDateQuery();
+        }
+
+        let photos = await this.getPhotos({monthOffset: 0});
+        if (this.photos.length === 0) {
+            this.photos = photos;
+            this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
+                this.scrollData = this.getScrollData();
+            })));
+        }
+        this.initialLoading = false;
+        this.render();
     },
     methods: {
         render() {
@@ -241,7 +248,7 @@ export default Vue.extend({
             let [index, day, month, year] = this.dateFromScrubEvent(e);
             await this.scrub(index, day, month, year);
         },
-        async scrub(index: number, day: number, month: number, year: number) {
+        async scrub(index: number, day: number, month: number, year: number, delay = 300) {
             if (index >= this.scrollMonthStart && index < this.scrollMonthStart + this.scrollMonthLength) {
                 console.log('scroll to :', [day, month, year]);
                 this.photoGrid.scrollIntoView(day, month, year);
@@ -251,11 +258,15 @@ export default Vue.extend({
             // pas als je de scrub loslaat of een tijdje niet beweegt moet ie echt scrubben!
             let now = performance.now();
             this.lastScrubTimestamp = now;
-            this.scrubTimeout = setTimeout(() => {
-                // haven't moved in a while
-                if (now === this.lastScrubTimestamp)
-                    this.loadScrubData(index, day, month, year);
-            }, 300);
+            if (delay === 0) {
+                await this.loadScrubData(index, day, month, year);
+            } else {
+                this.scrubTimeout = setTimeout(() => {
+                    // haven't moved in a while
+                    if (now === this.lastScrubTimestamp)
+                        this.loadScrubData(index, day, month, year);
+                }, delay);
+            }
         },
         async loadScrubData(index: number, day: number, month: number, year: number) {
             console.log('scrub to :', [day, month, year]);
@@ -441,12 +452,54 @@ export default Vue.extend({
             this.gettingPhotos = false;
             return photos.map((p: Object[]) => p.map(Media.fromObject));
         },
+        scrubIntoView(media: Media | null) {
+            if (media === null)
+                return;
+            let date = media?.createDate;
+            if (!date) return;
+            this.scrubToDate(date);
+        },
+        scrubToDate(date: Date) {
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+            let target = year * 12 + (month - 1);
+            let closest = Infinity;
+            let index = -1;
+            for (let i = 0; i < this.photosPerMonth.length; i++) {
+                let m = this.photosPerMonth[i];
+                if (m.month === month && m.year === year) {
+                    index = i;
+                    break;
+                }
+                let value = m.year * 12 + (m.month - 1);
+                let distance = Math.abs(value - target);
+                if (distance < closest) {
+                    closest = distance;
+                    index = i;
+                } else {
+                    break;
+                }
+            }
+            if (index === -1)
+                return console.warn('cant keep in view, date', date, 'not in photosPerMonth', this.photosPerMonth);
+
+            this.scrub(index, day, month, year, 0);
+        },
+        updateFromDateQuery() {
+            if (this.$route.query.date === undefined || this.$route.query.date === null) return;
+            console.log('date string', this.$route.query.date as string);
+            let date = new Date(this.$route.query.date as string);
+            if (isNaN(date.getDate())) return;
+            this.scrubToDate(date);
+            console.log("home date changed", date);
+        },
         waitSleep(ms = 1000) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
     },
     computed: {
-        topLoaded() {
+        topLoaded(): boolean {
             return this.scrollMonthStart === 0;
         },
         bottomLoaded(): boolean {
@@ -458,10 +511,10 @@ export default Vue.extend({
         flatPhotos(): Media[] {
             return this.photos.flat();
         },
-        canvasHeight() {
+        canvasHeight(): number {
             return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;
         },
-        totalPhotos() {
+        totalPhotos(): number {
             let n = 0;
             for (let month of this.photosPerMonth)
                 n += month.count;
@@ -469,6 +522,20 @@ export default Vue.extend({
         },
     },
     watch: {
+        '$route.query.date'() {
+            this.updateFromDateQuery();
+        },
+        '$store.state.keepInView'() {
+            this.scrubIntoView(this.$store.state.keepInView);
+        },
+        '$store.state.scrollToTop'() {
+            if (!this.$store.state.scrollToTop)
+                return;
+            if (this.photosPerMonth.length === 0) return;
+            let {month, year} = this.photosPerMonth[0];
+            this.scrub(0, 1, month, year);
+            this.$store.commit('scrollToTop', false);
+        },
         flatPhotos() {
             this.$store.commit('viewerQueue', this.flatPhotos);
         },
@@ -537,6 +604,9 @@ export default Vue.extend({
     position: absolute;
     right: 0;
     bottom: 0;
+}
+
+.scrubber-canvas {
     pointer-events: none;
 }
 </style>

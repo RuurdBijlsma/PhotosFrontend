@@ -18,15 +18,19 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         api,
+        scrollToTop: false,
         searchResults: [] as Media[],
         email: '',
         password: '',
         viewerQueue: [] as Media[],
+        keepInView: null as Media | null,
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
+        scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
+        keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         searchResults: (state, v: Media[]) => state.searchResults = v,
         login: (state, {email, password}) => {
@@ -61,11 +65,19 @@ export default new Vuex.Store({
             commit('login', {email, password});
             return result;
         },
+        async dateSearch({dispatch, commit, state}, {
+            day = null as number | null,
+            month = null as number | null,
+        }) {
+            let result = await dispatch('apiRequest', {url: `photos/dateSearch?m=${month}&d=${day}`});
+            let items = result.map(Media.fromObject);
+            commit('searchResults', items);
+        },
         async search({dispatch, commit, state}, query: string) {
             let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
             let items = result.map(Media.fromObject);
             commit('searchResults', items);
-        }
+        },
     },
     modules: {},
     plugins: [vuexLocal.plugin],
