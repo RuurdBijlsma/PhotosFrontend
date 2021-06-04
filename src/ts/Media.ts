@@ -26,7 +26,7 @@ export class Media {
     location: Location | null;
     filename: string | null;
     size: number | null;
-    exif: object;
+    exif: any;
 
     constructor(id: string,
                 filename: string,
@@ -39,7 +39,7 @@ export class Media {
                 classifications: Classification[] | null = null,
                 location: Location | null = null,
                 size: number | null = null,
-                exif: object = {}) {
+                exif: any = {}) {
         this.id = id;
         this.filename = filename;
         this.createDate = createDate;

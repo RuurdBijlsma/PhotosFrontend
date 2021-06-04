@@ -94,6 +94,8 @@ export default Vue.extend({
         },
         async loadSuggestions() {
             this.loadingSuggestions = true;
+            this.items = [this.query];
+            this.loadingSuggestions = false;
             let query = this.query;
             let results = await this.$store.dispatch('apiRequest', {
                 url: `photos/suggestions?q=${query}`
@@ -107,7 +109,6 @@ export default Vue.extend({
             }
             this.items = items;
             console.log(results);
-            this.loadingSuggestions = false;
         },
         isDate(query: string) {
             const lowerQuery = query.toLowerCase();

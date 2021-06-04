@@ -9,6 +9,7 @@ const vuexLocal = new VuexPersistence({
         email: state.email,
         password: state.password,
         verifiedLogin: state.verifiedLogin,
+        showInfo: state.showInfo,
     }),
     storage: window.localStorage,
 })
@@ -26,11 +27,13 @@ export default new Vuex.Store({
         password: '',
         viewerQueue: [] as Media[],
         keepInView: null as Media | null,
+        showInfo: true,
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
+        showInfo: (state, v: boolean) => state.showInfo = v,
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
@@ -80,7 +83,9 @@ export default new Vuex.Store({
         async search({dispatch, commit, state}, query: string) {
             let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
             console.log('search result', result.map((r: any) => r.rank));
-            const threshold = 1;
+            let meanRank = result.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / result.length;
+            console.log(meanRank);
+            const threshold = Math.min(meanRank, 1.2);
             let itemsLow = result.filter((r: any) => r.rank < threshold).map(Media.fromObject);
             let itemsHigh = result.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
             commit('searchResultsLow', itemsLow);

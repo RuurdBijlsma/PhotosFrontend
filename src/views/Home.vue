@@ -34,9 +34,6 @@
 //TODO
 // ui button for reprocess item
 // ui for changing date
-// Test out grouping search results in 2 groups, rank high and rank low then sort by date within those ranks
-// Mogelijk probleemkind: 20150720_200752, komt wss door fiximgdims
-// CHeck if "20 7" works to go to /date/20/july
 // Remember show info state
 // Search by year/month/day/date (separate api call when date search is detected, detect this in App.vue)
 //      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
