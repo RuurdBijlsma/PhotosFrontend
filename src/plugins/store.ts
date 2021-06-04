@@ -19,6 +19,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         api,
+        reloadPhotos: false,
         scrollToTop: false,
         searchResultsHigh: [] as Media[],
         searchResultsLow: [] as Media[],
@@ -34,6 +35,7 @@ export default new Vuex.Store({
     },
     mutations: {
         showInfo: (state, v: boolean) => state.showInfo = v,
+        reloadPhotos: (state, reloadPhotos: boolean) => state.reloadPhotos = reloadPhotos,
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,

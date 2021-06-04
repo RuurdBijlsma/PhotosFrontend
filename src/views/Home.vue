@@ -14,7 +14,7 @@
             <div class="loading-top" v-if="!topLoaded&& !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
-            <photo-grid timeline ref="photoGrid" :photos="flatPhotos"/>
+            <photo-grid :key="updatePhotosKey" timeline ref="photoGrid" :photos="flatPhotos"/>
             <div class="loading-bottom" v-if="!bottomLoaded && !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
@@ -32,17 +32,10 @@
 
 <script lang="ts">
 //TODO
-// ui button for reprocess item
 // ui for changing date
-// Remember show info state
-// Search by year/month/day/date (separate api call when date search is detected, detect this in App.vue)
-//      "2017" / "January 2017" / "Jan 2017" / "6 jan" / "6 jan 2017" / 5 1 2017 / 5 1 / 1 2017
 // Add settings page
-// click photo to view it large
-// Large photo needs next button (secretly scroll that photo into view in background when doing that to keep the list loaded)
 // albums
 // When searching location, show map with images like the photos app
-// When searching {month} {year} just scrub to that place? (add support for /date/6/1/2020 in url for homepage)
 // world with photos
 // explore page with location tags and label tags
 // show logged in state in app bar
@@ -94,6 +87,7 @@ export default Vue.extend({
         maxPhotos: 800,
         initialLoading: true,
         waitPpm: null as null | Promise<{ year: number, month: number, count: number }[]>,
+        updatePhotosKey: 0,
     }),
     beforeDestroy() {
         document.removeEventListener('mousemove', this.scrubMove);
@@ -106,6 +100,17 @@ export default Vue.extend({
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
         this.homeElement = (this.$refs.home as HTMLElement);
+        if (this.$route.query.date === undefined && localStorage.getItem('initialLoad') !== null) {
+            let {ppm, photos} = JSON.parse(localStorage.initialLoad);
+            this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
+                year, month, count, loaded: false
+            }));
+            this.photos = photos.map((month: any[]) => month.map(p => new Media(
+                p.id, p.filename, new Date(p.createDate), p.width, p.height, p.type, p.subType,
+                p.duration, p.classifications, p.location, p.size, p.exif
+            )));
+            this.initialLoading = false;
+        }
         this.photoGrid = this.$refs.photoGrid;
 
         this.waitPpm = this.$store.dispatch('apiRequest', {url: 'photos/months'})
@@ -119,8 +124,16 @@ export default Vue.extend({
         }
 
         let photos = await this.getPhotos({monthOffset: 0});
+
         if (this.photos.length === 0) {
             this.photos = photos;
+
+            if (this.$route.query.date === undefined) {
+                console.log('query date is undefined');
+                localStorage.initialLoad = JSON.stringify({ppm: photosPerMonth, photos});
+                this.updatePhotosKey++;
+            }
+
             this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
                 this.scrollData = this.getScrollData();
             })));
@@ -511,6 +524,12 @@ export default Vue.extend({
             this.scrubToDate(date);
             console.log("home date changed", date);
         },
+        async reloadPhotos() {
+            this.photos = await this.getPhotos({
+                monthOffset: this.scrollMonthStart,
+                minimumMonths: this.scrollMonthLength,
+            })
+        },
         waitSleep(ms = 1000) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
@@ -539,18 +558,25 @@ export default Vue.extend({
         },
     },
     watch: {
+        async '$store.state.reloadPhotos'() {
+            if (!this.$store.state.reloadPhotos)
+                return;
+            await this.reloadPhotos();
+            this.$store.commit('reloadPhotos', false);
+        },
         '$route.query.date'() {
             this.updateFromDateQuery();
         },
         '$store.state.keepInView'() {
             this.scrubIntoView(this.$store.state.keepInView);
         },
-        '$store.state.scrollToTop'() {
+        async '$store.state.scrollToTop'() {
             if (!this.$store.state.scrollToTop)
                 return;
             if (this.photosPerMonth.length === 0) return;
             let {month, year} = this.photosPerMonth[0];
-            this.scrub(0, 1, month, year);
+            await this.scrub(0, 1, month, year);
+            await this.reloadPhotos();
             this.$store.commit('scrollToTop', false);
         },
         flatPhotos() {
@@ -562,7 +588,7 @@ export default Vue.extend({
 
 <style scoped>
 .home {
-    padding: 10px 10px 10px 10px;
+    padding: 10px 10px 0;
     max-height: calc(100vh - 64px);
     overflow-y: scroll;
     width: 100%;

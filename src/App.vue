@@ -24,33 +24,19 @@
             </v-btn>
         </v-app-bar>
 
-        <v-navigation-drawer :expand-on-hover="true" permanent app floating clipped hide-overlay>
+        <v-navigation-drawer :expand-on-hover="true"
+                             permanent app
+                             v-if="!$vuetify.breakpoint.mobile"
+                             floating clipped
+                             hide-overlay>
             <v-list dense nav>
-                <v-list-item to="/" exact @click="$store.commit('scrollToTop', true)">
+                <v-list-item v-for="page in pages" :to="page.to" exact
+                             @click="page.to==='/' && $store.commit('scrollToTop', true)">
                     <v-list-item-icon>
-                        <v-icon>mdi-home-outline</v-icon>
+                        <v-icon>{{ page.icon }}</v-icon>
                     </v-list-item-icon>
-
                     <v-list-item-content>
-                        <v-list-item-title>Photos</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-list-item to="/explore" exact>
-                    <v-list-item-icon>
-                        <v-icon>mdi-magnify</v-icon>
-                    </v-list-item-icon>
-
-                    <v-list-item-content>
-                        <v-list-item-title>Explore</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-list-item to="/map" exact>
-                    <v-list-item-icon>
-                        <v-icon>mdi-earth</v-icon>
-                    </v-list-item-icon>
-
-                    <v-list-item-content>
-                        <v-list-item-title>Photo map</v-list-item-title>
+                        <v-list-item-title>{{ page.name }}</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
@@ -59,6 +45,14 @@
         <v-main>
             <router-view/>
         </v-main>
+
+        <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" v-model="page" shift>
+            <v-btn v-for="page in pages" :key="page.to"
+                   @click="page.to==='/' && $store.commit('scrollToTop', true)">
+                <span>{{ page.name }}</span>
+                <v-icon>{{ page.icon }}</v-icon>
+            </v-btn>
+        </v-bottom-navigation>
     </v-app>
 </template>
 
@@ -74,6 +68,12 @@ export default Vue.extend({
         querySelect: null as string | null,
         loadingSuggestions: false,
         items: [] as string[],
+        page: 0,
+        pages: [
+            {name: 'Home', icon: 'mdi-home-outline', to: '/'},
+            {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
+            {name: 'Photo map', icon: 'mdi-earth', to: '/map'},
+        ],
     }),
     async mounted() {
         if (!this.$store.getters.isLoggedIn && this.$route.name !== 'Login')
@@ -187,6 +187,14 @@ export default Vue.extend({
         },
     },
     watch: {
+        page(newVal, oldVal) {
+            console.log(newVal, oldVal);
+            if (newVal === oldVal && newVal === 0)
+                this.$store.commit('scrollToTop', true);
+            else {
+                this.$router.push(this.pages[newVal].to);
+            }
+        },
         querySelect(val) {
             if (val === null) return;
             console.log("Search!", val);

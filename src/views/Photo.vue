@@ -4,14 +4,37 @@
             <div class="controls">
                 <div class="control-top">
                     <div class="control-top-left">
-                        <v-btn large icon dark @click="close">
+                        <v-btn icon dark @click="close">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
                     </div>
                     <div class="control-top-right">
-                        <v-btn large icon dark @click="showInfo = !showInfo">
+                        <v-btn icon dark @click="showInfo = !showInfo">
                             <v-icon>mdi-information-outline</v-icon>
                         </v-btn>
+                        <v-menu :close-on-content-click="false"
+                                transition="scale-transition"
+                                min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn dark icon v-bind="attrs" v-on="on" class="ml-3">
+                                    <v-icon>mdi-dots-vertical</v-icon>
+                                </v-btn>
+                            </template>
+                            <v-list dense>
+                                <v-list-item @click="reprocess(media)">
+                                    <v-list-item-avatar>
+                                        <v-progress-circular :size="25" :width="2" indeterminate
+                                                             v-if="reprocessLoading"/>
+                                        <v-icon v-else>mdi-auto-fix</v-icon>
+                                    </v-list-item-avatar>
+                                    <v-list-item-content>
+                                        <v-list-item-title>
+                                            Reprocess item
+                                        </v-list-item-title>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
                     </div>
                 </div>
                 <div class="control-mid">
@@ -128,7 +151,7 @@
                                      v-on="on"
                                      two-line v-if="classifications && classifications.length > 0">
                             <v-list-item-avatar>
-                                <v-icon>mdi-graph</v-icon>
+                                <v-icon>mdi-eye</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
                                 <v-list-item-title :title="classifications[0].labels">
@@ -141,7 +164,7 @@
                         </v-list-item>
                     </template>
                     <v-list max-width="360">
-                        <v-list-item two-line v-for="(classification, i) in classifications">
+                        <v-list-item two-line v-for="(classification, i) in classifications" :key="i">
                             <v-list-item-avatar>
                                 <v-icon>mdi-alpha-{{ 'abcdefg'[i] }}-circle-outline</v-icon>
                             </v-list-item-avatar>
@@ -188,6 +211,7 @@ export default Vue.extend({
         media: null as Media | null,
         isLoading: new Set(),
         loadInfo: 0,
+        reprocessLoading: false,
     }),
     beforeDestroy() {
         document.removeEventListener('keydown', this.handleKey);
@@ -199,6 +223,16 @@ export default Vue.extend({
         document.addEventListener('keydown', this.handleKey, false);
     },
     methods: {
+        async reprocess(media: Media) {
+            this.reprocessLoading = true;
+            let {id} = await this.$store.dispatch('apiRequest', {url: `photos/reprocess/${media.id}`});
+            let path = this.$route.path.split('/').filter(p => p.length !== 0);
+            console.log(path, id);
+            path[path.length - 1] = id;
+            await this.$router.replace(`/${path.join('/')}`);
+            this.$store.commit('reloadPhotos', true);
+            this.reprocessLoading = false;
+        },
         handleKey(e: KeyboardEvent) {
             switch (true) {
                 case e.key === 'ArrowRight':
@@ -233,14 +267,15 @@ export default Vue.extend({
             let path = this.$route.path.split('/');
             this.$router.replace([...path.slice(0, path.length - 1), next.id].join('/'));
         },
-        async fullMediaLoad() {
-            let id = this.media?.id ?? this.id;
+        async fullMediaLoad(idOverride: string | null = null) {
+            let id = idOverride ?? this.media?.id ?? this.id;
             if (this.isLoading.has(id))
                 return;
             this.isLoading.add(id);
+            console.log("requesting id", id);
 
             let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
-            if (this.media === null || id === this.media?.id) {
+            if (idOverride !== null || this.media === null || id === this.media?.id) {
                 console.log(media);
                 this.media = media;
                 this.loadInfo++;
@@ -268,7 +303,7 @@ export default Vue.extend({
         place(): string | null {
             return this.media?.location?.places?.find?.(p => p.type === 'place')?.name ?? null;
         },
-        subPlace(): string|null{
+        subPlace(): string | null {
             return [...this.admins, this.country].join(', ')
         },
         admins(): string[] {
@@ -340,7 +375,7 @@ export default Vue.extend({
     },
     watch: {
         id() {
-            this.fullMediaLoad();
+            this.fullMediaLoad(this.id);
         },
     },
 })

@@ -85,7 +85,12 @@ export default Vue.extend({
     },
     methods: {
         getThumbUrl(id: string, height: number) {
-            return `${api}/photos/${height > 260 ? 'small' : 'tiny'}/${id}.webp`;
+            let size = 'tiny';
+            if (height > 260)
+                size = 'small';
+            if (height > 500)
+                size = 'big';
+            return `${api}/photos/${size}/${id}.webp`;
         },
         async calculateLayout() {
             let photos: ILayoutMedia[] = this.photos.map(p => ({media: p, visualWidth: 0, visualHeight: 0}));
