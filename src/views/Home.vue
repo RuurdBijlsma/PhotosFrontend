@@ -7,7 +7,6 @@
         <div v-else-if="flatPhotos.length === 0" class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-image</v-icon>
-                <div class="caption">No photos"</div>
             </div>
         </div>
         <div class="grid">
@@ -24,8 +23,10 @@
 
         <canvas :width="100"
                 :height="canvasHeight"
+                :style="{height: canvasHeight + 'px'}"
                 ref="scrubber" class="scrubber scrubber-canvas"/>
         <div class="scrubber scrubber-events"
+             :style="{height: canvasHeight + 'px'}"
              @mouseenter="overScrub=true"
              @mouseleave="overScrub=false"
              @mousedown="scrubStart"/>
@@ -77,7 +78,7 @@ export default Vue.extend({
         photoGrid: null as any,
 
         scrollMonthStart: 0,
-        scrollLoadPromise: null as Promise<void> | null,
+        scrollLoadPromise: null as Promise<void | boolean> | null,
         scrolling: false,
         scrollData: {y: 0, year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate()},
         scrollTimeout: -1,
@@ -128,8 +129,9 @@ export default Vue.extend({
         }));
 
         let loadedDatePhotos = false;
-        if (this.$route.name === 'Home') {
-            loadedDatePhotos = await this.updateFromDateQuery();
+        if (this.$route.name === 'Home' && this.hasDate !== null) {
+            loadedDatePhotos = true;
+            this.updateFromDateQuery();
         }
 
 
@@ -322,14 +324,10 @@ export default Vue.extend({
             return new Promise<void>(resolve => {
                 console.log("waiting for photorowsupdate", scroll, this.photoGrid);
                 this.$once('photoRowsUpdate', () => this.$nextTick(() => {
-                    console.log("photo rows updated, scroll:", scroll);
-                    if (scroll) {
-
-                        this.photoGrid.scrollDateIntoView(day, month, year);
-                        resolve();
-                    } else {
-                        resolve();
-                    }
+                    console.log("getting scrolldata and scrolling date into view", day, month, year)
+                    this.scrollLoadPromise = this.waitSleep(200);
+                    this.scrollData = this.getScrollData();
+                    this.photoGrid.scrollDateIntoView(day, month, year);
                 }));
             })
         },
@@ -392,7 +390,11 @@ export default Vue.extend({
             let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
 
             if (scrollTop < 3000 || scrollBottom < 3000) {
-                let loading = await Promise.race([this.scrollLoadPromise, this.waitSleep(1)]);
+                let loading = await Promise.race([
+                    this.scrollLoadPromise?.then?.(() => false),
+                    this.waitSleep(10).then(() => true)
+                ]);
+                console.log("HOME SCROLL", {scrollTop, scrollBottom, loading});
                 if (!loading)
                     this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
             }
@@ -473,7 +475,7 @@ export default Vue.extend({
         },
         waitForLayoutUpdate(): Promise<void> {
             return new Promise(resolve => {
-                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
+                this.$once('photoRowsUpdate', () => this.$nextTick(() => {
                     resolve();
                 }));
             })
@@ -502,11 +504,11 @@ export default Vue.extend({
             if (media === null)
                 return;
             await this.waitPpm;
-            await this.scrubToDate(media.createDate, false);
+            await this.scrubToDate(media.createDate);
             await this.photoGrid.scrollMediaIntoView(media);
             await this.homeScroll();
         },
-        async scrubToDate(date: Date, scroll = true) {
+        async scrubToDate(date: Date) {
             await this.waitPpm;
 
             let day = date.getDate();
@@ -534,15 +536,12 @@ export default Vue.extend({
                 return console.warn('cant keep in view, date', date, 'not in photosPerMonth', this.photosPerMonth);
 
             console.log('scrub to date', index, day, month, year, this.photosPerMonth[index])
-            await this.scrub(index, day, month, year, 300, scroll);
+            await this.scrub(index, day, month, year, 0);
         },
         async updateFromDateQuery() {
-            if (this.$route.query.date === undefined || this.$route.query.date === null) return false;
-            console.log('date string', this.$route.query.date as string);
-            let date = new Date(this.$route.query.date as string);
-            if (isNaN(date.getDate())) return false;
-            console.log("home date changed", date);
-            await this.scrubToDate(date, false);
+            let date = this.hasDate;
+            if (date === null) return false;
+            await this.scrubToDate(date);
             return true;
         },
         async reloadPhotos() {
@@ -553,11 +552,19 @@ export default Vue.extend({
             this.photos = photos;
             console.warn('reloadPhotos', this.flatPhotos);
         },
-        waitSleep(ms = 1000) {
+        waitSleep(ms = 1000): Promise<void> {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
     },
     computed: {
+        hasDate(): null | Date {
+            if (this.$route.query.date === undefined || this.$route.query.date === null) return null;
+            console.log('date string', this.$route.query.date as string);
+            let date = new Date(this.$route.query.date as string);
+            if (isNaN(date.getDate())) return null;
+            console.log("home date changed", date);
+            return date;
+        },
         topLoaded(): boolean {
             return this.scrollMonthStart === 0;
         },
@@ -642,7 +649,7 @@ export default Vue.extend({
 }
 
 .no-results .icon {
-    font-size: 40vw !important;
+    font-size: 30vw !important;
     opacity: 0.3;
 }
 
@@ -669,7 +676,7 @@ export default Vue.extend({
     height: 100%;
     position: absolute;
     right: 0;
-    bottom: 0;
+    top:0;
 }
 
 .scrubber-canvas {
