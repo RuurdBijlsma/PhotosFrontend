@@ -231,6 +231,7 @@ export default Vue.extend({
             }
             console.log('setting photoRows', rows);
             this.photoRows = rows;
+            console.log("emitting photoRowsUpdate");
             this.$emit('photoRowsUpdate');
         },
         onResize() {
@@ -259,8 +260,10 @@ export default Vue.extend({
             return `d${day.replace(/ /g, '_')}`;
         },
         async scrollMediaIntoView(media: Media) {
-            console.log("scrolling into view", media.id)
-            document.querySelector(`.p${media.id}`).scrollIntoView({block: 'center'});
+            let mediaElement = document.querySelector(`.p${media.id}`);
+            console.log("scrolling into view", media.id, {mediaElement})
+            if (mediaElement === null) return;
+            mediaElement.scrollIntoView({block: 'center'});
         },
         async scrollDateIntoView(day: number, month: number, year: number) {
             let targetDate = new Date();
@@ -268,8 +271,10 @@ export default Vue.extend({
             targetDate.setMonth(month - 1);
             targetDate.setDate(day);
             let dateClass = this.dateToClass(targetDate);
-            console.log("scrolling into view", dateClass)
-            document.querySelector(`.${dateClass}`).scrollIntoView({block: 'center'});
+            let dateElement = document.querySelector(`.${dateClass}`);
+            console.log("scrolling into view", {dateClass,dateElement})
+            if (dateElement === null) return;
+            dateElement.scrollIntoView({block: 'center'});
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);

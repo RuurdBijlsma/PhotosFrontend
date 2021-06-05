@@ -14,7 +14,9 @@
             <div class="loading-top" v-if="!topLoaded&& !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
-            <photo-grid :key="updatePhotosKey" timeline ref="photoGrid" :photos="flatPhotos"/>
+            <photo-grid @photoRowsUpdate="photoRowsUpdate"
+                        :key="updatePhotosKey" timeline
+                        ref="photoGrid" :photos="flatPhotos"/>
             <div class="loading-bottom" v-if="!bottomLoaded && !initialLoading">
                 <v-progress-linear indeterminate></v-progress-linear>
             </div>
@@ -225,6 +227,11 @@ export default Vue.extend({
                 y += Math.round(month.count / this.totalPhotos * (this.canvas.height - textSize));
             }
         },
+        photoRowsUpdate() {
+            this.scrollData = this.getScrollData();
+            console.log("received event: photoRowsUpdate from photogrid, tranmitting now on Home.vue");
+            this.$emit('photoRowsUpdate');
+        },
         scrubStart(e: MouseEvent) {
             this.scrubbing = true;
             this.scrubByEvent(e);
@@ -302,7 +309,7 @@ export default Vue.extend({
             index = Math.max(0, index - 1);
             let monthPhotos = await this.getPhotos({
                 monthOffset: index,
-                minimumMonths: 2,
+                minimumMonths: 3,
             });
             this.scrollMonthStart = index;
             console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
@@ -311,14 +318,18 @@ export default Vue.extend({
             // Prevent scroll event from loading data for 200ms
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
-            this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
+            // this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
             return new Promise<void>(resolve => {
-                this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick(() => {
+                console.log("waiting for photorowsupdate", scroll, this.photoGrid);
+                this.$once('photoRowsUpdate', () => this.$nextTick(() => {
+                    console.log("photo rows updated, scroll:", scroll);
                     if (scroll) {
+
                         this.photoGrid.scrollDateIntoView(day, month, year);
-                        this.homeScroll();
+                        resolve();
+                    } else {
+                        resolve();
                     }
-                    resolve();
                 }));
             })
         },
@@ -522,15 +533,16 @@ export default Vue.extend({
             if (index === -1)
                 return console.warn('cant keep in view, date', date, 'not in photosPerMonth', this.photosPerMonth);
 
-            await this.scrub(index, day, month, year, 0, scroll);
+            console.log('scrub to date', index, day, month, year, this.photosPerMonth[index])
+            await this.scrub(index, day, month, year, 300, scroll);
         },
         async updateFromDateQuery() {
             if (this.$route.query.date === undefined || this.$route.query.date === null) return false;
             console.log('date string', this.$route.query.date as string);
             let date = new Date(this.$route.query.date as string);
             if (isNaN(date.getDate())) return false;
-            await this.scrubToDate(date);
             console.log("home date changed", date);
+            await this.scrubToDate(date, false);
             return true;
         },
         async reloadPhotos() {
