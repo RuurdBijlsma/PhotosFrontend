@@ -30,7 +30,7 @@
                              floating clipped
                              hide-overlay>
             <v-list dense nav>
-                <v-list-item v-for="page in pages" :to="page.to" exact
+                <v-list-item v-for="page in pages" :to="page.to" exact :key="page.to"
                              @click="page.to==='/' && $store.commit('scrollToTop', true)">
                     <v-list-item-icon>
                         <v-icon>{{ page.icon }}</v-icon>

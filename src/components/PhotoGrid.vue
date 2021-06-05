@@ -1,13 +1,16 @@
 <template>
     <div class="photo-grid" ref="frame">
         <div class="block-row" v-for="row in photoRows" ref="rows">
-            <div class="photo-block" v-for="block in row">
-                <div class="block-day" :title="block.day" :class="{'hide-date':block.hideDate}"
+            <div class="photo-block" v-for="block in row" ref="blocks">
+                <div class="block-day"
+                     :title="block.day"
+                     :class="{'hide-date':block.hideDate, [dateToClass(block.date)]:true}"
                      :style="{maxWidth: Math.floor(block.width) + 'px'}">
                     {{ block.day }}
                 </div>
                 <div class="photos">
                     <router-link class="photo"
+                                 :class="`p${media.id}`"
                                  :to="`${currentPath}/photo/${media.id}`"
                                  v-for="{media, visualWidth, visualHeight} in block.layoutMedias"
                                  :key="media.id"
@@ -226,7 +229,7 @@ export default Vue.extend({
                     }
                 }
             }
-
+            console.log('setting photoRows', rows);
             this.photoRows = rows;
             this.$emit('photoRowsUpdate');
         },
@@ -248,60 +251,25 @@ export default Vue.extend({
             let video: HTMLVideoElement = (this.$refs['video' + id] as HTMLVideoElement[])?.[0];
             video?.pause?.();
         },
-        async getRowElements(): Promise<HTMLElement[]> {
-            return new Promise(resolve => {
-                let rows = this.$refs.rows;
-                if (Array.isArray(rows))
-                    resolve(rows as HTMLElement[]);
-                setTimeout(async () => {
-                    resolve(await this.getRowElements());
-                });
-            });
+        dateToClass(date: Date | number) {
+            if (typeof date === 'number') {
+                date = new Date(date);
+            }
+            let day = date.toDateString();
+            return `d${day.replace(/ /g, '_')}`;
         },
         async scrollMediaIntoView(media: Media) {
-            let index = 0;
-            row: for (let i = 0; i < this.photoRows.length; i++)
-                for (let block of this.photoRows[i])
-                    for (let layoutMedia of block.layoutMedias)
-                        if (layoutMedia.media.id === media.id) {
-                            index = i;
-                            break row;
-                        }
-            let rows = await this.getRowElements();
-            rows[index].scrollIntoView({block: 'center'});
+            console.log("scrolling into view", media.id)
+            document.querySelector(`.p${media.id}`).scrollIntoView({block: 'center'});
         },
         async scrollDateIntoView(day: number, month: number, year: number) {
             let targetDate = new Date();
             targetDate.setFullYear(year);
             targetDate.setMonth(month - 1);
             targetDate.setDate(day);
-            let target = targetDate.getTime();
-
-            // List is ordered highest date -> lowest date
-            let list = this.photoRows;
-            while (true) {
-                let i = Math.floor(list.length / 2);
-                let date = list[i][0].date;
-                if (target < date)
-                    list = list.slice(i);
-                else
-                    list = list.slice(0, i);
-                if (list.length === 1)
-                    break;
-            }
-            let index = this.photoRows.indexOf(list[0]);
-            row: for (let i = index; i >= 0; i--) {
-                let row = this.photoRows[i];
-                for (let {date} of row) {
-                    let d = new Date(date);
-                    if (d.getDate() !== day || d.getMonth() + 1 !== month || d.getFullYear() !== year) {
-                        index = i + 1;
-                        break row;
-                    }
-                }
-            }
-            let rows = await this.getRowElements();
-            rows[index].scrollIntoView({block: 'center'});
+            let dateClass = this.dateToClass(targetDate);
+            console.log("scrolling into view", dateClass)
+            document.querySelector(`.${dateClass}`).scrollIntoView({block: 'center'});
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);

@@ -95,35 +95,63 @@
                                 :close-on-content-click="false"
                                 transition="scale-transition"
                                 offset-y
+                                v-model="dateMenu"
                                 :nudge-left="50"
                                 min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <span class="mr-4" v-bind="attrs" v-on="on">{{ createDate }}</span>
+                                    <span class="mr-4" v-bind="attrs" v-on="on">{{ formattedCreateDate }}</span>
                                 </template>
-                                <v-date-picker
-                                    max-width="360"
-                                    v-model="createDate"
-                                    :max="new Date().toISOString().substr(0, 10)"
-                                    min="1950-01-01"/>
+                                <v-card>
+                                    <v-date-picker
+                                        max-width="360"
+                                        v-model="createDate"
+                                        :max="new Date().toISOString().substr(0, 10)"
+                                        min="1950-01-01"/>
+                                    <v-card-actions>
+                                        <v-spacer/>
+                                        <v-btn text @click="dateMenu=false">Cancel</v-btn>
+                                        <v-btn color="primary" text
+                                               :loading="dateLoading"
+                                               @click="saveTheDate">
+                                            Save
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
                             </v-menu>
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
                             <v-menu
                                 :close-on-content-click="false"
                                 transition="scale-transition"
                                 offset-y
-                                :nudge-left="90"
+                                v-model="timeMenu"
+                                :nudge-left="50"
                                 min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <span v-bind="attrs" v-on="on">{{ createTime }}</span>
+                                    <span v-bind="attrs" v-on="on">{{ formattedCreateTime }}</span>
                                 </template>
-                                <v-time-picker
-                                    format="24hr"
-                                    use-seconds
-                                    scrollable
-                                    v-model="createTime"
-                                    max-width="360"/>
+                                <v-card>
+                                    <v-time-picker
+                                        format="24hr"
+                                        use-seconds
+                                        scrollable
+                                        v-model="createTime"
+                                        max-width="360"/>
+                                    <v-card-title class="error--text" v-if="dateError">
+                                        {{ dateError }}
+                                    </v-card-title>
+                                    <v-card-actions>
+                                        <v-spacer/>
+                                        <v-btn text @click="timeMenu=false">Cancel</v-btn>
+                                        <v-btn color="primary" text
+                                               :loading="dateLoading"
+                                               @click="saveTheDate">
+                                            Save
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
                             </v-menu>
-                        </v-list-item-title>
-                        <v-list-item-subtitle>Date taken</v-list-item-subtitle>
+                        </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
                 <v-list-item two-line v-if="media.exif.Make && media.exif.Model">
@@ -179,7 +207,7 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-list-item two-line v-if="media.location">
+                <v-list-item two-line v-if="media.location" @click="openMaps(media.location)">
                     <v-list-item-avatar>
                         <v-icon>mdi-map-marker-outline</v-icon>
                     </v-list-item-avatar>
@@ -200,13 +228,20 @@
 <script lang="ts">
 import Vue from 'vue'
 import {api} from "@/ts/constants"
-import {Media} from "@/ts/Media";
+import {Location, Media} from "@/ts/Media";
 import {bytesToReadable} from "@/ts/utils";
+import {format, parseISO} from 'date-fns'
+
 
 export default Vue.extend({
     name: 'Photo',
     props: {},
     data: () => ({
+        dateMenu: false,
+        timeMenu: false,
+        editingDate: new Date(),
+        dateLoading: false,
+        dateError: '',
         api,
         media: null as Media | null,
         isLoading: new Set(),
@@ -223,6 +258,32 @@ export default Vue.extend({
         document.addEventListener('keydown', this.handleKey, false);
     },
     methods: {
+        async saveTheDate() {
+            if (this.media === null) return;
+            let isDateMenu = this.dateMenu;
+            this.dateLoading = true;
+            let success = await this.$store.dispatch('apiRequest', {
+                url: `photos/changeDate/${this.media.id}`,
+                body: {date: this.editedDate.getTime()}
+            });
+            console.log('success?', success);
+            if (success === true) {
+                this.dateError = '';
+                console.log('setting media createdate', this.editedDate);
+                this.media.createDate = this.editedDate;
+
+                if (isDateMenu) this.dateMenu = false;
+                else this.timeMenu = false;
+            } else {
+                this.dateError = isDateMenu ? 'Failed to set date!' : 'Failed to set time!';
+            }
+            this.dateLoading = false;
+        },
+        openMaps(location: Location | null) {
+            if (location === null)
+                return;
+            window.open(`https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`)
+        },
         async reprocess(media: Media) {
             this.reprocessLoading = true;
             let {id} = await this.$store.dispatch('apiRequest', {url: `photos/reprocess/${media.id}`});
@@ -331,27 +392,36 @@ export default Vue.extend({
                 this.$store.commit('showInfo', v);
             }
         },
+        editedDate(): Date {
+            return new Date(`${this.createDate} ${this.createTime}`);
+        },
+        formattedCreateTime() {
+            let date = this.media?.createDate ?? new Date();
+            return format(date, 'H:mm:ss');
+        },
+        formattedCreateDate() {
+            let date = this.media?.createDate ?? new Date();
+            return format(date, 'EEEE, do MMMM yyyy');
+        },
         createTime: {
             get(): string {
-                let date = this.media?.createDate ?? new Date();
-                let hours = date.getHours().toString().padStart(2, '0');
-                let minutes = date.getMinutes().toString().padStart(2, '0');
-                let seconds = date.getSeconds().toString().padStart(2, '0');
-                return `${hours}:${minutes}:${seconds}`;
+                let date = this.editingDate ?? new Date();
+                return format(date, 'H:mm:ss')
             },
             set(v: string) {
                 console.log('set time', v);
+                this.editingDate = new Date(`${this.createDate} ${v}`);
             }
         },
         createDate: {
             get(): string {
-                let date = this.media?.createDate ?? new Date();
-                let month = (date.getMonth() + 1).toString().padStart(2, '0');
-                let day = date.getDate().toString().padStart(2, '0');
-                return `${date.getFullYear()}-${month}-${day}`;
+                let date = this.editingDate ?? new Date();
+                return format(parseISO(date.toISOString()), 'yyyy-MM-dd');
             },
             set(v: string) {
+                if (this.media === null) return;
                 console.log('set date', v);
+                this.editingDate = new Date(`${v} ${this.createTime}`);
             }
         },
         megaPixels(): number {
@@ -374,6 +444,10 @@ export default Vue.extend({
         },
     },
     watch: {
+        media() {
+            if (this.media !== null)
+                this.editingDate = this.media?.createDate ?? new Date();
+        },
         id() {
             this.fullMediaLoad(this.id);
         },

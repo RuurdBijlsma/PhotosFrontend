@@ -32,6 +32,10 @@
 
 <script lang="ts">
 //TODO
+// alotta bugs
+// next in search results goes through home results
+// scroll into view very broken
+
 // ui for changing date
 // Add settings page
 // albums
@@ -105,10 +109,12 @@ export default Vue.extend({
             this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
                 year, month, count, loaded: false
             }));
-            this.photos = photos.map((month: any[]) => month.map(p => new Media(
+            let tp = photos.map((month: any[]) => month.map(p => new Media(
                 p.id, p.filename, new Date(p.createDate), p.width, p.height, p.type, p.subType,
                 p.duration, p.classifications, p.location, p.size, p.exif
             )));
+            this.photos = tp;
+            console.warn("localStorage", this.flatPhotos);
             this.initialLoading = false;
         }
         this.photoGrid = this.$refs.photoGrid;
@@ -119,17 +125,18 @@ export default Vue.extend({
             year, month, count, loaded: false
         }));
 
+        let loadedDatePhotos = false;
         if (this.$route.name === 'Home') {
-            this.updateFromDateQuery();
+            loadedDatePhotos = await this.updateFromDateQuery();
         }
 
-        let photos = await this.getPhotos({monthOffset: 0});
 
-        if (this.photos.length === 0) {
+        if (!loadedDatePhotos) {
+            let photos = await this.getPhotos({monthOffset: 0});
             this.photos = photos;
+            console.warn('mounted requested', this.flatPhotos);
 
-            if (this.$route.query.date === undefined) {
-                console.log('query date is undefined');
+            if (this.scrollMonthStart === 0) {
                 localStorage.initialLoad = JSON.stringify({ppm: photosPerMonth, photos});
                 this.updatePhotosKey++;
             }
@@ -137,6 +144,8 @@ export default Vue.extend({
             this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
                 this.scrollData = this.getScrollData();
             })));
+        } else {
+            this.scrollData = this.getScrollData();
         }
         this.initialLoading = false;
         this.render();
@@ -267,7 +276,8 @@ export default Vue.extend({
         async scrub(index: number, day: number, month: number, year: number, delay = 300, scroll = true) {
             if (index >= this.scrollMonthStart && index < this.scrollMonthStart + this.scrollMonthLength) {
                 console.log('scroll to :', [day, month, year]);
-                this.photoGrid.scrollDateIntoView(day, month, year);
+                if (scroll)
+                    await this.photoGrid.scrollDateIntoView(day, month, year);
                 return;
             }
 
@@ -297,6 +307,7 @@ export default Vue.extend({
             this.scrollMonthStart = index;
             console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
             this.photos = monthPhotos;
+            console.warn('scrub', this.flatPhotos);
             // Prevent scroll event from loading data for 200ms
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
@@ -481,11 +492,8 @@ export default Vue.extend({
                 return;
             await this.waitPpm;
             await this.scrubToDate(media.createDate, false);
-            this.photoGrid.scrollMediaIntoView(media);
-            setTimeout(() => {
-                this.photoGrid.scrollMediaIntoView(media);
-                this.homeScroll();
-            }, 500);
+            await this.photoGrid.scrollMediaIntoView(media);
+            await this.homeScroll();
         },
         async scrubToDate(date: Date, scroll = true) {
             await this.waitPpm;
@@ -516,19 +524,22 @@ export default Vue.extend({
 
             await this.scrub(index, day, month, year, 0, scroll);
         },
-        updateFromDateQuery() {
-            if (this.$route.query.date === undefined || this.$route.query.date === null) return;
+        async updateFromDateQuery() {
+            if (this.$route.query.date === undefined || this.$route.query.date === null) return false;
             console.log('date string', this.$route.query.date as string);
             let date = new Date(this.$route.query.date as string);
-            if (isNaN(date.getDate())) return;
-            this.scrubToDate(date);
+            if (isNaN(date.getDate())) return false;
+            await this.scrubToDate(date);
             console.log("home date changed", date);
+            return true;
         },
         async reloadPhotos() {
-            this.photos = await this.getPhotos({
+            let photos = await this.getPhotos({
                 monthOffset: this.scrollMonthStart,
                 minimumMonths: this.scrollMonthLength,
             })
+            this.photos = photos;
+            console.warn('reloadPhotos', this.flatPhotos);
         },
         waitSleep(ms = 1000) {
             return new Promise(resolve => setTimeout(resolve, ms));
