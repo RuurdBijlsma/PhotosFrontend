@@ -36,9 +36,15 @@
 
 <script lang="ts">
 //TODO
+// probleemkind op hp https://ruurd.dev/photos/#/photo/6c5e90ec387ae6ab8c973dc5df92497d
 // zoom in big picture view
 // map view in big picture view
+// add fix date from filename button
 // Add settings page
+// When searching label in db show glossary on search page at the top
+// animated webp not showing in grid, but showing in big pic
+// click label in photo info panel to search for that label
+// video controls in big photo viewer
 // albums
 // Fix formatting of dates in photo grid blocks
 // When searching location, show map with images like the photos app
