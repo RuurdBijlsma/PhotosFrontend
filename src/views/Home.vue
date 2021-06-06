@@ -82,7 +82,7 @@ export default Vue.extend({
         canvas: {} as HTMLCanvasElement,
         context: {} as CanvasRenderingContext2D,
         photoGrid: null as any,
-        yearTextSize: 13,
+        yearTextSize: 14,
 
         scrollMonthStart: 0,
         scrollLoadPromise: null as Promise<void | boolean> | null,

@@ -104,7 +104,7 @@ export default Vue.extend({
             return `${api}/photos/${size}/${id}.webp`;
         },
         async calculateLayout() {
-            let i = Math.floor(Math.random() * 100)
+            let i = Math.floor(Math.random() * 1000);
             console.time(`Calculate layout ${i}`);
             let photos: ILayoutMedia[] = this.photos.map(p => ({media: p, visualWidth: 0, visualHeight: 0}));
             if (photos.length === 0) {

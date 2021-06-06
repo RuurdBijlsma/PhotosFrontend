@@ -74,7 +74,10 @@
         </v-main>
 
         <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" shift>
-            <v-btn v-for="page in pages" :to="page.to" :key="page.to"
+            <v-btn :style="{height: 'inherit !important'}"
+                   v-for="page in pages"
+                   :to="page.to"
+                   :key="page.to"
                    @click="scrollToTop">
                 <span>{{ page.name }}</span>
                 <v-icon>{{ page.icon }}</v-icon>

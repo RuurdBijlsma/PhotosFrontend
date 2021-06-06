@@ -26,7 +26,9 @@
 
         <v-divider class="mt-5"/>
 
-        <div class="bottom-stuff">
+        <div class="bottom-stuff" :style="{
+            display: $vuetify.breakpoint.width < 1000 ? 'block' : 'flex',
+        }">
             <v-list rounded>
                 <v-subheader>Your activity</v-subheader>
                 <v-list-item to="/favorites">
@@ -87,10 +89,16 @@ export default {
         api,
     }),
     async mounted() {
+        if (localStorage.getItem('labelsAndPlaces') !== null) {
+            let {labels, places} = JSON.parse(localStorage.labelsAndPlaces);
+            this.labels = labels;
+            this.places = places;
+        }
         [this.labels, this.places] = await Promise.all([
             this.$store.dispatch('apiRequest', {url: 'photos/labels'}),
             this.$store.dispatch('apiRequest', {url: 'photos/locations'}),
         ]);
+        localStorage.labelsAndPlaces = JSON.stringify({labels: this.labels, places: this.places});
     },
 }
 </script>
