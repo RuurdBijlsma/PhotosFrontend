@@ -103,6 +103,7 @@
                                 </template>
                                 <v-card>
                                     <v-date-picker
+                                        class="roboto"
                                         max-width="360"
                                         v-model="createDate"
                                         :max="new Date().toISOString().substr(0, 10)"
@@ -132,6 +133,7 @@
                                 </template>
                                 <v-card>
                                     <v-time-picker
+                                        class="roboto"
                                         format="24hr"
                                         use-seconds
                                         scrollable

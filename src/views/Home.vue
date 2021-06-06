@@ -47,6 +47,7 @@
 // Delete photo
 // Upload photo
 // Download photo
+// search recalculates photo grid every scroll????
 // If randomLabels or randomLocations is not fast enough, add a level field to the suggestions table and use that
 
 import {Media} from "@/ts/Media";

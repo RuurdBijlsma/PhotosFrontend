@@ -251,7 +251,9 @@ html, body {
 .v-application{
     font-family: 'Montserrat', 'Roboto', Arial, sans-serif !important;
 }
-
+.roboto{
+    font-family: 'Roboto', Arial, sans-serif !important;
+}
 .no-style {
     text-decoration: none;
     color: inherit !important;

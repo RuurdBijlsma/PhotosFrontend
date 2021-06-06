@@ -1,5 +1,5 @@
 <template>
-    <div class="photo-grid" ref="frame">
+    <div class="photo-grid roboto" ref="frame">
         <div class="block-row" v-for="row in photoRows" ref="rows">
             <div class="photo-block" v-for="block in row" ref="blocks">
                 <div class="block-day"
@@ -336,7 +336,6 @@ export default Vue.extend({
 
 <style scoped>
 .photo-grid {
-    font-family: Roboto, Arial, sans-serif;
 }
 
 .photo-block {
