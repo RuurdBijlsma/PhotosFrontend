@@ -280,7 +280,6 @@ export default Vue.extend({
         dateFromScrubEvent(e: MouseEvent) {
             let percent = (e.pageY - this.$vuetify.application.top) / (this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom);
             percent = Math.max(0, Math.min(1, percent * 1.01))
-            console.log(percent);
             let totalCount = this.totalPhotos;
             let targetPhoto = totalCount * percent;
             let counter = 0;
