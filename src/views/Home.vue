@@ -60,8 +60,7 @@ import {Media} from "@/ts/Media";
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {api} from "@/ts/constants"
-
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',];
+import {shortMonths} from "@/ts/utils";
 
 interface MonthPhotos {
     year: number,
@@ -212,7 +211,7 @@ export default Vue.extend({
             this.context.fillStyle = 'rgba(255,255,255,0.8)';
 
             if (includeText) {
-                let text = `${monthNames[month - 1]} ${year}`;
+                let text = `${shortMonths[month - 1]} ${year}`;
                 let {width} = this.context.measureText(text);
                 this.context.fillRect(this.canvas.width - width - 10, y - textSize - 10,
                     width + 10, textSize + 10);
