@@ -21,8 +21,12 @@ export default new Vuex.Store({
         api,
         reloadPhotos: false,
         scrollToTop: false,
-        searchResultsHigh: [] as Media[],
-        searchResultsLow: [] as Media[],
+        searchResults: {
+            low: [] as Media[],
+            high: [] as Media[],
+            isLabel: false,
+            glossary: '',
+        },
         dateResults: [] as Media[],
         email: '',
         password: '',
@@ -40,8 +44,10 @@ export default new Vuex.Store({
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         dateResults: (state, v: Media[]) => state.dateResults = v,
-        searchResultsHigh: (state, v: Media[]) => state.searchResultsHigh = v,
-        searchResultsLow: (state, v: Media[]) => state.searchResultsLow = v,
+        searchResultsHigh: (state, v: Media[]) => state.searchResults.high = v,
+        searchResultsLow: (state, v: Media[]) => state.searchResults.low = v,
+        isLabel: (state, v: boolean) => state.searchResults.isLabel = v,
+        glossary: (state, v: string) => state.searchResults.glossary = v,
         login: (state, {email, password}) => {
             state.email = email;
             state.password = password;
@@ -83,10 +89,16 @@ export default new Vuex.Store({
             commit('dateResults', items);
         },
         async search({dispatch, commit, state}, query: string) {
-            let result = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
-            console.log('search result', result.map((r: any) => r.rank));
+            let [glossInfo, result] = await Promise.all([
+                dispatch('apiRequest', {url: `photos/defineLabel/${query}`}),
+                dispatch('apiRequest', {url: `photos/search?q=${query}`}),
+            ]);
+            console.log(glossInfo);
+            commit('isLabel', glossInfo.isLabel ?? false);
+            if (glossInfo.isLabel && glossInfo.glossary !== undefined && glossInfo.glossary !== null) {
+                commit('glossary', glossInfo.glossary);
+            }
             let meanRank = result.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / result.length;
-            console.log(meanRank);
             const threshold = Math.min(meanRank, 1.2);
             let itemsLow = result.filter((r: any) => r.rank < threshold).map(Media.fromObject);
             let itemsHigh = result.filter((r: any) => r.rank >= threshold).map(Media.fromObject);

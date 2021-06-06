@@ -91,7 +91,7 @@ export default Vue.extend({
     },
     methods: {
         formatDate(date: number | Date, dateFormat: string) {
-            if (date instanceof Date)
+            if (typeof date === 'number')
                 date = new Date(date);
             return format(date, dateFormat);
         },
@@ -104,6 +104,8 @@ export default Vue.extend({
             return `${api}/photos/${size}/${id}.webp`;
         },
         async calculateLayout() {
+            let i = Math.floor(Math.random() * 100)
+            console.time(`Calculate layout ${i}`);
             let photos: ILayoutMedia[] = this.photos.map(p => ({media: p, visualWidth: 0, visualHeight: 0}));
             if (photos.length === 0) {
                 this.photoRows = [];
@@ -237,10 +239,9 @@ export default Vue.extend({
                     }
                 }
             }
-            console.log('setting photoRows', rows);
             this.photoRows = rows;
-            console.log("emitting photoRowsUpdate");
             this.$emit('photoRowsUpdate');
+            console.timeEnd(`Calculate layout ${i}`);
         },
         onResize() {
             if (this.$vuetify.breakpoint.width === window.innerWidth && this.$vuetify.breakpoint.height === window.innerHeight) {
@@ -269,7 +270,6 @@ export default Vue.extend({
         },
         async scrollMediaIntoView(media: Media) {
             let mediaElement = document.querySelector(`.p${media.id}`);
-            console.log("scrolling into view", media.id, {mediaElement})
             if (mediaElement === null) return;
             mediaElement.scrollIntoView({block: 'center'});
         },
@@ -280,7 +280,6 @@ export default Vue.extend({
             targetDate.setDate(day);
             let dateClass = this.dateToClass(targetDate);
             let dateElement = document.querySelector(`.${dateClass}`);
-            console.log("scrolling into view", {dateClass, dateElement})
             if (dateElement === null) {
                 for (let row of this.photoRows) {
                     let target = targetDate.getTime();

@@ -36,25 +36,27 @@
 
 <script lang="ts">
 //TODO
+// Delete photo
 // probleemkind als je op reprocess klikt op hp https://ruurd.dev/photos/#/photo/6c5e90ec387ae6ab8c973dc5df92497d
 // zoom in big picture view
-// map view in big picture view
 // add fix date from filename button
 // Add settings page
-// When searching label in db show glossary on search page at the top
+//      On this page:
+//      Set api url
+//      See failed processes and get button to retry them
+// Upload photo
+// Download photo
+
+// see server status in ui somewhere (save logs and show)
+// map view in big picture view
 // animated webp not showing in grid, but showing in big pic
-// click label in photo info panel to search for that label
 // video controls in big photo viewer
 // albums
 // Fix formatting of dates in photo grid blocks
 // When searching location, show map with images like the photos app
 // world with photos
+// andere scrub visuals voor mobile
 // show logged in state in app bar
-// Delete photo
-// Upload photo
-// Download photo
-// search recalculates photo grid every scroll????
-// If randomLabels or randomLocations is not fast enough, add a level field to the suggestions table and use that
 
 import {Media} from "@/ts/Media";
 import Vue from 'vue'
@@ -80,6 +82,7 @@ export default Vue.extend({
         canvas: {} as HTMLCanvasElement,
         context: {} as CanvasRenderingContext2D,
         photoGrid: null as any,
+        yearTextSize: 13,
 
         scrollMonthStart: 0,
         scrollLoadPromise: null as Promise<void | boolean> | null,
@@ -110,9 +113,11 @@ export default Vue.extend({
 
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+        this.context.font = `${this.yearTextSize}px Roboto`;
         this.homeElement = (this.$refs.home as HTMLElement);
         let hasDate = this.hasDate;
-        if (hasDate !== null && localStorage.getItem('initialLoad') !== null) {
+        let isPhoto = this.$route.name === 'HomePhoto';
+        if (hasDate === null && !isPhoto && localStorage.getItem('initialLoad') !== null) {
             let {ppm, photos} = JSON.parse(localStorage.initialLoad);
             this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
                 year, month, count, loaded: false
@@ -121,7 +126,6 @@ export default Vue.extend({
                 p.id, p.filename, new Date(p.createDate), p.width, p.height, p.type, p.subType,
                 p.duration, p.classifications, p.location, p.size, p.exif
             )));
-            console.warn("localStorage", this.flatPhotos);
             this.initialLoading = false;
         }
         this.photoGrid = this.$refs.photoGrid;
@@ -133,7 +137,7 @@ export default Vue.extend({
         }));
 
         let dontLoadPhotos = false;
-        if (this.$route.name === 'HomePhoto') {
+        if (isPhoto) {
             dontLoadPhotos = true;
         } else if (this.$route.name === 'Home' && hasDate !== null) {
             dontLoadPhotos = true;
@@ -144,7 +148,6 @@ export default Vue.extend({
         if (!dontLoadPhotos) {
             let photos = await this.getPhotos({monthOffset: 0});
             this.photos = photos;
-            console.warn('mounted requested', this.flatPhotos);
 
             if (this.scrollMonthStart === 0) {
                 localStorage.initialLoad = JSON.stringify({ppm: photosPerMonth, photos});
@@ -223,8 +226,6 @@ export default Vue.extend({
             this.context.fillStyle = greyedYears ? 'rgba(0,0,0,0.5)' : 'black';
             let y = 0;
             let currentYear = -1;
-            let textSize = 12;
-            this.context.font = `${textSize}px Roboto`;
             let usedParts = [] as number[][];
             for (let i = this.photosPerMonth.length - 1; i >= 0; i--) {
                 let month = this.photosPerMonth[i];
@@ -240,16 +241,15 @@ export default Vue.extend({
                         return true;
                     }
                     while (!isYFree(textY))
-                        textY += textSize;
-                    usedParts.push([textY, textY + textSize]);
+                        textY += this.yearTextSize;
+                    usedParts.push([textY, textY + this.yearTextSize]);
                     this.context.fillText(text, this.canvas.width - width - 5, textY);
                 }
-                y += Math.round(month.count / this.totalPhotos * (this.canvas.height - textSize));
+                y += Math.round(month.count / this.totalPhotos * (this.canvas.height - this.yearTextSize));
             }
         },
         photoRowsUpdate() {
             this.scrollData = this.getScrollData();
-            console.log("received event: photoRowsUpdate from photogrid, tranmitting now on Home.vue");
             this.$emit('photoRowsUpdate');
         },
         scrubStart(e: MouseEvent) {
@@ -276,8 +276,9 @@ export default Vue.extend({
             }
         },
         dateFromScrubEvent(e: MouseEvent) {
-            let percent = (e.pageY - this.$vuetify.application.top) / (this.$vuetify.breakpoint.height - this.$vuetify.application.top);
+            let percent = (e.pageY - this.$vuetify.application.top) / (this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom);
             percent = Math.max(0, Math.min(1, percent * 1.01))
+            console.log(percent);
             let totalCount = this.totalPhotos;
             let targetPhoto = totalCount * percent;
             let counter = 0;
@@ -302,7 +303,6 @@ export default Vue.extend({
         },
         async scrub(index: number, day: number, month: number, year: number, delay = 300, scroll = true) {
             if (index >= this.scrollMonthStart && index < this.scrollMonthStart + this.scrollMonthLength) {
-                console.log('scroll to :', [day, month, year]);
                 if (scroll)
                     await this.photoGrid.scrollDateIntoView(day, month, year);
                 return;
@@ -325,24 +325,19 @@ export default Vue.extend({
             }
         },
         async loadScrubData(index: number, day: number, month: number, year: number, scroll = true) {
-            console.log('scrub to :', [day, month, year]);
             index = Math.max(0, index - 1);
             let monthPhotos = await this.getPhotos({
                 monthOffset: index,
                 minimumMonths: 3,
             });
             this.scrollMonthStart = index;
-            console.log('start', this.scrollMonthStart, 'length', this.scrollMonthLength);
             this.photos = monthPhotos;
-            console.warn('scrub', this.flatPhotos);
             // Prevent scroll event from loading data for 200ms
             // Reason: scroll data isn't accurate right this millisecond
             // because vue needs to put the photos in the html grid
             // this.scrollLoadPromise = new Promise(resolve => setTimeout(resolve, 200));
             return new Promise<void>(resolve => {
-                console.log("waiting for photorowsupdate", scroll, this.photoGrid);
                 this.$once('photoRowsUpdate', () => this.$nextTick(() => {
-                    console.log("getting scrolldata and scrolling date into view", day, month, year)
                     this.scrollLoadPromise = this.waitSleep(200);
                     this.scrollData = this.getScrollData();
                     this.photoGrid.scrollDateIntoView(day, month, year);
@@ -412,7 +407,6 @@ export default Vue.extend({
                     this.scrollLoadPromise?.then?.(() => false),
                     this.waitSleep(10).then(() => true)
                 ]);
-                console.log("HOME SCROLL", {scrollTop, scrollBottom, loading});
                 if (!loading)
                     this.scrollLoadPromise = this.loadScrollData(scrollBottom, scrollTop);
             }
@@ -424,7 +418,6 @@ export default Vue.extend({
 
                 let scrollTop = this.homeElement.scrollTop;
                 let scrollBottom = this.homeElement.scrollHeight - scrollTop - this.homeElement.clientHeight;
-                console.log(`too many photos! scrollPercent: ${scrollPercent.toFixed(2)}, scrollTop: ${scrollTop}, scrollBottom: ${scrollBottom}`);
                 if (scrollPercent < 0.5 && scrollBottom > this.scrollThreshold) {
                     // remove some from bottom
                     let removeNMonths = 0;
@@ -433,7 +426,6 @@ export default Vue.extend({
                         if (removeNPhotos <= 0) break;
                         removeNMonths++;
                     }
-                    console.log({removeNMonths});
                     this.photos.splice(this.photos.length - removeNMonths, removeNMonths);
                 } else if (scrollPercent >= 0.5 && scrollTop > this.scrollThreshold) {
                     // remove some from top
@@ -443,7 +435,6 @@ export default Vue.extend({
                         if (removeNPhotos <= 0) break;
                         removeNMonths++;
                     }
-                    console.log({removeNMonths});
                     this.scrollMonthStart += removeNMonths;
                     this.updatePhotosKeepScroll(() => this.photos.splice(0, removeNMonths));
                 }
@@ -509,7 +500,6 @@ export default Vue.extend({
                 if (requestMinimum < 0 && requestedMonths.length >= minimumMonths)
                     break;
             }
-            console.log("Requesting months", requestedMonths.map(m => [m.year, m.month].join(', ')));
             let photos = await this.$store.dispatch('apiRequest', {
                 url: 'photos/month-photos',
                 body: {months: requestedMonths.map(m => [m.year, m.month])}
@@ -553,7 +543,6 @@ export default Vue.extend({
             if (index === -1)
                 return console.warn('cant keep in view, date', date, 'not in photosPerMonth', this.photosPerMonth);
 
-            console.log('scrub to date', index, day, month, year, this.photosPerMonth[index])
             await this.scrub(index, day, month, year, 0);
         },
         async updateFromDateQuery() {
@@ -571,7 +560,6 @@ export default Vue.extend({
                 monthOffset: this.scrollMonthStart,
                 minimumMonths: this.scrollMonthLength,
             });
-            console.warn('reloadPhotos', this.flatPhotos);
         },
         waitSleep(ms = 1000): Promise<void> {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -580,10 +568,8 @@ export default Vue.extend({
     computed: {
         hasDate(): null | Date {
             if (this.$route.query.date === undefined || this.$route.query.date === null) return null;
-            console.log('date string', this.$route.query.date as string);
             let date = new Date(this.$route.query.date as string);
             if (isNaN(date.getDate())) return null;
-            console.log("home date changed", date);
             return date;
         },
         topLoaded(): boolean {
@@ -625,7 +611,6 @@ export default Vue.extend({
             if (!this.$store.state.scrollToTop)
                 return;
             this.$store.commit('scrollToTop', false);
-            console.log("trying to scroll to top");
             if (this.photosPerMonth.length === 0) return;
             await this.scrubToDate(new Date());
             await this.reloadPhotos();

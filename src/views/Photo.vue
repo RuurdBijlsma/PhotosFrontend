@@ -1,72 +1,68 @@
 <template>
     <div class="media-photo">
-        <div class="left-pane">
-            <div class="controls">
-                <div class="control-top">
-                    <div class="control-top-left">
-                        <v-btn icon dark @click="close">
-                            <v-icon>mdi-arrow-left</v-icon>
+        <div class="left-pane" :style="{
+            width: `calc(100% - ${infoPaneSize}px)`
+        }">
+            <div class="media-item">
+                <v-img class="element-item"
+                       :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
+                       :src="`${api}/photos/big/${media.id}.webp`"
+                       :key="media.id"
+                       contain
+                       v-if="media && media.type === 'photo'">
+                </v-img>
+                <video class="element-item"
+                       :poster="`${api}/photos/big/${media.id}.webp`"
+                       controls
+                       v-else-if="media"
+                       autoplay
+                       :src="`${api}/photos/webm/${media.id}.webm`">
+                </video>
+                <v-btn icon dark @click="close" class="back-button btn">
+                    <v-icon>mdi-arrow-left</v-icon>
+                </v-btn>
+                <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn">
+                    <v-icon>mdi-information-outline</v-icon>
+                </v-btn>
+                <v-menu :close-on-content-click="false"
+                        :nudge-left="150"
+                        min-width="auto">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn">
+                            <v-icon>mdi-dots-vertical</v-icon>
                         </v-btn>
-                    </div>
-                    <div class="control-top-right">
-                        <v-btn icon dark @click="showInfo = !showInfo">
-                            <v-icon>mdi-information-outline</v-icon>
-                        </v-btn>
-                        <v-menu :close-on-content-click="false"
-                                transition="scale-transition"
-                                min-width="auto">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn dark icon v-bind="attrs" v-on="on" class="ml-3">
-                                    <v-icon>mdi-dots-vertical</v-icon>
-                                </v-btn>
-                            </template>
-                            <v-list dense>
-                                <v-list-item @click="reprocess(media)">
-                                    <v-list-item-avatar>
-                                        <v-progress-circular :size="25" :width="2" indeterminate
-                                                             v-if="reprocessLoading"/>
-                                        <v-icon v-else>mdi-auto-fix</v-icon>
-                                    </v-list-item-avatar>
-                                    <v-list-item-content>
-                                        <v-list-item-title>
-                                            Reprocess item
-                                        </v-list-item-title>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </div>
-                </div>
-                <div class="control-mid">
-                    <v-btn fab dark :disabled="!canSkipLeft" @click="previous">
-                        <v-icon>mdi-chevron-left</v-icon>
-                    </v-btn>
-                    <v-btn fab dark :disabled="!canSkipRight" @click="next">
-                        <v-icon>mdi-chevron-right</v-icon>
-                    </v-btn>
-                </div>
+                    </template>
+                    <v-list dense>
+                        <v-list-item @click="reprocess(media)">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
+                                <v-icon v-else>mdi-auto-fix</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Reprocess item
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+                <v-btn fab dark :disabled="!canSkipLeft" @click="previous" class="prev-button btn">
+                    <v-icon>mdi-chevron-left</v-icon>
+                </v-btn>
+                <v-btn fab dark :disabled="!canSkipRight" @click="next" class="next-button btn">
+                    <v-icon>mdi-chevron-right</v-icon>
+                </v-btn>
             </div>
-            <v-img
-                :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
-                :src="`${api}/photos/big/${media.id}.webp`"
-                :key="media.id"
-                class="media-item"
-                contain
-                v-if="media && media.type === 'photo'"/>
-            <video class="media-item" :poster="`${api}/photos/big/${media.id}.webp`"
-                   controls
-                   autoplay
-                   :ref="`video${media.id}`" v-else-if="media"
-                   :src="`${api}/photos/webm/${media.id}.webm`"></video>
         </div>
         <v-sheet class="right-pane" :style="{
             marginRight: showInfo ? '0' : '-400px',
+            width: `${infoPaneSize}px`,
         }" :key="loadInfo">
             <div class="info-header">
                 <v-btn @click="showInfo = false" icon>
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
-                <span>Info</span>
+                <span class="ml-3">Info</span>
             </div>
             <v-list class="info-content" v-if="media" subheader>
                 <v-subheader>Details</v-subheader>
@@ -194,12 +190,13 @@
                         </v-list-item>
                     </template>
                     <v-list max-width="360">
-                        <v-list-item two-line v-for="(classification, i) in classifications" :key="i">
+                        <v-list-item two-line v-for="(classification, i) in classifications" :key="i"
+                                     :to="classification.firstLabel ? `/search/${classification.firstLabel}` : null">
                             <v-list-item-avatar>
                                 <v-icon>mdi-alpha-{{ 'abcdefg'[i] }}-circle-outline</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
-                                <v-list-item-title :title="classifications[0].labels">
+                                <v-list-item-title :title="classification.labels">
                                     {{ classification.labels }}
                                 </v-list-item-title>
                                 <v-list-item-subtitle :title="classification.glossary">
@@ -237,6 +234,7 @@ import {format, parseISO} from 'date-fns'
 
 export default Vue.extend({
     name: 'Photo',
+    components: {},
     props: {},
     data: () => ({
         dateMenu: false,
@@ -249,6 +247,7 @@ export default Vue.extend({
         isLoading: new Set(),
         loadInfo: 0,
         reprocessLoading: false,
+        infoPaneSize: 400,
     }),
     beforeDestroy() {
         document.removeEventListener('keydown', this.handleKey);
@@ -268,10 +267,8 @@ export default Vue.extend({
                 url: `photos/changeDate/${this.media.id}`,
                 body: {date: this.editedDate.getTime()}
             });
-            console.log('success?', success);
             if (success === true) {
                 this.dateError = '';
-                console.log('setting media createdate', this.editedDate);
                 this.media.createDate = this.editedDate;
 
                 if (isDateMenu) this.dateMenu = false;
@@ -290,7 +287,6 @@ export default Vue.extend({
             this.reprocessLoading = true;
             let {id} = await this.$store.dispatch('apiRequest', {url: `photos/reprocess/${media.id}`});
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
-            console.log(path, id);
             path[path.length - 1] = id;
             await this.$router.replace(`/${path.join('/')}`);
             this.$store.commit('reloadPhotos', true);
@@ -308,7 +304,6 @@ export default Vue.extend({
         },
         close() {
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
-            console.log(path);
             let newPath = '/' + path.slice(0, path.length - 2).join('/');
             this.$router.push(newPath);
         },
@@ -335,11 +330,9 @@ export default Vue.extend({
             if (this.isLoading.has(id))
                 return;
             this.isLoading.add(id);
-            console.log("requesting id", id);
 
             let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
             if (idOverride !== null || this.media === null || id === this.media?.id) {
-                console.log(media);
                 this.media = media;
                 this.loadInfo++;
             }
@@ -356,6 +349,7 @@ export default Vue.extend({
                 return null;
             const capitalize = (s: string) => s.substr(0, 1).toUpperCase() + s.substr(1);
             return classification.map(c => ({
+                firstLabel: c.levels[0].labels[0],
                 labels: c.levels[0].labels.slice(0, 3).join(', '),
                 glossary: capitalize(c.levels[0].glossary),
             }))
@@ -411,7 +405,6 @@ export default Vue.extend({
                 return format(date, 'H:mm:ss')
             },
             set(v: string) {
-                console.log('set time', v);
                 this.editingDate = new Date(`${this.createDate} ${v}`);
             }
         },
@@ -422,7 +415,6 @@ export default Vue.extend({
             },
             set(v: string) {
                 if (this.media === null) return;
-                console.log('set date', v);
                 this.editingDate = new Date(`${v} ${this.createTime}`);
             }
         },
@@ -467,48 +459,54 @@ export default Vue.extend({
     background-color: grey;
     z-index: 5;
     display: flex;
+    --button-padding: 20px;
 }
 
 .left-pane {
+    background-color: black;
     position: relative;
-}
-
-.controls {
-    width: 100%;
-    height: 100%;
-    z-index: 6;
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    padding: 15px 25px;
-    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 10%);
-}
-
-.control-top {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-}
-
-.control-mid {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: block;
     flex-grow: 1;
 }
 
 .media-item {
-    position: absolute;
+    position: relative;
     width: 100%;
     height: 100%;
 }
 
-.media-div {
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
+.element-item {
     width: 100%;
     height: 100%;
+}
+
+.btn {
+    position: absolute;
+}
+
+.back-button {
+    top: var(--button-padding);
+    left: var(--button-padding);
+}
+
+.info-button {
+    top: var(--button-padding);
+    right: calc(var(--button-padding) * 2 + 36px);
+}
+
+.menu-button {
+    top: var(--button-padding);
+    right: var(--button-padding);
+}
+
+.next-button {
+    top: calc(50% - 28px);
+    right: var(--button-padding);
+}
+
+.prev-button {
+    top: calc(50% - 28px);
+    left: var(--button-padding);
 }
 
 .media-photo > * {
@@ -516,28 +514,21 @@ export default Vue.extend({
     height: 100%;
 }
 
-.media-item {
-    background-position: center;
-    background-size: contain;
-    background-color: black;
-}
-
 .right-pane {
     transition: margin-right 0.25s;
-    width: 400px;
-    max-width: 400px;
-    min-width: 400px;
     margin-right: 0;
     padding: 20px;
+    position: relative;
+    display: block;
+}
+
+.info-header {
+    display: flex;
+    align-items: center;
 }
 
 .info-content {
     user-select: text;
-}
-
-.subheader-caption {
-    font-size: 11px;
-    text-transform: uppercase;
 }
 
 </style>

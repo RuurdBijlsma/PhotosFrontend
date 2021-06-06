@@ -2,7 +2,7 @@
     <v-app class="app">
         <v-app-bar elevation="0" app clipped-left>
             <img class="logo-icon" src="./assets/transparent-color-icon-256.png" alt="icon">
-            <v-app-bar-title class="logo-text">Photos</v-app-bar-title>
+            <v-app-bar-title v-if="$vuetify.breakpoint.width > 500" class="logo-text">Photos</v-app-bar-title>
 
             <v-spacer></v-spacer>
 
@@ -114,7 +114,6 @@ export default Vue.extend({
     methods: {
         scrollToTop() {
             if (this.$route.name === 'Home') {
-                console.log('scrollint to top"');
                 this.$store.commit('scrollToTop', true);
             }
         },
@@ -122,25 +121,23 @@ export default Vue.extend({
             this.querySelect = this.query
             let searchComponent: any = this.$refs.search;
             searchComponent.isMenuActive = false;
-            this.startSearch();
         },
         async loadSuggestions() {
             this.loadingSuggestions = true;
             this.items = [this.query];
             this.loadingSuggestions = false;
             let query = this.query;
-            let results = await this.$store.dispatch('apiRequest', {
+            let suggestions = await this.$store.dispatch('apiRequest', {
                 url: `photos/suggestions?q=${query}`
             });
             // this.items = results.map((r: any) => ({
             //     text: r.text,
             // }));
-            let items = results.map((r: any) => r.text);
+            let items = suggestions.map((r: any) => r.text);
             if (!items.includes(query)) {
                 items.unshift(query);
             }
             this.items = items;
-            console.log(results);
         },
         isDate(query: string) {
             const lowerQuery = query.toLowerCase();
@@ -193,8 +190,8 @@ export default Vue.extend({
                 return;
             let newPath = null;
 
+
             let {type, month, day} = this.isDate(this.querySelect);
-            console.log({type, month, day});
             if (type === 'month') {
                 newPath = `/date/${months[(month ?? 1) - 1]}`
             } else if (type === 'dayMonth') {
@@ -204,10 +201,7 @@ export default Vue.extend({
                 if (isDate) {
                     newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
                 } else {
-                    if (this.$route.params.query === this.querySelect) {
-                        this.$store.dispatch('search', this.querySelect);
-                    } else if (this.$route.name === 'Search') {
-                        // this.$store.dispatch('search', this.query);
+                    if (this.$route.name === 'Search') {
                         newPath = `/search/${this.querySelect}`;
                     } else
                         newPath = `/search/${this.querySelect}`;
@@ -224,9 +218,6 @@ export default Vue.extend({
     watch: {
         querySelect(val) {
             if (val === null) return;
-            console.log("Search!", val);
-            // this.query = val;
-            console.log(this.querySelect);
             this.startSearch();
         },
         query(val) {
@@ -248,12 +239,15 @@ html, body {
     overflow-y: hidden !important;
     user-select: none;
 }
-.v-application{
+
+.v-application {
     font-family: 'Montserrat', 'Roboto', Arial, sans-serif !important;
 }
-.roboto{
+
+.roboto {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
+
 .no-style {
     text-decoration: none;
     color: inherit !important;

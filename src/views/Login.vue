@@ -34,7 +34,6 @@ export default {
     methods: {
         async login() {
             let success = await this.$store.dispatch('checkLogin', {email: this.email, password: this.password});
-            console.log(success);
             if (success) {
                 await this.$router.push("/");
             }

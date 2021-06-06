@@ -63,7 +63,7 @@
                     <v-list-item-icon>
                         <v-icon>mdi-rotate-3d-variant</v-icon>
                     </v-list-item-icon>
-                    <v-list-item-title>PhotoSphere</v-list-item-title>
+                    <v-list-item-title>Photo Sphere</v-list-item-title>
                 </v-list-item>
                 <v-list-item to="/category/sphere">
                     <v-list-item-icon>
@@ -91,7 +91,6 @@ export default {
             this.$store.dispatch('apiRequest', {url: 'photos/labels'}),
             this.$store.dispatch('apiRequest', {url: 'photos/locations'}),
         ]);
-        console.log(this.labels, this.places);
     },
 }
 </script>

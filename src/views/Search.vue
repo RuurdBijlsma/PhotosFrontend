@@ -1,7 +1,8 @@
 <template>
     <div class="search" ref="search" @scroll="homeScroll">
         <router-view/>
-        <h1 class="searchQuery" v-if="allResults.length > 0">‟{{ query }}”</h1>
+        <h1 class="search-query" v-if="!loading && allResults.length > 0">‟{{ query }}”</h1>
+        <p class="search-glossary" v-if="!loading && allResults.length > 0 && isLabel">{{ glossary }}</p>
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
@@ -38,6 +39,7 @@ export default Vue.extend({
     async mounted() {
         this.photoGrid = this.$refs.photoGrid;
         this.searchElement = this.$refs.search as HTMLDivElement;
+        console.log("update search 1");
         await this.updateSearch();
     },
     methods: {
@@ -54,7 +56,7 @@ export default Vue.extend({
             this.prevScroll = scrollTop;
 
             let scrollBottom = this.searchElement.scrollHeight - scrollTop - this.searchElement.clientHeight;
-            if (scrollBottom < 3000)
+            if (scrollBottom < 3000 && this.endIndex < this.allResults.length)
                 this.endIndex += 100;
         },
     },
@@ -69,17 +71,24 @@ export default Vue.extend({
             return this.lowResults.slice(0, this.endIndex - this.lowResults.length);
         },
         highResults(): Media[] {
-            return this.$store.state.searchResultsHigh;
+            return this.$store.state.searchResults.high;
         },
         lowResults(): Media[] {
-            return this.$store.state.searchResultsLow;
+            return this.$store.state.searchResults.low;
         },
         allResults(): Media[] {
             return this.highResults.concat(this.lowResults);
         },
+        isLabel(): boolean {
+            return this.$store.state.searchResults.isLabel;
+        },
+        glossary(): boolean {
+            return this.$store.state.searchResults.glossary;
+        },
     },
     watch: {
         query() {
+            console.log("update search 2");
             this.updateSearch();
         },
         allResults() {
@@ -102,13 +111,16 @@ export default Vue.extend({
     height: 100%;
 }
 
-.searchQuery {
+.search-query {
     text-align: center;
     font-style: italic;
-    margin-top: 30px;
+    margin-top: 20px;
     margin-bottom: 15px;
     font-weight: 400;
-    font-size: ;
+}
+
+.search-glossary {
+    text-align: center;
 }
 
 .progress-center {

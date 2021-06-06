@@ -49,7 +49,7 @@ export default Vue.extend({
             this.prevScroll = scrollTop;
 
             let scrollBottom = this.searchElement.scrollHeight - scrollTop - this.searchElement.clientHeight;
-            if (scrollBottom < 3000)
+            if (scrollBottom < 3000 && this.endIndex < this.results.length)
                 this.endIndex += 100;
         },
     },
