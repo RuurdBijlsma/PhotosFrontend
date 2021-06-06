@@ -220,7 +220,7 @@
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
-            <div class="location-map mt-5" v-if="media.location" @click="openMaps(media.location)">
+            <div class="location-map mt-5" v-if="media && media.location" @click="openMaps(media.location)">
 
             </div>
         </v-sheet>
