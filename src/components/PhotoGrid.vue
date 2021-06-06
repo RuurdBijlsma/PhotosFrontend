@@ -6,7 +6,9 @@
                      :title="block.day"
                      :class="{'hide-date':block.hideDate, [dateToClass(block.date)]:true}"
                      :style="{maxWidth: Math.floor(block.width) + 'px'}">
-                    {{ block.day }}
+                    <router-link class="no-style" :to="`/?date=${formatDate(block.date, 'yyyy-MM-dd')}`">
+                        {{ block.day }}
+                    </router-link>
                 </div>
                 <div class="photos">
                     <router-link class="photo"
@@ -66,6 +68,7 @@ import {ILayoutBlock} from "@/ts/ILayoutBlock";
 import {Media} from "@/ts/Media";
 import {ILayoutMedia} from "@/ts/ILayoutMedia";
 import {secondsToHms} from "@/ts/utils";
+import {format} from 'date-fns';
 
 export default Vue.extend({
     name: 'PhotoGrid',
@@ -87,6 +90,11 @@ export default Vue.extend({
         window.addEventListener('resize', this.onResize, false);
     },
     methods: {
+        formatDate(date: number | Date, dateFormat: string) {
+            if (date instanceof Date)
+                date = new Date(date);
+            return format(date, dateFormat);
+        },
         getThumbUrl(id: string, height: number) {
             let size = 'tiny';
             if (height > 260)
@@ -272,9 +280,39 @@ export default Vue.extend({
             targetDate.setDate(day);
             let dateClass = this.dateToClass(targetDate);
             let dateElement = document.querySelector(`.${dateClass}`);
-            console.log("scrolling into view", {dateClass,dateElement})
-            if (dateElement === null) return;
-            dateElement.scrollIntoView({block: 'center'});
+            console.log("scrolling into view", {dateClass, dateElement})
+            if (dateElement === null) {
+                for (let row of this.photoRows) {
+                    let target = targetDate.getTime();
+                    // List is ordered highest date -> lowest date, binary search for nearest item to target date
+                    let list = this.photoRows;
+                    while (true) {
+                        let i = Math.floor(list.length / 2);
+                        let date = list[i][0].date;
+                        if (target < date)
+                            list = list.slice(i);
+                        else
+                            list = list.slice(0, i);
+                        if (list.length === 1)
+                            break;
+                    }
+                    let index = this.photoRows.indexOf(list[0]);
+                    row: for (let i = index; i >= 0; i--) {
+                        let row = this.photoRows[i];
+                        for (let {date} of row) {
+                            let d = new Date(date);
+                            if (d.getDate() !== day || d.getMonth() + 1 !== month || d.getFullYear() !== year) {
+                                index = i + 1;
+                                break row;
+                            }
+                        }
+                    }
+                    let rows = this.$refs.rows as HTMLElement[];
+                    rows[index].scrollIntoView({block: 'center'});
+                }
+            } else {
+                dateElement.scrollIntoView({block: 'start'});
+            }
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);
@@ -297,6 +335,10 @@ export default Vue.extend({
 </script>
 
 <style scoped>
+.photo-grid {
+    font-family: Roboto, Arial, sans-serif;
+}
+
 .photo-block {
     display: inline-block;
     margin-right: 40px;
@@ -325,7 +367,7 @@ export default Vue.extend({
     display: inline-block;
     margin-right: 5px;
     margin-bottom: -3px;
-    background-color: rgb(222, 222, 222);
+    background-color: rgba(128, 128, 128, 0.2);
 }
 
 .photo:last-child {
@@ -346,6 +388,7 @@ export default Vue.extend({
     height: 100%;
     position: absolute;
     top: 0;
+    border-radius: 3px;
 }
 
 .image-overlay {
@@ -355,6 +398,7 @@ export default Vue.extend({
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
+    border-radius: 3px;
 }
 
 .image-info {
@@ -370,6 +414,7 @@ export default Vue.extend({
     height: 100%;
     display: block;
     position: absolute;
+    border-radius: 3px;
 }
 
 .video-overlay {
@@ -380,6 +425,7 @@ export default Vue.extend({
     align-items: flex-start;
     justify-content: flex-end;
     background-image: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.2));
+    border-radius: 3px;
 }
 
 .video-info {

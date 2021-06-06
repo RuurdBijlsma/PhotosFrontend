@@ -1,17 +1,19 @@
 <template>
     <div class="search" ref="search" @scroll="homeScroll">
         <router-view/>
+        <h1 class="searchQuery" v-if="allResults.length > 0">‟{{ query }}”</h1>
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
         <div v-else-if="allResults.length === 0" class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
-                <div class="caption">No results found for "{{ query }}"</div>
+                <div class="res-caption">No results found for "{{ query }}"</div>
             </div>
         </div>
         <photo-grid v-if="!loading" ref="photoGrid" v-show="highResults.length > 0" :photos="highSlice"/>
-        <h2 class="mt-5 mb-5" v-if="endIndex >= highResults.length && highResults.length !== 0 && lowResults.length !== 0">
+        <h2 class="mt-5 mb-5"
+            v-if="endIndex >= highResults.length && highResults.length !== 0 && lowResults.length !== 0">
             Less related results
         </h2>
         <photo-grid v-if="!loading" ref="photoGrid" v-show="lowResults.length > 0" :photos="lowSlice"/>
@@ -22,7 +24,6 @@
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
-import {months} from "@/ts/utils";
 
 export default Vue.extend({
     name: 'Search',
@@ -81,7 +82,7 @@ export default Vue.extend({
         query() {
             this.updateSearch();
         },
-        results() {
+        allResults() {
             this.$store.commit('viewerQueue', this.allResults);
         },
         '$store.state.keepInView'() {
@@ -99,6 +100,15 @@ export default Vue.extend({
     overflow-y: scroll;
     width: 100%;
     height: 100%;
+}
+
+.searchQuery {
+    text-align: center;
+    font-style: italic;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: 400;
+    font-size: ;
 }
 
 .progress-center {
@@ -124,7 +134,7 @@ export default Vue.extend({
     opacity: 0.3;
 }
 
-.no-results .caption {
+.no-results .res-caption {
     font-size: 3vh !important;
     opacity: 0.8;
 }

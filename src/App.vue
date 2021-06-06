@@ -1,7 +1,7 @@
 <template>
     <v-app class="app">
         <v-app-bar elevation="0" app clipped-left>
-            <img class="logo-icon" src="./assets/transparent-icon-512.png" alt="icon">
+            <img class="logo-icon" src="./assets/transparent-color-icon-256.png" alt="icon">
             <v-app-bar-title class="logo-text">Photos</v-app-bar-title>
 
             <v-spacer></v-spacer>
@@ -19,9 +19,36 @@
 
             <v-spacer/>
 
-            <v-btn icon>
-                <v-icon>mdi-cog</v-icon>
-            </v-btn>
+            <v-menu :close-on-content-click="false">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon>
+                        <v-icon v-bind="attrs" v-on="on">mdi-cog-outline</v-icon>
+                    </v-btn>
+                </template>
+                <v-list dense>
+                    <v-list-item to="/settings">
+                        <v-list-item-icon>
+                            <v-icon>mdi-cog</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title>Settings</v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item color="primary">
+                        <v-list-item-icon>
+                            <v-icon>mdi-brightness-6</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title class="theme-switch">
+                                <span>Dark theme</span>
+                            </v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-switch dense inset v-model="$vuetify.theme.dark"></v-switch>
+                        </v-list-item-action>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
         </v-app-bar>
 
         <v-navigation-drawer :expand-on-hover="true"
@@ -30,8 +57,8 @@
                              floating clipped
                              hide-overlay>
             <v-list dense nav>
-                <v-list-item v-for="page in pages" :to="page.to" exact :key="page.to"
-                             @click="page.to==='/' && $store.commit('scrollToTop', true)">
+                <v-list-item v-for="page in pages" exact :to="page.to" :key="page.to"
+                             @click="scrollToTop">
                     <v-list-item-icon>
                         <v-icon>{{ page.icon }}</v-icon>
                     </v-list-item-icon>
@@ -46,9 +73,9 @@
             <router-view/>
         </v-main>
 
-        <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" v-model="page" shift>
-            <v-btn v-for="page in pages" :key="page.to"
-                   @click="page.to==='/' && $store.commit('scrollToTop', true)">
+        <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" shift>
+            <v-btn v-for="page in pages" :to="page.to" :key="page.to"
+                   @click="scrollToTop">
                 <span>{{ page.name }}</span>
                 <v-icon>{{ page.icon }}</v-icon>
             </v-btn>
@@ -68,7 +95,6 @@ export default Vue.extend({
         querySelect: null as string | null,
         loadingSuggestions: false,
         items: [] as string[],
-        page: 0,
         pages: [
             {name: 'Home', icon: 'mdi-home-outline', to: '/'},
             {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
@@ -86,6 +112,12 @@ export default Vue.extend({
         console.log(this.$store);
     },
     methods: {
+        scrollToTop() {
+            if (this.$route.name === 'Home') {
+                console.log('scrollint to top"');
+                this.$store.commit('scrollToTop', true);
+            }
+        },
         enterPressed() {
             this.querySelect = this.query
             let searchComponent: any = this.$refs.search;
@@ -185,16 +217,11 @@ export default Vue.extend({
             if (this.$route.path !== newPath && newPath !== null)
                 this.$router.push(newPath);
         },
+        page() {
+            return this.pages.findIndex(p => p.to === this.$route.path);
+        },
     },
     watch: {
-        page(newVal, oldVal) {
-            console.log(newVal, oldVal);
-            if (newVal === oldVal && newVal === 0)
-                this.$store.commit('scrollToTop', true);
-            else {
-                this.$router.push(this.pages[newVal].to);
-            }
-        },
         querySelect(val) {
             if (val === null) return;
             console.log("Search!", val);
@@ -215,10 +242,19 @@ export default Vue.extend({
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;600;700&display=swap');
+
 html, body {
-    font-family: Roboto, Arial, sans-serif;
     overflow-y: hidden !important;
     user-select: none;
+}
+.v-application{
+    font-family: 'Montserrat', 'Roboto', Arial, sans-serif !important;
+}
+
+.no-style {
+    text-decoration: none;
+    color: inherit !important;
 }
 
 .logo-icon {
@@ -233,5 +269,11 @@ html, body {
 
 .logo-text > * {
     min-width: 100% !important;
+}
+
+.theme-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 </style>

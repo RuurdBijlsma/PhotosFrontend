@@ -1,5 +1,6 @@
 <template>
-    <div class="home" ref="home" @scroll="homeScroll">
+    <div class="home" ref="home" @scroll="homeScroll"
+         :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
         <router-view/>
         <div v-if="initialLoading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
@@ -35,16 +36,13 @@
 
 <script lang="ts">
 //TODO
-// alotta bugs
-// next in search results goes through home results
-// scroll into view very broken
-
-// ui for changing date
+// zoom in big picture view
+// map view in big picture view
 // Add settings page
 // albums
+// Fix formatting of dates in photo grid blocks
 // When searching location, show map with images like the photos app
 // world with photos
-// explore page with location tags and label tags
 // show logged in state in app bar
 // Delete photo
 // Upload photo
@@ -107,16 +105,16 @@ export default Vue.extend({
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
         this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
         this.homeElement = (this.$refs.home as HTMLElement);
-        if (this.$route.query.date === undefined && localStorage.getItem('initialLoad') !== null) {
+        let hasDate = this.hasDate;
+        if (hasDate !== null && localStorage.getItem('initialLoad') !== null) {
             let {ppm, photos} = JSON.parse(localStorage.initialLoad);
             this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
                 year, month, count, loaded: false
             }));
-            let tp = photos.map((month: any[]) => month.map(p => new Media(
+            this.photos = photos.map((month: any[]) => month.map(p => new Media(
                 p.id, p.filename, new Date(p.createDate), p.width, p.height, p.type, p.subType,
                 p.duration, p.classifications, p.location, p.size, p.exif
             )));
-            this.photos = tp;
             console.warn("localStorage", this.flatPhotos);
             this.initialLoading = false;
         }
@@ -128,14 +126,16 @@ export default Vue.extend({
             year, month, count, loaded: false
         }));
 
-        let loadedDatePhotos = false;
-        if (this.$route.name === 'Home' && this.hasDate !== null) {
-            loadedDatePhotos = true;
+        let dontLoadPhotos = false;
+        if (this.$route.name === 'HomePhoto') {
+            dontLoadPhotos = true;
+        } else if (this.$route.name === 'Home' && hasDate !== null) {
+            dontLoadPhotos = true;
             this.updateFromDateQuery();
         }
 
 
-        if (!loadedDatePhotos) {
+        if (!dontLoadPhotos) {
             let photos = await this.getPhotos({monthOffset: 0});
             this.photos = photos;
             console.warn('mounted requested', this.flatPhotos);
@@ -219,12 +219,24 @@ export default Vue.extend({
             let currentYear = -1;
             let textSize = 12;
             this.context.font = `${textSize}px Roboto`;
-            for (let month of this.photosPerMonth) {
+            let usedParts = [] as number[][];
+            for (let i = this.photosPerMonth.length - 1; i >= 0; i--) {
+                let month = this.photosPerMonth[i];
                 if (month.year !== currentYear) {
                     currentYear = month.year;
                     let text = currentYear.toString();
                     let {width} = this.context.measureText(text);
-                    this.context.fillText(text, this.canvas.width - width - 5, y + textSize);
+                    let textY = this.canvas.height - y;
+                    const isYFree = (yValue: number) => {
+                        for (let [low, high] of usedParts)
+                            if (yValue >= low && yValue <= high)
+                                return false;
+                        return true;
+                    }
+                    while (!isYFree(textY))
+                        textY += textSize;
+                    usedParts.push([textY, textY + textSize]);
+                    this.context.fillText(text, this.canvas.width - width - 5, textY);
                 }
                 y += Math.round(month.count / this.totalPhotos * (this.canvas.height - textSize));
             }
@@ -545,11 +557,14 @@ export default Vue.extend({
             return true;
         },
         async reloadPhotos() {
-            let photos = await this.getPhotos({
+            let ppm = await this.$store.dispatch('apiRequest', {url: 'photos/months'})
+            this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
+                year, month, count, loaded: false
+            }));
+            this.photos = await this.getPhotos({
                 monthOffset: this.scrollMonthStart,
                 minimumMonths: this.scrollMonthLength,
-            })
-            this.photos = photos;
+            });
             console.warn('reloadPhotos', this.flatPhotos);
         },
         waitSleep(ms = 1000): Promise<void> {
@@ -603,11 +618,11 @@ export default Vue.extend({
         async '$store.state.scrollToTop'() {
             if (!this.$store.state.scrollToTop)
                 return;
-            if (this.photosPerMonth.length === 0) return;
-            let {month, year} = this.photosPerMonth[0];
-            await this.scrub(0, 1, month, year);
-            await this.reloadPhotos();
             this.$store.commit('scrollToTop', false);
+            console.log("trying to scroll to top");
+            if (this.photosPerMonth.length === 0) return;
+            await this.scrubToDate(new Date());
+            await this.reloadPhotos();
         },
         flatPhotos() {
             this.$store.commit('viewerQueue', this.flatPhotos);
@@ -618,8 +633,7 @@ export default Vue.extend({
 
 <style scoped>
 .home {
-    padding: 10px 10px 0;
-    max-height: calc(100vh - 64px);
+    padding: 0 10px;
     overflow-y: scroll;
     width: 100%;
     -ms-overflow-style: none;
@@ -676,7 +690,7 @@ export default Vue.extend({
     height: 100%;
     position: absolute;
     right: 0;
-    top:0;
+    top: 0;
 }
 
 .scrubber-canvas {
