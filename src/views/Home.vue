@@ -36,7 +36,7 @@
 
 <script lang="ts">
 //TODO
-// probleemkind op hp https://ruurd.dev/photos/#/photo/6c5e90ec387ae6ab8c973dc5df92497d
+// probleemkind als je op reprocess klikt op hp https://ruurd.dev/photos/#/photo/6c5e90ec387ae6ab8c973dc5df92497d
 // zoom in big picture view
 // map view in big picture view
 // add fix date from filename button
