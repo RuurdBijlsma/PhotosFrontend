@@ -121,6 +121,7 @@ export default Vue.extend({
 
 .search-glossary {
     text-align: center;
+    min-width: 40%;
     width: 700px;
     max-width: 100%;
     margin: 0 auto;

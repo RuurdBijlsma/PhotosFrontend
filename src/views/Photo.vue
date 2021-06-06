@@ -206,7 +206,7 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-list-item two-line v-if="media.location" @click="openMaps(media.location)">
+                <v-list-item two-line v-if="media.location" :to="`/search/${place}`">
                     <v-list-item-avatar>
                         <v-icon>mdi-map-marker-outline</v-icon>
                     </v-list-item-avatar>
@@ -220,6 +220,9 @@
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
+            <div class="location-map mt-5" v-if="media.location" @click="openMaps(media.location)">
+
+            </div>
         </v-sheet>
     </div>
 </template>
@@ -529,6 +532,15 @@ export default Vue.extend({
 
 .info-content {
     user-select: text;
+}
+
+.location-map {
+    cursor: pointer;
+    width: 100%;
+    height: 350px;
+    background-image: linear-gradient(to top right, #b2d5bf, #d3dce8);
+    opacity: 0.8;
+    border-radius: 15px;
 }
 
 </style>

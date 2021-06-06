@@ -102,8 +102,10 @@ export default Vue.extend({
         initialLoading: true,
         waitPpm: null as null | Promise<{ year: number, month: number, count: number }[]>,
         updatePhotosKey: 0,
+        renderAnimationFrame: -1,
     }),
     beforeDestroy() {
+        cancelAnimationFrame(this.renderAnimationFrame);
         document.removeEventListener('mousemove', this.scrubMove);
         document.removeEventListener('mouseup', this.scrubEnd);
     },
@@ -153,19 +155,16 @@ export default Vue.extend({
                 localStorage.initialLoad = JSON.stringify({ppm: photosPerMonth, photos});
                 this.updatePhotosKey++;
             }
-
-            this.photoGrid.$once('photoRowsUpdate', () => this.$nextTick((() => {
-                this.scrollData = this.getScrollData();
-            })));
-        } else {
-            this.scrollData = this.getScrollData();
         }
+        this.waitForLayoutUpdate(500).then(() => {
+            this.scrollData = this.getScrollData();
+        });
         this.initialLoading = false;
         this.render();
     },
     methods: {
         render() {
-            requestAnimationFrame(this.render);
+            this.renderAnimationFrame = requestAnimationFrame(this.render);
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             let greyedYears = !this.scrubbing && !this.overScrub;
             if (false) this.drawLoadedRegion();
@@ -205,22 +204,25 @@ export default Vue.extend({
         drawScrollThumb(y: number, year: number, month: number, smallLine = false, includeText = true) {
             let textSize = 15;
             let boxHeight = textSize + 10 + 3;
-            if (y < boxHeight && includeText)
-                y = boxHeight;
-            let isDark = this.$vuetify.theme.dark as boolean;
+            let textY = y;
+            if (textY < boxHeight && includeText)
+                textY = boxHeight;
+            let isDark = this.$vuetify.theme.dark;
+
+            if (includeText) {
+                this.context.fillStyle = isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)';
+                let text = `${shortMonths[month - 1]} ${year}`;
+                let {width} = this.context.measureText(text);
+                this.context.fillRect(this.canvas.width - width - 10,
+                    textY - textSize - 10, width + 10, textSize + 10);
+                this.context.fillStyle = isDark ? '#e2e2e2' : '#171717';
+                this.context.fillText(text, this.canvas.width - width - 5, textY - textSize + 5);
+            }
+
             this.context.fillStyle = this.$vuetify.theme.themes[isDark ? 'dark' : 'light'].primary as string;
             let lineWidth = smallLine ? 35 : 50;
             this.context.fillRect(this.canvas.width - lineWidth, y, lineWidth, smallLine ? 2 : 3);
-            this.context.fillStyle = 'rgba(255,255,255,0.8)';
 
-            if (includeText) {
-                let text = `${shortMonths[month - 1]} ${year}`;
-                let {width} = this.context.measureText(text);
-                this.context.fillRect(this.canvas.width - width - 10, y - textSize - 10,
-                    width + 10, textSize + 10);
-                this.context.fillStyle = 'black';
-                this.context.fillText(text, this.canvas.width - width - 5, y - textSize + 5);
-            }
         },
         drawYears(greyedYears = false) {
             this.context.fillStyle = greyedYears ? 'rgba(0,0,0,0.5)' : 'black';
@@ -482,12 +484,11 @@ export default Vue.extend({
                 left: 0,
             });
         },
-        waitForLayoutUpdate(): Promise<void> {
-            return new Promise(resolve => {
-                this.$once('photoRowsUpdate', () => this.$nextTick(() => {
-                    resolve();
-                }));
-            })
+        waitForLayoutUpdate(timeout = 1000): Promise<boolean> {
+            return Promise.race([
+                new Promise<boolean>(resolve => this.$once('photoRowsUpdate', () => this.$nextTick(() => resolve(true)))),
+                this.waitSleep(timeout).then(() => false),
+            ]);
         },
         async getPhotos({requestMinimum = 50, monthOffset = 0, minimumMonths = 0, up = false}): Promise<Media[][]> {
             this.gettingPhotos = true;
