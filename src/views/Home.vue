@@ -53,7 +53,6 @@
 // video controls in big photo viewer
 // albums
 // Fix formatting of dates in photo grid blocks
-// When searching location, show map with images like the photos app
 // world with photos
 // andere scrub visuals voor mobile
 // show logged in state in app bar

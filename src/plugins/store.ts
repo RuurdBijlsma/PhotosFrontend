@@ -10,6 +10,7 @@ const vuexLocal = new VuexPersistence({
         password: state.password,
         verifiedLogin: state.verifiedLogin,
         showInfo: state.showInfo,
+        mapboxKey: state.mapboxKey,
     }),
     storage: window.localStorage,
 })
@@ -24,8 +25,9 @@ export default new Vuex.Store({
         searchResults: {
             low: [] as Media[],
             high: [] as Media[],
-            isLabel: false,
+            searchType: null as string | null,
             glossary: '',
+            placeName: '',
         },
         dateResults: [] as Media[],
         email: '',
@@ -33,21 +35,25 @@ export default new Vuex.Store({
         viewerQueue: [] as Media[],
         keepInView: null as Media | null,
         showInfo: true,
+        mapboxKey: '',
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
+        searchResultsHigh: (state, v: Media[]) => state.searchResults.high = v,
+        searchResultsLow: (state, v: Media[]) => state.searchResults.low = v,
+        searchType: (state, v: string | null) => state.searchResults.searchType = v,
+        glossary: (state, v: string) => state.searchResults.glossary = v,
+        placeName: (state, v: string) => state.searchResults.placeName = v,
+        mapboxKey: (state, v: string) => state.mapboxKey = v,
+
         showInfo: (state, v: boolean) => state.showInfo = v,
         reloadPhotos: (state, reloadPhotos: boolean) => state.reloadPhotos = reloadPhotos,
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         dateResults: (state, v: Media[]) => state.dateResults = v,
-        searchResultsHigh: (state, v: Media[]) => state.searchResults.high = v,
-        searchResultsLow: (state, v: Media[]) => state.searchResults.low = v,
-        isLabel: (state, v: boolean) => state.searchResults.isLabel = v,
-        glossary: (state, v: string) => state.searchResults.glossary = v,
         login: (state, {email, password}) => {
             state.email = email;
             state.password = password;
@@ -89,19 +95,17 @@ export default new Vuex.Store({
             commit('dateResults', items);
         },
         async search({dispatch, commit, state}, query: string) {
-            let [glossInfo, result] = await Promise.all([
-                dispatch('apiRequest', {url: `photos/defineLabel/${query}`}),
-                dispatch('apiRequest', {url: `photos/search?q=${query}`}),
-            ]);
-            console.log(glossInfo);
-            commit('isLabel', glossInfo.isLabel ?? false);
-            if (glossInfo.isLabel && glossInfo.glossary !== undefined && glossInfo.glossary !== null) {
-                commit('glossary', glossInfo.glossary);
-            }
-            let meanRank = result.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / result.length;
+            let {results, info, type} = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
+            console.log({results, info, type})
+            commit('searchType', type);
+            if (type === 'label')
+                commit('glossary', info);
+            else if (type === 'place')
+                commit('placeName', info);
+            let meanRank = results.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / results.length;
             const threshold = Math.min(meanRank, 1.2);
-            let itemsLow = result.filter((r: any) => r.rank < threshold).map(Media.fromObject);
-            let itemsHigh = result.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
+            let itemsLow = results.filter((r: any) => r.rank < threshold).map(Media.fromObject);
+            let itemsHigh = results.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
             commit('searchResultsLow', itemsLow);
             commit('searchResultsHigh', itemsHigh);
         },

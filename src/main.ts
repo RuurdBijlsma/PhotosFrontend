@@ -6,10 +6,13 @@ import store from './plugins/store'
 import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false
-// @ts-ignore
 import PerfectScrollbar from 'vue2-perfect-scrollbar'
 import 'vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css'
 Vue.use(PerfectScrollbar)
+
+// @ts-ignore
+import { LMap, LTileLayer, LMarker } from 'vue2-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 new Vue({
     router,

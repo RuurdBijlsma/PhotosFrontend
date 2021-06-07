@@ -51,7 +51,7 @@
             </v-menu>
         </v-app-bar>
 
-        <v-navigation-drawer :expand-on-hover="true"
+        <v-navigation-drawer :expand-on-hover="$vuetify.breakpoint.width < 1600"
                              permanent app
                              v-if="!$vuetify.breakpoint.mobile"
                              floating clipped
