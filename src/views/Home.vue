@@ -224,7 +224,8 @@ export default Vue.extend({
 
         },
         drawYears(greyedYears = false) {
-            this.context.fillStyle = greyedYears ? 'rgba(0,0,0,0.5)' : 'black';
+            let isDark = this.$vuetify.theme.dark;
+            this.context.fillStyle = isDark ? (greyedYears ? 'rgba(255,255,255,0.5)' : 'white') : (greyedYears ? 'rgba(0,0,0,0.5)' : 'black');
             let y = 0;
             let currentYear = -1;
             let usedParts = [] as number[][];

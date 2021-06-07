@@ -219,6 +219,9 @@ export default Vue.extend({
         },
     },
     watch: {
+        '$vuetify.theme.dark'() {
+            localStorage.darkTheme = this.$vuetify.theme.dark;
+        },
         querySelect(val) {
             if (val === null) return;
             this.startSearch();

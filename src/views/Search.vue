@@ -74,6 +74,7 @@ export default Vue.extend({
         },
         mapRef: null as any,
         photosInBounds: null as Promise<any> | null,
+        // @ts-ignore
         popup: L.popup({maxWidth: 'auto'}),
     }),
     async mounted() {
@@ -102,26 +103,25 @@ export default Vue.extend({
                 width: this.mapWidth,
                 height: this.leaflet.height,
             });
-            console.log(zoomLevel);
             this.leaflet.zoom = zoomLevel;
         },
         async mapReady() {
-            console.log('map is ready');
             this.mapRef = this.$refs.map;
-            console.log(this.leaflet.bounds);
 
             let photosInBounds = await this.photosInBounds;
             let isDark = this.$vuetify.theme.dark;
             let color = this.$vuetify.theme.themes[isDark ? 'dark' : 'light'];
+            let primary = color.primary as string;
+            let secondary = color.secondary as string;
             for (let photo of photosInBounds) {
                 let marker = L.circleMarker(
                     [photo.MediaLocation.latitude, photo.MediaLocation.longitude],
                     {
                         radius: 10,
-                        color: photo.type === 'image' ? color.primary : color.secondary,
+                        color: photo.type === 'image' ? primary : secondary,
                         opacity: 0.6,
                         weight: 2,
-                        fillColor: photo.type === 'image' ? color.primary : color.secondary,
+                        fillColor: photo.type === 'image' ? primary : secondary,
                         fillOpacity: 0.2,
                     }
                 );
@@ -138,7 +138,6 @@ export default Vue.extend({
                         .openOn(this.mapRef.mapObject);
                 });
             }
-            console.log(photosInBounds);
         },
         getBoundsZoomLevel: function (bounds: L.LatLngBounds, mapDim: { width: number, height: number }) {
             const WORLD_DIM = {height: 256, width: 256};
