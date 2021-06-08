@@ -36,6 +36,7 @@ export default new Vuex.Store({
         keepInView: null as Media | null,
         showInfo: true,
         mapboxKey: '',
+        cachedPhotos: {} as any,
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
@@ -54,12 +55,24 @@ export default new Vuex.Store({
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         dateResults: (state, v: Media[]) => state.dateResults = v,
+        cachedPhotos: (state, o: { key: string, media: Media[] }) => Vue.set(state.cachedPhotos, o.key, o.media),
         login: (state, {email, password}) => {
             state.email = email;
             state.password = password;
         },
     },
     actions: {
+        async getCachedPhotos({state, dispatch}, o: { year: number, month: number }): Promise<Media[]> {
+            let key = o.year.toString() + o.month;
+            if (state.cachedPhotos.hasOwnProperty(key)) {
+                return state.cachedPhotos[key] as Media[];
+            }
+            let photos = await dispatch('apiRequest', {
+                url: 'photos/month-photos',
+                body: {months: [[o.year, o.month]]}
+            });
+            return photos[0].map(Media.fromObject);
+        },
         apiRequest: async ({state, getters}, {url, body = {}}): Promise<any> => {
             if (!getters.isLoggedIn)
                 return {loggedIn: false, result: null};

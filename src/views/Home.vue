@@ -37,7 +37,6 @@
 <script lang="ts">
 //TODO
 // Delete photo
-// probleemkind als je op reprocess klikt op hp https://ruurd.dev/photos/#/photo/6c5e90ec387ae6ab8c973dc5df92497d
 // zoom in big picture view
 // add fix date from filename button
 // Add settings page
@@ -56,6 +55,7 @@
 // world with photos
 // andere scrub visuals voor mobile
 // show logged in state in app bar
+// add image subtype 'animation' for gifs
 
 import {Media} from "@/ts/Media";
 import Vue from 'vue'
@@ -121,7 +121,7 @@ export default Vue.extend({
         if (hasDate === null && !isPhoto && localStorage.getItem('initialLoad') !== null) {
             let {ppm, photos} = JSON.parse(localStorage.initialLoad);
             this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
-                year, month, count, loaded: false
+                year, month, count
             }));
             this.photos = photos.map((month: any[]) => month.map(p => new Media(
                 p.id, p.filename, new Date(p.createDate), p.width, p.height, p.type, p.subType,
@@ -134,7 +134,7 @@ export default Vue.extend({
         this.waitPpm = this.$store.dispatch('apiRequest', {url: 'photos/months'})
         let photosPerMonth = await this.waitPpm;
         this.photosPerMonth = photosPerMonth.map(({year = 0, month = 0, count = 0}) => ({
-            year, month, count, loaded: false
+            year, month, count
         }));
 
         let dontLoadPhotos = false;
@@ -554,7 +554,7 @@ export default Vue.extend({
         async reloadPhotos() {
             let ppm = await this.$store.dispatch('apiRequest', {url: 'photos/months'})
             this.photosPerMonth = ppm.map(({year = 0, month = 0, count = 0}) => ({
-                year, month, count, loaded: false
+                year, month, count
             }));
             this.photos = await this.getPhotos({
                 monthOffset: this.scrollMonthStart,
