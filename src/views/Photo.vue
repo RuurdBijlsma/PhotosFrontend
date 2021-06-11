@@ -44,6 +44,17 @@
                                 </v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
+                        <v-list-item @click="deleteItem()">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
+                                <v-icon v-else>mdi-delete-outline</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Delete
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
                     </v-list>
                 </v-menu>
                 <v-btn fab dark :disabled="!canSkipLeft" @click="previous" class="prev-button btn">
@@ -250,6 +261,7 @@ export default Vue.extend({
         isLoading: new Set(),
         loadInfo: 0,
         reprocessLoading: false,
+        deleteLoading: false,
         infoPaneSize: 400,
     }),
     beforeDestroy() {
@@ -262,6 +274,28 @@ export default Vue.extend({
         document.addEventListener('keydown', this.handleKey, false);
     },
     methods: {
+        async deleteItem() {
+            if (this.media === null) return;
+            this.deleteLoading = true;
+            let accepted = await this.$store.dispatch('showPrompt', {
+                title: `Are you sure you want to delete this ${this.media.type}`,
+                subtitle: `This cannot be undone.`,
+                confirmText: 'Delete',
+            });
+            if (!accepted) {
+                this.deleteLoading = false;
+                return;
+            }
+            let success = await this.$store.dispatch('apiRequest', {url: `deleteItem/${this.media.id}`});
+            if (success) {
+                this.$store.dispatch('addSnack', {text: 'Deleted ' + this.media.filename}).then();
+                this.next();
+                this.$store.commit('reloadPhotos', true);
+            } else {
+                this.$store.dispatch('addSnack', {text: 'Failed to delete ' + this.media.filename}).then();
+            }
+            this.deleteLoading = false;
+        },
         async saveTheDate() {
             if (this.media === null) return;
             let isDateMenu = this.dateMenu;

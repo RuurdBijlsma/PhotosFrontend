@@ -15,7 +15,7 @@
                 <month-grid :index="i"
                             :year="info.year"
                             :month="info.month"
-                            :usable-width="usableWidth - 17"
+                            :usable-width="usableWidth"
                             :ref="`monthGrid${i}`"
                             @ready="(h, p) => monthReady(i, h, p)"
                             v-if="loadedIndices[i].loaded"
@@ -43,11 +43,10 @@ import MonthGrid from "@/components/MonthGrid.vue";
 import {shortMonths} from "@/ts/utils";
 
 // todo
-// save scroll position when scrolling up and loading
-// grid width is too narrow
-// grid background is wrong on seams
 // remove bad code from photogrid
 // put shared code from photogrid and monthgrid in component
+// calculate on resize
+// support reloadItems
 
 interface MonthPhotos {
     year: number,
@@ -301,7 +300,7 @@ export default Vue.extend({
                         this.loadedIndices[index + 1].loaded = true;
                     console.log("loading", index);
                 }
-            }, 400);
+            }, index === 0 ? 0 : 400);
             // If it's un-viewed for 5 seconds then unload it
             const unload = (i: number) => {
                 let wasLoaded = this.loadedIndices[i].loaded;
@@ -351,20 +350,24 @@ export default Vue.extend({
             }
             return bestIndex;
         },
-        scrollMediaIntoView(media: Media | null) {
+        async scrollMediaIntoView(media: Media | null) {
             if (media === null)
                 return;
             let index = this.dateToIndex(media.createDate);
             let l = this.loadedIndices[index];
-            if (l.loaded) {
+            if (l.ready) {
                 let component: any = this.$refs['monthGrid' + index];
                 if (component && component.length > 0)
                     component[0].scrollMediaIntoView(media);
             } else {
-                this.scrollDateIntoView(media.createDate);
+                // scroll to date to make this month load, then once it's ready try scrolling item into view again
+                this.scrollDateIntoView(media.createDate, false);
+                if (!l.ready)
+                    await new Promise((resolve => this.$once('monthReady' + index, resolve)))
+                await this.scrollMediaIntoView(media);
             }
         },
-        scrollDateIntoView(date: Date | null) {
+        scrollDateIntoView(date: Date | null, dayBased = true) {
             if (date === null) return;
 
             let index = this.dateToIndex(date);
@@ -380,16 +383,16 @@ export default Vue.extend({
             const scrollDateIntoView = () => {
                 let component: any = this.$refs['monthGrid' + index];
                 if (component && component.length > 0)
-                    component[0].scrollDateIntoView(date);
+                    component[0].scrollDateIntoView(date, dayBased);
             }
 
-            if (this.loadedIndices[index].loaded) {
+            if (this.loadedIndices[index].ready) {
                 scrollDateIntoView();
             } else {
                 this.$nextTick(() => {
                     this.homeElement.scrollTop = scrollTop;
-                    this.$once('monthReady' + index, () => this.$nextTick(() => scrollDateIntoView()));
                 });
+                this.$once('monthReady' + index, () => this.$nextTick(() => scrollDateIntoView()));
             }
         },
         updateFromDateQuery() {
@@ -448,12 +451,7 @@ export default Vue.extend({
         async '$store.state.keepInView'() {
             await this.waitPpm;
             let media: Media | null = this.$store.state.keepInView;
-            console.log('keep in view', media);
             this.scrollMediaIntoView(media);
-        },
-        '$route.query.date'() {
-            console.log('date change');
-            // this.updateFromDateQuery();
         },
     }
 })
@@ -482,6 +480,7 @@ export default Vue.extend({
 
 .lazy-month {
     height: 100vh;
+    margin-bottom: 3px;
     width: 100%;
     background-image: url(/img/grid.png);
     background-repeat: repeat;

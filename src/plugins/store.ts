@@ -20,6 +20,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         api,
+        snackbars: [] as any[],
         reloadPhotos: false,
         scrollToTop: false,
         searchResults: {
@@ -37,11 +38,22 @@ export default new Vuex.Store({
         showInfo: true,
         mapboxKey: '',
         cachedPhotos: {} as any,
+        prompt: {
+            show: false,
+            title: '',
+            subtitle: '',
+            cancelText: '',
+            confirmText: '',
+            onConfirm: () => 0,
+            onCancel: () => 0,
+        },
     },
     getters: {
         isLoggedIn: state => state.email !== '' && state.password !== '',
     },
     mutations: {
+        addSnackObject: (state, snack) => state.snackbars.push(snack),
+        removeSnack: (state, snack) => state.snackbars.splice(state.snackbars.indexOf(snack), 1),
         searchResultsHigh: (state, v: Media[]) => state.searchResults.high = v,
         searchResultsLow: (state, v: Media[]) => state.searchResults.low = v,
         searchType: (state, v: string | null) => state.searchResults.searchType = v,
@@ -60,8 +72,52 @@ export default new Vuex.Store({
             state.email = email;
             state.password = password;
         },
+        hidePrompt: state => state.prompt.show = false,
+        showPrompt: (state, {
+            title = 'Are you sure?',
+            subtitle = 'There may be unsaved changes',
+            cancelText = 'Cancel',
+            confirmText = 'Confirm',
+            onConfirm = () => 0,
+            onCancel = () => 0,
+        }) => {
+            state.prompt.show = true;
+            state.prompt.title = title;
+            state.prompt.subtitle = subtitle;
+            state.prompt.cancelText = cancelText;
+            state.prompt.confirmText = confirmText;
+            state.prompt.onConfirm = onConfirm;
+            state.prompt.onCancel = onCancel;
+        },
     },
     actions: {
+        addSnack: async ({state, commit}, {text, timeout = 3000}) => {
+            let snack = {text, open: true, timeout};
+            commit('addSnackObject', snack);
+            return new Promise<void>(resolve => {
+                setTimeout(() => {
+                    commit('removeSnack', snack);
+                    resolve();
+                }, timeout + 500);
+            });
+        },
+        async showPrompt({commit}, {
+            title = 'Are you sure?',
+            subtitle = 'This will discard all unsaved changes',
+            cancelText = 'Cancel',
+            confirmText = 'Confirm',
+        }) {
+            return new Promise((resolve => {
+                commit('showPrompt', {
+                    title,
+                    subtitle,
+                    cancelText,
+                    confirmText,
+                    onConfirm: () => resolve(true),
+                    onCancel: () => resolve(false),
+                })
+            }));
+        },
         async getCachedPhotos({state, dispatch}, o: { year: number, month: number }): Promise<Media[]> {
             let key = o.year.toString() + o.month;
             if (state.cachedPhotos.hasOwnProperty(key)) {

@@ -73,6 +73,18 @@
             <router-view/>
         </v-main>
 
+        <v-snackbar v-for="snack in $store.state.snackbars" app v-model="snack.open" :timeout="snack.timeout"
+                    color="secondary">
+            {{ snack.text }}
+            <template v-slot:action="{ attrs }">
+                <v-btn text v-bind="attrs"
+                       @click="snack.open = false">
+                    Dismiss
+                </v-btn>
+            </template>
+        </v-snackbar>
+        <custom-dialog/>
+
         <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" shift>
             <v-btn :style="{height: 'inherit !important'}"
                    v-for="page in pages"
@@ -89,10 +101,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import {months, shortMonths} from "@/ts/utils";
+import CustomDialog from "@/components/CustomDialog.vue";
 
 export default Vue.extend({
     name: 'App',
-
+    components: {CustomDialog},
     data: () => ({
         query: '',
         querySelect: null as string | null,
