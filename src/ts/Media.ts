@@ -1,3 +1,5 @@
+import {parse, addMinutes} from "date-fns";
+
 export type MediaType = 'photo' | 'video';
 export type MediaSubType = 'none' | 'portrait' | 'vr' | 'slomo';
 
@@ -63,7 +65,7 @@ export class Media {
     static fromObject({
                           id = '',
                           filename = '',
-                          createDate = '',
+                          createDate = -1,
                           width = 0,
                           height = 0,
                           type = '',

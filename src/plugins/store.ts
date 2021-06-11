@@ -69,9 +69,9 @@ export default new Vuex.Store({
             }
             let photos = await dispatch('apiRequest', {
                 url: 'photos/month-photos',
-                body: {months: [[o.year, o.month]]}
+                body: {month: [o.year, o.month]}
             });
-            return photos[0].map(Media.fromObject);
+            return photos.map(Media.fromObject);
         },
         apiRequest: async ({state, getters}, {url, body = {}}): Promise<any> => {
             if (!getters.isLoggedIn)

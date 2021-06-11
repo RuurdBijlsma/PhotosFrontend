@@ -25,7 +25,7 @@ const routes: Array<RouteConfig> = [
         meta: {title: 'Scroll - Ruurd Photos'},
         children: [{
             meta: {title: 'Photo - Ruurd Photos'},
-            path: '/photo/:id',
+            path: '/scroll/photo/:id',
             name: 'ScrollPhoto',
             component: () => import('../views/Photo.vue')
         }],

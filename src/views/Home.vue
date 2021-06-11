@@ -45,7 +45,14 @@
 //      See failed processes and get button to retry them
 // Upload photo
 // Download photo
-
+// backup knop in settings
+// rotate image in ui
+// make way to enlarge map in search page
+// add mapbox token to Users account
+// make map component with images that load on panning the map
+// dark map theme
+// Fix attirubtion for map
+// mobile icon margin right in appbar
 // see server status in ui somewhere (save logs and show)
 // map view in big picture view
 // animated webp not showing in grid, but showing in big pic
@@ -501,7 +508,7 @@ export default Vue.extend({
                     break;
             }
             let photos = await this.$store.dispatch('apiRequest', {
-                url: 'photos/month-photos',
+                url: 'photos/months-photos',
                 body: {months: requestedMonths.map(m => [m.year, m.month])}
             });
             if (up) photos = photos.reverse();

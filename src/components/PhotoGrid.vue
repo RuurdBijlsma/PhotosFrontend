@@ -315,7 +315,7 @@ export default Vue.extend({
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);
-        }
+        },
     },
     computed: {
         currentPath() {
