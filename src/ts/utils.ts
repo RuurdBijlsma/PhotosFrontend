@@ -2,6 +2,31 @@ export const months = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 export const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+export function filenameToDate(filename: string) {
+    let match = filename.match(/(^|[^0-9])(\d\d\d\d)-(\d\d)-(\d\d)[^0-9]/);
+    if (match) {
+        // format is 2015-01-25
+        let [, , year, month, day] = match;
+        return new Date(`${year}-${month}-${day} 15:00:00`);
+    }
+
+    match = filename.match(/(^|[^0-9])([21]\d\d\d)(\d\d)(\d\d)[^0-9](\d\d)(\d\d)(\d\d)/);
+    if (match) {
+        // format is 20150125_193531 possibly with ms after that
+        let [, , year, month, day, hour, minute, second] = match;
+        return new Date(`${year}-${month}-${day} ${hour}:${minute}:${second}`);
+    }
+
+    match = filename.match(/(^|[^0-9])([21]\d\d\d)(\d\d)(\d\d)[^0-9]/);
+    if (match) {
+        // format is 20150125
+        let [, , year, month, day] = match;
+        return new Date(`${year}-${month}-${day} 15:00:00`);
+    }
+
+    return null;
+}
+
 export function bytesToReadable(bytes: number) {
     let length = Math.log10(bytes);
     if (length < 3) {

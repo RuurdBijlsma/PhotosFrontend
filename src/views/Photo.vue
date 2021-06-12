@@ -4,6 +4,7 @@
             width: `calc(100% - ${infoPaneSize}px)`
         }">
             <div class="media-item">
+                <div class="top-gradient"/>
                 <v-img class="element-item"
                        :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
                        :src="`${api}/photos/big/${media.id}.webp`"
@@ -41,6 +42,17 @@
                             <v-list-item-content>
                                 <v-list-item-title>
                                     Reprocess item
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item @click="fixDateFromFile()">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
+                                <v-icon v-else>mdi-calendar-range</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Fix date from filename
                                 </v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
@@ -120,7 +132,7 @@
                                         <v-btn text @click="dateMenu=false">Cancel</v-btn>
                                         <v-btn color="primary" text
                                                :loading="dateLoading"
-                                               @click="saveTheDate">
+                                               @click="saveEditedDate">
                                             Save
                                         </v-btn>
                                     </v-card-actions>
@@ -154,7 +166,7 @@
                                         <v-btn text @click="timeMenu=false">Cancel</v-btn>
                                         <v-btn color="primary" text
                                                :loading="dateLoading"
-                                               @click="saveTheDate">
+                                               @click="saveEditedDate">
                                             Save
                                         </v-btn>
                                     </v-card-actions>
@@ -244,6 +256,7 @@ import {api} from "@/ts/constants"
 import {Location, Media} from "@/ts/Media";
 import {bytesToReadable} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
+import {filenameToDate} from "@/ts/utils";
 
 
 export default Vue.extend({
@@ -260,9 +273,10 @@ export default Vue.extend({
         media: null as Media | null,
         isLoading: new Set(),
         loadInfo: 0,
+        infoPaneSize: 400,
         reprocessLoading: false,
         deleteLoading: false,
-        infoPaneSize: 400,
+        fixDateLoading: false,
     }),
     beforeDestroy() {
         document.removeEventListener('keydown', this.handleKey);
@@ -274,6 +288,31 @@ export default Vue.extend({
         document.addEventListener('keydown', this.handleKey, false);
     },
     methods: {
+        async fixDateFromFile() {
+            if (this.media === null) return;
+            let filename = this.media.filename;
+            if (filename === null) return;
+            let newDate = filenameToDate(filename);
+            if (newDate === null) {
+                this.$store.dispatch('addSnack', {text: "Couldn't retrieve date from filename"}).then();
+                return;
+            }
+            this.fixDateLoading = true;
+            let accepted = await this.$store.dispatch('showPrompt', {
+                title: `Is this date correct?`,
+                subtitle: `
+                    <p><b>Filename: </b>${filename}</p>
+                    <div><b>New date: </b>${format(newDate, 'yyyy-MM-dd HH:mm:ss')}</div>
+                `,
+            });
+            if (!accepted) {
+                this.fixDateLoading = false;
+                return;
+            }
+            console.log(filename);
+            await this.changeDate(newDate);
+            this.fixDateLoading = false;
+        },
         async deleteItem() {
             if (this.media === null) return;
             this.deleteLoading = true;
@@ -296,23 +335,31 @@ export default Vue.extend({
             }
             this.deleteLoading = false;
         },
-        async saveTheDate() {
+        async changeDate(date: Date) {
             if (this.media === null) return;
-            let isDateMenu = this.dateMenu;
-            this.dateLoading = true;
             let success = await this.$store.dispatch('apiRequest', {
                 url: `photos/changeDate/${this.media.id}`,
-                body: {date: this.editedDate.getTime()}
+                body: {date: date.getTime()}
             });
             if (success === true) {
                 this.dateError = '';
-                this.media.createDate = this.editedDate;
-
-                if (isDateMenu) this.dateMenu = false;
-                else this.timeMenu = false;
+                this.media.createDate = date;
 
                 console.log("Reloading photos");
                 this.$store.commit('reloadPhotos', this.media);
+                return true;
+            } else {
+                return false;
+            }
+        },
+        async saveEditedDate() {
+            if (this.media === null) return;
+            let isDateMenu = this.dateMenu;
+            this.dateLoading = true;
+            let success = await this.changeDate(this.editedDate);
+            if (success) {
+                if (isDateMenu) this.dateMenu = false;
+                else this.timeMenu = false;
             } else {
                 this.dateError = isDateMenu ? 'Failed to set date!' : 'Failed to set time!';
             }
@@ -515,6 +562,14 @@ export default Vue.extend({
     height: 100%;
 }
 
+.top-gradient {
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    z-index: 2;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.37), transparent);
+}
+
 .element-item {
     width: 100%;
     height: 100%;
@@ -522,6 +577,7 @@ export default Vue.extend({
 
 .btn {
     position: absolute;
+    z-index: 3;
 }
 
 .back-button {

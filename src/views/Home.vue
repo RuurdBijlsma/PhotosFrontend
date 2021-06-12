@@ -6,8 +6,8 @@
         <div class="photos">
             <div class="lazy-month"
                  :style="{
-                    height: photosPerMonth[i].height === -1 ?
-                        monthPhotos.height + 'px' :
+                    height: photosPerMonth[i].ready ?
+                        'auto' :
                         photosPerMonth[i].height + 'px',
                     backgroundImage: photosPerMonth[i].ready ? 'none' : 'url(img/grid.png)'
                  }"
@@ -45,16 +45,17 @@ import Vue from "vue";
 import MonthGrid from "@/components/MonthGrid.vue";
 import {shortMonths} from "@/ts/utils";
 
-//  todo scroll
-// icons in photo view on top are invisible on white bg
-// photo delete also delete thumbnails
-// zoom in big picture view
+// todo
+// monthphotos don't load in bg when loadin /photo/:id in ruurd.dev version but it do work in localhost
 // add fix date from filename button
+// photo delete also delete thumbnails
+// zoom in big picture viewA
 // Add settings page
 //      On this page:
 //      Set api url
 //      See failed processes and get button to retry them
 // Upload photo
+// select photos and do batch actions (actions also in menu in Photo.vue)
 // Download photo
 // backup knop in settings
 // rotate image in ui
@@ -108,6 +109,7 @@ export default Vue.extend({
         scrubData: {percent: 0, year: d.getFullYear(), month: d.getMonth() + 1},
         scrubbing: false,
         overScrub: false,
+        ignoreDateChange: false,
     }),
     beforeDestroy() {
         cancelAnimationFrame(this.renderAnimationFrame);
@@ -250,7 +252,7 @@ export default Vue.extend({
                     this.context.beginPath();
                     this.context.fillStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
                     this.context.arc(
-                        this.canvas.width - 10,
+                        this.canvas.width - 7,
                         this.canvas.height - y,
                         2, 0, 2 * Math.PI);
                     this.context.fill();
@@ -498,13 +500,25 @@ export default Vue.extend({
             this.homeElement.scrollTo({top: 0, behavior: "smooth"});
             await this.reloadPhotos();
         },
-        photosQueue() {
-            this.$store.commit('viewerQueue', this.photosQueue);
-        },
         async '$store.state.keepInView'() {
             await this.waitPpm;
             let media: Media | null = this.$store.state.keepInView;
             await this.scrollMediaIntoView(media);
+        },
+        '$route.query.date'() {
+            if (this.ignoreDateChange) {
+                this.ignoreDateChange = false;
+                return;
+            }
+            if (this.hasDate === null) return;
+            this.scrollDateIntoView(this.hasDate);
+        },
+        '$route.name'() {
+            if (this.$route.name === 'HomePhoto')
+                this.ignoreDateChange = true;
+        },
+        photosQueue() {
+            this.$store.commit('viewerQueue', this.photosQueue);
         },
     }
 })
