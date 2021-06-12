@@ -9,7 +9,7 @@
                     height: photosPerMonth[i].height === -1 ?
                         monthPhotos.height + 'px' :
                         photosPerMonth[i].height + 'px',
-                    backgroundImage: photosPerMonth[i].ready ? 'none' : null
+                    backgroundImage: photosPerMonth[i].ready ? 'none' : 'url(img/grid.png)'
                  }"
                  v-intersect="(...args) => applyLazy(i, ...args)"
                  v-for="(monthPhotos, i) in photosPerMonth"
@@ -535,7 +535,6 @@ export default Vue.extend({
     height: 100vh;
     margin-bottom: 3px;
     width: 100%;
-    background-image: url(/img/grid.png);
     background-repeat: repeat;
 }
 
