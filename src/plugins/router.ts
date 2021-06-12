@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig} from 'vue-router'
 import Home from '../views/Home.vue'
-import Scroll from "@/views/Scroll.vue";
 
 Vue.use(VueRouter)
 
@@ -15,18 +14,6 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/photo/:id',
             name: 'HomePhoto',
-            component: () => import('../views/Photo.vue')
-        }],
-    },
-    {
-        path: '/scroll',
-        name: 'Scroll',
-        component: Scroll,
-        meta: {title: 'Scroll - Ruurd Photos'},
-        children: [{
-            meta: {title: 'Photo - Ruurd Photos'},
-            path: '/scroll/photo/:id',
-            name: 'ScrollPhoto',
             component: () => import('../views/Photo.vue')
         }],
     },

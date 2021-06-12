@@ -1,8 +1,10 @@
 <template>
     <v-app class="app">
         <v-app-bar elevation="0" app clipped-left>
-            <img class="logo-icon" src="./assets/transparent-color-icon-256.png" alt="icon">
-            <v-app-bar-title v-if="$vuetify.breakpoint.width > 500" class="logo-text">Photos</v-app-bar-title>
+            <img class="logo-icon" src="./assets/transparent-color-icon-256.png"
+                 alt="icon">
+            <v-app-bar-title v-if="$vuetify.breakpoint.width > 500"
+                             class="logo-text">Photos</v-app-bar-title>
 
             <v-spacer></v-spacer>
 
@@ -57,7 +59,8 @@
                              floating clipped
                              hide-overlay>
             <v-list dense nav>
-                <v-list-item v-for="page in pages" exact :to="page.to" :key="page.to"
+                <v-list-item v-for="page in pages" exact
+                             :to="page.to" :key="page.to"
                              @click="scrollToTop">
                     <v-list-item-icon>
                         <v-icon>{{ page.icon }}</v-icon>
@@ -73,7 +76,9 @@
             <router-view/>
         </v-main>
 
-        <v-snackbar v-for="snack in $store.state.snackbars" app v-model="snack.open" :timeout="snack.timeout"
+        <v-snackbar v-for="snack in $store.state.snackbars"
+                    :key="snack.id" app
+                    v-model="snack.open" :timeout="snack.timeout"
                     color="secondary">
             {{ snack.text }}
             <template v-slot:action="{ attrs }">
@@ -276,10 +281,11 @@ html, body {
     height: 80%;
     width: auto;
     margin-left: 10px;
+    margin-right: 10px;
 }
 
 .logo-text {
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .logo-text > * {

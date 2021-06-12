@@ -290,7 +290,7 @@ export default Vue.extend({
             if (success) {
                 this.$store.dispatch('addSnack', {text: 'Deleted ' + this.media.filename}).then();
                 this.next();
-                this.$store.commit('reloadPhotos', true);
+                this.$store.commit('reloadPhotos', this.media);
             } else {
                 this.$store.dispatch('addSnack', {text: 'Failed to delete ' + this.media.filename}).then();
             }
@@ -310,6 +310,9 @@ export default Vue.extend({
 
                 if (isDateMenu) this.dateMenu = false;
                 else this.timeMenu = false;
+
+                console.log("Reloading photos");
+                this.$store.commit('reloadPhotos', this.media);
             } else {
                 this.dateError = isDateMenu ? 'Failed to set date!' : 'Failed to set time!';
             }

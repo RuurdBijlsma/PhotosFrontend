@@ -1,5 +1,6 @@
 <template>
-    <div class="search" ref="search" @scroll="homeScroll">
+    <div class="search" ref="search" @scroll="homeScroll"
+         :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
         <router-view/>
         <h1 class="search-query" v-if="!isPlace && !loading && allResults.length > 0">‟{{ query }}”</h1>
         <p class="search-glossary" v-if="!loading && allResults.length > 0 && isLabel">{{ glossary }}</p>
@@ -30,12 +31,20 @@
                 <div class="res-caption">No results found for "{{ query }}"</div>
             </div>
         </div>
-        <photo-grid v-if="!loading" ref="photoGrid" v-show="highResults.length > 0" :photos="highSlice"/>
+        <photo-grid :usable-width="usableWidth"
+                    :photos="highSlice"
+                    v-if="!loading"
+                    v-show="highResults.length > 0"
+                    ref="photoGrid"/>
         <h2 class="mt-5 mb-5"
             v-if="endIndex >= highResults.length && highResults.length !== 0 && lowResults.length !== 0">
             Less related results
         </h2>
-        <photo-grid v-if="!loading" ref="photoGrid" v-show="lowResults.length > 0" :photos="lowSlice"/>
+        <photo-grid :usable-width="usableWidth"
+                    :photos="lowSlice"
+                    v-if="!loading"
+                    v-show="lowResults.length > 0"
+                    ref="photoGrid"/>
     </div>
 </template>
 
@@ -186,6 +195,13 @@ export default Vue.extend({
         },
     },
     computed: {
+        usableWidth(): number {
+            const pagePadding = 10;
+            const scrollBarWidth = 17;
+            return this.$vuetify.breakpoint.width -
+                this.$vuetify.application.left - this.$vuetify.application.right -
+                pagePadding * 2 - scrollBarWidth;
+        },
         mapWidth(): number {
             return this.$vuetify.breakpoint.width - this.$vuetify.application.left - this.$vuetify.application.right;
         },

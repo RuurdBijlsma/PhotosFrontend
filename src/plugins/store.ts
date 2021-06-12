@@ -21,7 +21,7 @@ export default new Vuex.Store({
     state: {
         api,
         snackbars: [] as any[],
-        reloadPhotos: false,
+        reloadPhotos: false as boolean | Media,
         scrollToTop: false,
         searchResults: {
             low: [] as Media[],
@@ -62,11 +62,12 @@ export default new Vuex.Store({
         mapboxKey: (state, v: string) => state.mapboxKey = v,
 
         showInfo: (state, v: boolean) => state.showInfo = v,
-        reloadPhotos: (state, reloadPhotos: boolean) => state.reloadPhotos = reloadPhotos,
+        reloadPhotos: (state, reloadPhotos: boolean | Media) => state.reloadPhotos = reloadPhotos,
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
         dateResults: (state, v: Media[]) => state.dateResults = v,
+        clearCachedPhotos: state => state.cachedPhotos = {},
         cachedPhotos: (state, o: { key: string, media: Media[] }) => Vue.set(state.cachedPhotos, o.key, o.media),
         login: (state, {email, password}) => {
             state.email = email;
@@ -92,7 +93,7 @@ export default new Vuex.Store({
     },
     actions: {
         addSnack: async ({state, commit}, {text, timeout = 3000}) => {
-            let snack = {text, open: true, timeout};
+            let snack = {text, open: true, timeout, id: Math.random()};
             commit('addSnackObject', snack);
             return new Promise<void>(resolve => {
                 setTimeout(() => {
@@ -165,7 +166,6 @@ export default new Vuex.Store({
         },
         async search({dispatch, commit, state}, query: string) {
             let {results, info, type} = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
-            console.log({results, info, type})
             commit('searchType', type);
             if (type === 'label')
                 commit('glossary', info);
