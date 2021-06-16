@@ -4,13 +4,16 @@
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
         </div>
-        <div v-else-if="results.length === 0" class="no-results">
+        <div v-else-if="slicedPhotos.length === 0" class="no-results">
             <div class="no-results-center">
                 <v-icon class="icon" x-large>mdi-cloud-search-outline</v-icon>
                 <div class="caption">No results found for "{{ day }} - {{ month }}"</div>
             </div>
         </div>
-        <photo-grid ref="photoGrid" v-show="results.length > 0" :photos="slicedPhotos"/>
+        <photo-grid :usable-width="usableWidth"
+                    ref="photoGrid"
+                    v-if="slicedPhotos.length > 0"
+                    :photos="slicedPhotos"/>
     </div>
 </template>
 
@@ -34,11 +37,12 @@ export default Vue.extend({
         this.photoGrid = this.$refs.photoGrid;
         this.searchElement = this.$refs.search as HTMLDivElement;
         await this.updateSearch();
+        console.log(this.slicedPhotos);
     },
     methods: {
         async updateSearch() {
             this.loading = true;
-                await this.$store.dispatch('dateSearch', {day: this.day, month: this.month});
+            await this.$store.dispatch('dateSearch', {day: this.day, month: this.month});
             this.loading = false;
         },
         async homeScroll() {
@@ -49,11 +53,19 @@ export default Vue.extend({
             this.prevScroll = scrollTop;
 
             let scrollBottom = this.searchElement.scrollHeight - scrollTop - this.searchElement.clientHeight;
-            if (scrollBottom < 3000 && this.endIndex < this.results.length)
+            if (scrollBottom < 3000 && this.endIndex < this.results.length) {
                 this.endIndex += 100;
+            }
         },
     },
     computed: {
+        usableWidth(): number {
+            const pagePadding = 10;
+            const scrollBarWidth = 17;
+            return this.$vuetify.breakpoint.width -
+                this.$vuetify.application.left - this.$vuetify.application.right -
+                pagePadding * 2 - scrollBarWidth;
+        },
         day(): number | null {
             let day = +this.$route.params.day;
             return isNaN(day) ? null : day;

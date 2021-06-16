@@ -35,7 +35,7 @@
                     :photos="highSlice"
                     v-if="!loading"
                     v-show="highResults.length > 0"
-                    ref="photoGrid"/>
+                    ref="photoGridHigh"/>
         <h2 class="mt-5 mb-5"
             v-if="endIndex >= highResults.length && highResults.length !== 0 && lowResults.length !== 0">
             Less related results
@@ -44,7 +44,7 @@
                     :photos="lowSlice"
                     v-if="!loading"
                     v-show="lowResults.length > 0"
-                    ref="photoGrid"/>
+                    ref="photoGridLow"/>
     </div>
 </template>
 
@@ -65,12 +65,13 @@ export default Vue.extend({
         endIndex: 100,
         prevScroll: -10000,
         searchElement: {} as HTMLDivElement,
-        photoGrid: null as any,
+        photoGridLow: null as any,
+        photoGridHigh: null as any,
         leaflet: {
             zoom: 12,
             center: null as L.LatLng | null,
             url: 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-            attributions: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
             options: {
                 zoomSnap: 0.5,
             },
@@ -88,7 +89,8 @@ export default Vue.extend({
     }),
     async mounted() {
         this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
-        this.photoGrid = this.$refs.photoGrid;
+        this.photoGridLow = this.$refs.photoGridLow;
+        this.photoGridHigh = this.$refs.photoGridHigh;
         this.searchElement = this.$refs.search as HTMLDivElement;
 
         await this.updateSearch();
@@ -244,8 +246,10 @@ export default Vue.extend({
             this.$store.commit('viewerQueue', this.allResults);
         },
         '$store.state.keepInView'() {
-            if (this.$store.state.keepInView !== null)
-                this.photoGrid.scrollMediaIntoView(this.$store.state.keepInView);
+            if (this.$store.state.keepInView !== null) {
+                this.photoGridLow.scrollMediaIntoView(this.$store.state.keepInView);
+                this.photoGridHigh.scrollMediaIntoView(this.$store.state.keepInView);
+            }
         },
     }
 })

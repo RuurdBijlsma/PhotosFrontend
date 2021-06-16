@@ -5,13 +5,18 @@
         }">
             <div class="media-item">
                 <div class="top-gradient"/>
-                <v-img class="element-item"
-                       :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
-                       :src="`${api}/photos/big/${media.id}.webp`"
-                       :key="media.id"
-                       contain
-                       v-if="media && media.type === 'photo'">
-                </v-img>
+                <v-zoomer
+                    :max-scale="10"
+                    :zooming-elastic="false"
+                    class="element-item"
+                    v-if="media && media.type === 'photo'">
+                    <v-img :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
+                           :src="`${api}/photos/full/${media.id}`"
+                           :key="media.id"
+                           ref="image"
+                           contain>
+                    </v-img>
+                </v-zoomer>
                 <video class="element-item"
                        :poster="`${api}/photos/big/${media.id}.webp`"
                        controls
@@ -325,7 +330,9 @@ export default Vue.extend({
                 this.deleteLoading = false;
                 return;
             }
-            let success = await this.$store.dispatch('apiRequest', {url: `deleteItem/${this.media.id}`});
+            let success = await this.$store.dispatch('apiRequest', {
+                url: `photos/deleteItem/${this.media.id}`
+            });
             if (success) {
                 this.$store.dispatch('addSnack', {text: 'Deleted ' + this.media.filename}).then();
                 this.next();
@@ -573,6 +580,10 @@ export default Vue.extend({
 .element-item {
     width: 100%;
     height: 100%;
+}
+
+.element-item >>> .zoomer {
+    display: flex;
 }
 
 .btn {

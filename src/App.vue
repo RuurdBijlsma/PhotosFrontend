@@ -4,12 +4,17 @@
             <img class="logo-icon" src="./assets/transparent-color-icon-256.png"
                  alt="icon">
             <v-app-bar-title v-if="$vuetify.breakpoint.width > 500"
-                             class="logo-text">Photos</v-app-bar-title>
+                             class="logo-text">Photos
+            </v-app-bar-title>
 
             <v-spacer></v-spacer>
 
-            <v-autocomplete dense solo hide-details label="Search..."
-                            prepend-icon="mdi-magnify" hide-no-data
+            <v-autocomplete solo dense
+                            hide-details
+                            :label='searchTip === "" ? "Search..." : `Search "${searchTip}"`'
+                            prepend-inner-icon="mdi-magnify"
+                            append-icon=""
+                            hide-no-data
                             :loading="loadingSuggestions"
                             :items="items"
                             clearable
@@ -112,6 +117,7 @@ export default Vue.extend({
     name: 'App',
     components: {CustomDialog},
     data: () => ({
+        searchTip: '',
         query: '',
         querySelect: null as string | null,
         loadingSuggestions: false,
@@ -130,6 +136,8 @@ export default Vue.extend({
             this.items = [this.query];
             this.querySelect = this.query;
         }
+        this.$store.dispatch('apiRequest', {url: 'photos/searchTip'})
+            .then(tip => this.searchTip = tip?.text ?? '');
         console.log(this.$store);
     },
     methods: {

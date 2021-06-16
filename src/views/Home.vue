@@ -46,10 +46,6 @@ import MonthGrid from "@/components/MonthGrid.vue";
 import {shortMonths} from "@/ts/utils";
 
 // todo
-// monthphotos don't load in bg when loadin /photo/:id in ruurd.dev version but it do work in localhost
-// add fix date from filename button
-// photo delete also delete thumbnails
-// zoom in big picture viewA
 // Add settings page
 //      On this page:
 //      Set api url
@@ -63,7 +59,6 @@ import {shortMonths} from "@/ts/utils";
 // add mapbox token to Users account
 // make map component with images that load on panning the map
 // dark map theme
-// Fix attirubtion for map
 // see server status in ui somewhere (save logs and show)
 // map view in big photo view
 // animated webp not showing in grid, but showing in big pic?
@@ -135,6 +130,11 @@ export default Vue.extend({
             }, 500);
         if (this.hasDate !== null && !loadingPhoto)
             this.updateFromDateQuery();
+        if (loadingPhoto) {
+            console.log(this.photosPerMonth);
+            for (let month of this.photosPerMonth)
+                month.loaded = month.viewed;
+        }
 
         this.render();
     },

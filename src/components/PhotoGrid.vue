@@ -246,7 +246,10 @@ export default Vue.extend({
             clearTimeout(this.calculateTimeout);
             this.calculateTimeout = setTimeout(() => {
                 requestAnimationFrame(() => this.calculateLayout(true))
-            }, 200);
+            }, 50);
+        },
+        photos() {
+            requestAnimationFrame(() => this.calculateLayout(true));
         },
     },
 })
