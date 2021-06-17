@@ -6,7 +6,7 @@
         top: topCss,
     }">
         <div class="scrub-container">
-            <span class="scrub-date">{{ formattedDate }}</span>
+            <v-sheet rounded class="scrub-date">{{ formattedDate }}</v-sheet>
             <v-sheet elevation="7"
                      class="scrub-tab"
                      @touchstart="touchScrubStart"
@@ -154,9 +154,7 @@ export default Vue.extend({
 }
 
 .scrub-date {
-    background-color: rgba(255, 255, 255, 0.8);
     padding: 5px 10px;
-    border-radius: 5px;
     font-weight: 500;
     white-space: nowrap;
     font-size: 14px;
