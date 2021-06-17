@@ -4,12 +4,13 @@ import './registerServiceWorker'
 import router from './plugins/router'
 import store from './plugins/store'
 import vuetify from './plugins/vuetify'
+import PerfectScrollbar from 'vue2-perfect-scrollbar'
+import 'vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css'
+// @ts-ignore
 import VueZoomer from 'vue-zoomer'
 
 
 Vue.config.productionTip = false
-import PerfectScrollbar from 'vue2-perfect-scrollbar'
-import 'vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css'
 Vue.use(PerfectScrollbar)
 Vue.use(VueZoomer)
 

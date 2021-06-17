@@ -1,6 +1,9 @@
 <template>
     <div class="search" ref="search" @scroll="homeScroll"
-         :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
+         :style="{
+            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+            padding: pagePadding + 'px',
+         }">
         <router-view/>
         <h1 class="search-query" v-if="!isPlace && !loading && allResults.length > 0">‟{{ query }}”</h1>
         <p class="search-glossary" v-if="!loading && allResults.length > 0 && isLabel">{{ glossary }}</p>
@@ -54,7 +57,7 @@ import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
 import {LMap, LTileLayer, LMarker} from 'vue2-leaflet';
 import L, {popup} from "leaflet";
-import {api} from "@/ts/constants";
+import {api, scrollBarWidth} from "@/ts/constants";
 
 export default Vue.extend({
     name: 'Search',
@@ -89,9 +92,9 @@ export default Vue.extend({
     }),
     async mounted() {
         this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
-        this.photoGridLow = this.$refs.photoGridLow;
-        this.photoGridHigh = this.$refs.photoGridHigh;
         this.searchElement = this.$refs.search as HTMLDivElement;
+
+        console.log(this.$vuetify);
 
         await this.updateSearch();
     },
@@ -197,12 +200,13 @@ export default Vue.extend({
         },
     },
     computed: {
+        pagePadding(): number {
+            return this.$vuetify.breakpoint.mobile ? 0 : 10;
+        },
         usableWidth(): number {
-            const pagePadding = 10;
-            const scrollBarWidth = 17;
             return this.$vuetify.breakpoint.width -
                 this.$vuetify.application.left - this.$vuetify.application.right -
-                pagePadding * 2 - scrollBarWidth;
+                this.pagePadding * 2 - scrollBarWidth;
         },
         mapWidth(): number {
             return this.$vuetify.breakpoint.width - this.$vuetify.application.left - this.$vuetify.application.right;
@@ -247,8 +251,10 @@ export default Vue.extend({
         },
         '$store.state.keepInView'() {
             if (this.$store.state.keepInView !== null) {
-                this.photoGridLow.scrollMediaIntoView(this.$store.state.keepInView);
-                this.photoGridHigh.scrollMediaIntoView(this.$store.state.keepInView);
+                let photoGridLow: any = this.$refs.photoGridLow;
+                let photoGridHigh: any = this.$refs.photoGridHigh;
+                photoGridLow.scrollMediaIntoView(this.$store.state.keepInView);
+                photoGridHigh.scrollMediaIntoView(this.$store.state.keepInView);
             }
         },
     }
@@ -257,7 +263,6 @@ export default Vue.extend({
 
 <style scoped>
 .search {
-    padding: 10px 10px 10px 10px;
     max-height: calc(100vh - 64px);
     overflow-y: scroll;
     width: 100%;

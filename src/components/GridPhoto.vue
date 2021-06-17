@@ -22,6 +22,8 @@
             </div>
         </div>
         <div class="video-container" v-else
+             @touchstart="playVideo"
+             @touchend="pauseVideo"
              @mouseleave="pauseVideo()"
              @mouseenter="playVideo()">
             <video :poster="`${getThumbUrl(media.id, layoutMedia.visualHeight)}`"
@@ -101,13 +103,8 @@ export default Vue.extend({
 
 .photo {
     display: inline-block;
-    margin-right: 5px;
     margin-bottom: -3px;
     background-color: rgba(128, 128, 128, 0.2);
-}
-
-.photo:last-child {
-    margin-right: 0;
 }
 
 .photo > * {
@@ -124,7 +121,7 @@ export default Vue.extend({
     height: 100%;
     position: absolute;
     top: 0;
-    border-radius: 3px;
+    border-radius: 1px;
 }
 
 .image-overlay {

@@ -1,8 +1,9 @@
 import {Media} from "@/ts/Media";
+
 export interface ILayoutMedia {
     media: Media,
     visualWidth: number,
-    visualHeight:number,
+    visualHeight: number,
 }
 
 export interface ILayoutBlock {
@@ -19,4 +20,16 @@ export interface ILayoutRow {
     hasDate: boolean,
     width: number,
     height: number,
+}
+
+export interface MonthPhotos {
+    year: number,
+    month: number,
+    count: number,
+    viewed: boolean,
+    loaded: boolean,
+    ready: boolean,
+    height: number,
+    photos: Media[],
+    id: string,
 }

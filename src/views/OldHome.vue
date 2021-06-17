@@ -40,8 +40,7 @@
 import {Media} from "@/ts/Media";
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
-import {api} from "@/ts/constants"
-import {shortMonths} from "@/ts/utils";
+import {api, shortMonths} from "@/ts/constants"
 
 interface MonthPhotos {
     year: number,

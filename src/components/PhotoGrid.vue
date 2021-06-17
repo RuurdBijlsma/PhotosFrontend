@@ -1,7 +1,9 @@
 <template>
     <div class="photo-grid roboto">
         <div class="photo-row" v-for="row in photoRows">
-            <div class="photo-block" v-for="block in row.layoutBlocks">
+            <div class="photo-block"
+                 :style="{marginRight: grid.blockMarginRight + 'px'}"
+                 v-for="block in row.layoutBlocks">
                 <div class="block-date"
                      v-if="block.showDate"
                      :title="block.dateString"
@@ -12,6 +14,8 @@
                     </router-link>
                 </div>
                 <grid-photo
+                    class="grid-photo"
+                    :style="{marginRight: grid.mediaMargin + 'px'}"
                     v-for="layoutMedia in block.layoutMedias"
                     :key="layoutMedia.media.id" :layout-media="layoutMedia"/>
             </div>
@@ -37,14 +41,6 @@ export default Vue.extend({
     },
     data: () => ({
         api,
-        grid: {
-            blockMarginRight: 40,
-            blockDateHeight: 40,
-            mediaMargin: 5,
-            blockHeight: 240,
-            speling: 50,
-            maxScale: 1.73,
-        },
         photoRows: [] as ILayoutRow[],
         calculateTimeout: -1,
     }),
@@ -114,6 +110,11 @@ export default Vue.extend({
                     let newRow =
                         (remainingWidth + this.grid.speling < layoutMedia.visualWidth) ||
                         (!sameDay && day.layoutMedia.length > 3)
+
+                    // if (day.dateString === 'Thu, 20 May') {
+                    //     console.log({newRow, remainingWidth})
+                    // }
+
                     if (block === null || row === null || newRow) {
                         // Very first iteration of loops
                         // OR
@@ -137,7 +138,7 @@ export default Vue.extend({
                             layoutBlocks: [block],
                             hasDate: block.showDate
                         };
-                        remainingWidth = this.usableWidth;
+                        remainingWidth = this.usableWidth - layoutMedia.visualWidth;
                         photoRows.push(row);
                         // Current layoutMedia is dealt with, continue
                         continue;
@@ -229,12 +230,29 @@ export default Vue.extend({
         },
     },
     computed: {
-        height() {
+        grid(): { blockMarginRight: number, blockDateHeight: number, mediaMargin: number, blockHeight: number, speling: number, maxScale: number } {
+            return this.$vuetify.breakpoint.mobile ? {
+                blockMarginRight: 10,
+                blockDateHeight: 40,
+                mediaMargin: 3,
+                blockHeight: 200,
+                speling: 150,
+                maxScale: 2,
+            } : {
+                blockMarginRight: 40,
+                blockDateHeight: 40,
+                mediaMargin: 5,
+                blockHeight: 240,
+                speling: 80,
+                maxScale: 1.73,
+            };
+        },
+        height(): number {
             return this.photoRows
                 .map(r => r.height)
                 .reduce((a, b) => a + b, 0) + this.photoRows.length * this.grid.mediaMargin;
         },
-        currentPath() {
+        currentPath(): string {
             let path = this.$route.path;
             if (path.endsWith('/'))
                 return path.substr(0, path.length - 1)
@@ -251,6 +269,9 @@ export default Vue.extend({
         photos() {
             requestAnimationFrame(() => this.calculateLayout(true));
         },
+        grid() {
+            requestAnimationFrame(() => this.calculateLayout(true));
+        },
     },
 })
 </script>
@@ -265,11 +286,10 @@ export default Vue.extend({
 
 .photo-block {
     display: inline-block;
-    margin-right: 40px;
 }
 
 .photo-block:last-child {
-    margin-right: 0;
+    margin-right: 0 !important;
 }
 
 .block-date {
@@ -281,5 +301,10 @@ export default Vue.extend({
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding: 0 10px;
+}
+
+.grid-photo:last-child {
+    margin-right: 0 !important;
 }
 </style>

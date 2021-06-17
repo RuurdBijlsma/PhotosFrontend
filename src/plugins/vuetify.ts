@@ -8,6 +8,9 @@ if (localStorage.getItem('darkTheme') !== null)
     dark = localStorage.darkTheme === 'true';
 
 export default new Vuetify({
+    breakpoint:{
+        mobileBreakpoint: 'sm'
+    },
     theme: {
         dark,
         themes: {

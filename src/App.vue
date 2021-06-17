@@ -110,7 +110,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {months, shortMonths} from "@/ts/utils";
+import {months, shortMonths} from "@/ts/constants";
 import CustomDialog from "@/components/CustomDialog.vue";
 
 export default Vue.extend({

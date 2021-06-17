@@ -1,9 +1,14 @@
 <template>
-    <div class="home" ref="home" @scroll="homeScroll"
-         :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
+    <div class="home" ref="home" id="home-element"
+         :style="{
+            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+            padding: pagePadding + 'px',
+         }">
         <router-view/>
 
-        <div class="photos">
+        <div class="photos" :style="{
+            width: `calc(100% - ${scrubberWidth}px)`,
+        }">
             <div class="lazy-month"
                  :style="{
                     height: photosPerMonth[i].ready ?
@@ -26,15 +31,17 @@
             </div>
         </div>
 
-        <canvas :width="100"
-                :height="canvasHeight"
-                :style="{height: canvasHeight + 'px'}"
-                ref="scrubber" class="scrubber scrubber-canvas"/>
-        <div class="scrubber scrubber-events"
-             :style="{height: canvasHeight + 'px'}"
-             @mouseenter="overScrub=true"
-             @mouseleave="overScrub=false"
-             @mousedown="scrubStart"/>
+        <mobile-scrub class="scrubber"
+                      v-if="$vuetify.breakpoint.mobile && photosPerMonth.length > 0"
+                      home-id="home-element"
+                      :index-in-view="indexInView"
+                      :photos-per-month="photosPerMonth"></mobile-scrub>
+        <desktop-scrub class="scrubber"
+                       v-else-if="photosPerMonth.length > 0"
+                       home-id="home-element"
+                       :index-in-view="indexInView"
+                       :photos-per-month="photosPerMonth">
+        </desktop-scrub>
     </div>
 </template>
 
@@ -43,7 +50,9 @@ import {Media} from "@/ts/Media";
 import {api} from "@/ts/constants"
 import Vue from "vue";
 import MonthGrid from "@/components/MonthGrid.vue";
-import {shortMonths} from "@/ts/utils";
+import DesktopScrub from "@/components/DesktopScrub.vue";
+import {MonthPhotos} from "@/ts/MediaInterfaces";
+import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // Add settings page
@@ -65,58 +74,26 @@ import {shortMonths} from "@/ts/utils";
 // video controls in big photo viewer
 // albums
 // world with photos
-// andere scrub visuals voor mobile
 // show logged in state in app bar
 // add image subtype 'animation' for gifs
 // refresh photo on search page is bugged
 
-interface MonthPhotos {
-    year: number,
-    month: number,
-    count: number,
-    viewed: boolean,
-    loaded: boolean,
-    ready: boolean,
-    height: number,
-    photos: Media[],
-    id: string,
-}
-
-const d = new Date();
 export default Vue.extend({
     name: 'Home',
-    components: {MonthGrid},
+    components: {MobileScrub, DesktopScrub, MonthGrid},
     data: () => ({
         api,
-        canvas: {} as HTMLCanvasElement,
-        context: {} as CanvasRenderingContext2D,
-        yearTextSize: 13,
-        renderAnimationFrame: -1,
 
         gridHeight: 240,
         waitPpm: null as null | Promise<MonthPhotos[]>,
         photosPerMonth: [] as MonthPhotos[],
+
         homeElement: {} as HTMLElement,
-        scrollTimeout: -1,
         indexInView: 0,
 
-        scrolling: false,
-        scrubData: {percent: 0, year: d.getFullYear(), month: d.getMonth() + 1},
-        scrubbing: false,
-        overScrub: false,
         ignoreDateChange: false,
     }),
-    beforeDestroy() {
-        cancelAnimationFrame(this.renderAnimationFrame);
-        document.removeEventListener('mousemove', this.scrubMove);
-        document.removeEventListener('mouseup', this.scrubEnd);
-    },
     async mounted() {
-        document.addEventListener('mousemove', this.scrubMove, false);
-        document.addEventListener('mouseup', this.scrubEnd, false);
-
-        this.canvas = this.$refs.scrubber as HTMLCanvasElement;
-        this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
         this.homeElement = (this.$refs.home as HTMLElement);
 
         let loadingPhoto = this.$route.name === 'HomePhoto';
@@ -135,8 +112,6 @@ export default Vue.extend({
             for (let month of this.photosPerMonth)
                 month.loaded = month.viewed;
         }
-
-        this.render();
     },
     methods: {
         async updatePhotosPerMonth(preload: boolean, loadIndices: number[]) {
@@ -155,156 +130,6 @@ export default Vue.extend({
                 photos: [],
                 id: year.toString() + month,
             }));
-        },
-        homeScroll() {
-            this.scrolling = true;
-            clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = setTimeout(() => this.scrolling = false, 1000);
-        },
-        yToMonthPhotos(percentage: number) {
-            let y = percentage * this.homeElement.scrollHeight;
-            for (let i = 0; i < this.photosPerMonth.length; i++) {
-                y -= this.photosPerMonth[i].height;
-                if (y <= 0)
-                    return this.photosPerMonth[i];
-            }
-            return this.photosPerMonth[this.photosPerMonth.length - 1];
-        },
-        render() {
-            this.renderAnimationFrame = requestAnimationFrame(this.render);
-            this.context.font = `${this.yearTextSize}px Roboto`;
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            let greyedYears = !this.scrubbing && !this.overScrub;
-            if (false) this.drawLoadedRegion();
-            this.drawYears(greyedYears);
-            if (this.overScrub || this.scrubbing) {
-                this.drawScrollThumb(
-                    this.scrubData.percent * this.canvas.height, this.scrubData.year, this.scrubData.month,
-                    false,
-                    true,
-                );
-            }
-            let ppmInView = this.photosPerMonth[this.indexInView];
-            if (this.scrolling && !this.scrubbing) {
-                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvas.height;
-                this.drawScrollThumb(
-                    y, ppmInView.year ?? 0, ppmInView.month ?? 0,
-                    true,
-                    true,
-                );
-            } else if (!this.scrubbing) {
-                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvas.height;
-                this.drawScrollThumb(
-                    y, ppmInView.year ?? 0, ppmInView.month ?? 0,
-                    true,
-                    false,
-                );
-            }
-        },
-        drawLoadedRegion() {
-            this.context.fillStyle = 'rgba(50,255,100,0.16)';
-            let width = 50;
-            let y = 0;
-            let scrollHeight = this.homeElement.scrollHeight;
-            for (let i = 0; i < this.photosPerMonth.length; i++) {
-                let l = this.photosPerMonth[i];
-                if (l.loaded) {
-                    this.context.fillRect(
-                        this.canvas.width - width,
-                        y / scrollHeight * this.canvas.height,
-                        width,
-                        l.height / scrollHeight * this.canvas.height);
-                }
-                y += l.height;
-            }
-        },
-        drawScrollThumb(y: number, year: number, month: number, smallLine = false, includeText = true) {
-            let textSize = 15;
-            let boxHeight = textSize + 10 + 3;
-            let textY = y;
-            if (textY < boxHeight && includeText)
-                textY = boxHeight;
-            let isDark = this.$vuetify.theme.dark;
-
-            if (includeText) {
-                this.context.fillStyle = isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)';
-                let text = `${shortMonths[month - 1]} ${year}`;
-                let {width} = this.context.measureText(text);
-                this.context.fillRect(this.canvas.width - width - 10,
-                    textY - textSize - 10, width + 10, textSize + 10);
-                this.context.fillStyle = isDark ? '#e2e2e2' : '#171717';
-                this.context.fillText(text, this.canvas.width - width - 5, textY - textSize + 5);
-            }
-
-            this.context.fillStyle = this.$vuetify.theme.themes[isDark ? 'dark' : 'light'].primary as string;
-            let lineWidth = smallLine ? 35 : 50;
-            this.context.fillRect(this.canvas.width - lineWidth, y, lineWidth, smallLine ? 2 : 3);
-
-        },
-        drawYears(greyedYears = false) {
-            let isDark = this.$vuetify.theme.dark;
-            let y = 0;
-            let currentYear = -1;
-            let usedParts = [] as number[][];
-            let scrollHeight = this.homeElement.scrollHeight;
-            for (let i = this.photosPerMonth.length - 1; i >= 0; i--) {
-                if (!greyedYears) {
-                    this.context.beginPath();
-                    this.context.fillStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
-                    this.context.arc(
-                        this.canvas.width - 7,
-                        this.canvas.height - y,
-                        2, 0, 2 * Math.PI);
-                    this.context.fill();
-                }
-
-                let month = this.photosPerMonth[i];
-                if (month.year !== currentYear) {
-                    currentYear = month.year;
-                    let text = currentYear.toString();
-                    let {width} = this.context.measureText(text);
-                    let textY = y;
-                    const isYFree = (yValue: number) => {
-                        for (let [low, high] of usedParts)
-                            if (yValue >= low && yValue <= high)
-                                return false;
-                        return true;
-                    }
-                    while (!isYFree(textY))
-                        textY += this.yearTextSize;
-                    usedParts.push([textY, textY + this.yearTextSize]);
-                    this.context.fillStyle = isDark ? (greyedYears ? 'rgba(255,255,255,0.5)' : 'white') : (greyedYears ? 'rgba(0,0,0,0.5)' : 'black');
-                    this.context.fillText(text, this.canvas.width - width - 15, this.canvas.height - textY);
-                }
-                y += this.photosPerMonth[i].height / scrollHeight * this.canvas.height;
-            }
-        },
-        scrubStart(e: MouseEvent) {
-            this.scrubbing = true;
-            let [percent] = this.dateFromScrubEvent(e);
-            this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
-        },
-        scrubMove(e: MouseEvent) {
-            if (this.scrubbing) {
-                let [percent] = this.dateFromScrubEvent(e);
-                this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
-            }
-            if (this.overScrub || this.scrubbing) {
-                let y = e.pageY - this.$vuetify.application.top;
-                let mp = this.yToMonthPhotos(y / this.canvas.height);
-                this.scrubData = {percent: y / this.canvas.height, year: mp.year, month: mp.month};
-            }
-        },
-        scrubEnd(e: MouseEvent) {
-            if (this.scrubbing) {
-                this.scrubbing = false;
-            }
-        },
-        dateFromScrubEvent(e: MouseEvent): [number, MonthPhotos] {
-            let percent = (e.pageY - this.$vuetify.application.top) / this.canvas.height;
-            percent = Math.max(0, Math.min(1, percent * 1.01));
-            let mp = this.yToMonthPhotos(percent);
-            return [percent, mp];
         },
         monthResize(i: number, monthHeight: number) {
             Vue.set(this.photosPerMonth[i], 'height', monthHeight);
@@ -461,15 +286,16 @@ export default Vue.extend({
             if (isNaN(date.getDate())) return null;
             return date;
         },
-        canvasHeight(): number {
-            return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;
+        pagePadding(): number {
+            return this.$vuetify.breakpoint.mobile ? 0 : 10;
+        },
+        scrubberWidth(): number {
+            return this.$vuetify.breakpoint.mobile ? 0 : 50;
         },
         usableWidth(): number {
-            const pagePadding = 10;
-            const scrubberWidth = 40;
             return this.$vuetify.breakpoint.width -
                 this.$vuetify.application.left - this.$vuetify.application.right -
-                pagePadding * 2 - scrubberWidth;
+                this.pagePadding * 2 - this.scrubberWidth;
         },
         totalPhotos(): number {
             let n = 0;
@@ -528,7 +354,6 @@ export default Vue.extend({
 .home {
     overflow-y: scroll;
     width: 100%;
-    padding: 10px;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -538,7 +363,6 @@ export default Vue.extend({
 }
 
 .photos {
-    width: calc(100% - 40px);
     position: relative;
     left: 0;
     bottom: 0;
@@ -555,22 +379,5 @@ export default Vue.extend({
 .month {
     width: 100%;
     height: 100%;
-}
-
-.scrubber-events {
-    width: 50px !important;
-    cursor: pointer;
-}
-
-.scrubber {
-    width: 100px;
-    height: 100%;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-.scrubber-canvas {
-    pointer-events: none;
 }
 </style>

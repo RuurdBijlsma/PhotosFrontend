@@ -1,5 +1,9 @@
 <template>
-    <div class="search" ref="search" @scroll="homeScroll">
+    <div class="search" ref="search" @scroll="homeScroll"
+         :style="{
+            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+            padding: pagePadding + 'px',
+         }">
         <router-view/>
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
@@ -21,7 +25,7 @@
 import Vue from 'vue'
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
-import {months} from "@/ts/utils";
+import {months, scrollBarWidth} from "@/ts/constants";
 
 export default Vue.extend({
     name: 'Search',
@@ -59,12 +63,13 @@ export default Vue.extend({
         },
     },
     computed: {
+        pagePadding(): number {
+            return this.$vuetify.breakpoint.mobile ? 0 : 10;
+        },
         usableWidth(): number {
-            const pagePadding = 10;
-            const scrollBarWidth = 17;
             return this.$vuetify.breakpoint.width -
                 this.$vuetify.application.left - this.$vuetify.application.right -
-                pagePadding * 2 - scrollBarWidth;
+                this.pagePadding * 2 - scrollBarWidth;
         },
         day(): number | null {
             let day = +this.$route.params.day;
@@ -94,8 +99,10 @@ export default Vue.extend({
             this.$store.commit('viewerQueue', this.results);
         },
         '$store.state.keepInView'() {
-            if (this.$store.state.keepInView !== null)
-                this.photoGrid.scrollMediaIntoView(this.$store.state.keepInView);
+            if (this.$store.state.keepInView !== null) {
+                let photoGrid: any = this.$refs.photoGrid;
+                photoGrid.scrollMediaIntoView(this.$store.state.keepInView);
+            }
         },
     }
 })
