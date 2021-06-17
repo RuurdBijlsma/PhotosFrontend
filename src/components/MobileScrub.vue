@@ -144,7 +144,7 @@ export default Vue.extend({
     position: absolute;
     top: 0;
     right: -12px;
-    z-index: 5;
+    z-index: 3;
     transition: opacity 0.2s;
 }
 

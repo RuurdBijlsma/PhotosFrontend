@@ -9,7 +9,11 @@
         <p class="search-glossary" v-if="!loading && allResults.length > 0 && isLabel">{{ glossary }}</p>
 
         <l-map v-if="isPlace && leaflet.bounds !== null && leaflet.center !== null"
-               :style="{height: leaflet.height + 'px'}"
+               :style="{
+                    height: leaflet.height + 'px',
+                    margin: `-${pagePadding}px -${pagePadding}px 0`,
+                    width: `calc(100% + ${pagePadding * 2}px);`,
+               }"
                :zoom="leaflet.zoom"
                ref="map"
                @ready="mapReady"
@@ -111,7 +115,7 @@ export default Vue.extend({
             })
             let minCorner = L.latLng(bounds.minlat, bounds.minlng, 0);
             let maxCorner = L.latLng(bounds.maxlat, bounds.maxlng, 0);
-            this.leaflet.bounds = L.latLngBounds(minCorner, maxCorner);
+            this.leaflet.bounds = L.latLngBounds(minCorner, maxCorner).pad(0.15);
             this.leaflet.center = this.leaflet.bounds.getCenter();
             let zoomLevel = this.getBoundsZoomLevel(this.leaflet.bounds, {
                 width: this.mapWidth,
@@ -291,10 +295,6 @@ export default Vue.extend({
 }
 
 .map-leaflet, .placeholder-map {
-    width: calc(100% + 20px);
-    margin-left: -10px;
-    margin-right: -10px;
-    margin-top: -10px;
     z-index: 3;
 }
 

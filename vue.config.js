@@ -17,7 +17,7 @@ module.exports = {
             "theme_color": "#5996d1",
             "dir": "ltr",
             "display": "standalone",
-            "orientation": "any",
+            "orientation": "portrait",
             "icons": [
                 {
                     "src": "img/icons/android-chrome-maskable-192x192.png",
