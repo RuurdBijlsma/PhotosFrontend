@@ -9,7 +9,8 @@
             <span class="scrub-date">{{ formattedDate }}</span>
             <v-sheet elevation="7"
                      class="scrub-tab"
-                     @touchstart="scrubStart"
+                     @touchstart="touchScrubStart"
+                     @mousedown="scrubStart"
                      :style="{
                     width: tabSize + 'px',
                     height: tabSize + 'px',
@@ -37,22 +38,27 @@ export default Vue.extend({
 
         homeElement: {} as HTMLElement,
         scrollTimeout: -1,
-        scrolling: false,
+        scrolling: true,
         scrubbing: false,
         overScrub: false,
         scrollTop: 0,
         scrollHeight: 100,
     }),
     beforeDestroy() {
-        document.removeEventListener('touchmove', this.scrubMove);
+        document.removeEventListener('mousemove', this.scrubMove);
+        document.removeEventListener('mouseup', this.scrubEnd);
+        document.removeEventListener('touchmove', this.touchScrubMove);
         document.removeEventListener('touchend', this.scrubEnd);
         this.homeElement.removeEventListener('scroll', this.homeScroll);
     },
     async mounted() {
         this.homeElement = document.querySelector(`#${this.homeId}`) as HTMLElement;
-        document.addEventListener('touchmove', this.scrubMove, false);
+        document.addEventListener('mousemove', this.scrubMove, false);
+        document.addEventListener('mouseup', this.scrubEnd, false);
+        document.addEventListener('touchmove', this.touchScrubMove, false);
         document.addEventListener('touchend', this.scrubEnd, false);
         this.homeElement.addEventListener('scroll', this.homeScroll, false);
+        this.scrollTimeout = setTimeout(() => this.scrolling = false, 3000);
     },
     methods: {
         updateScrollData() {
@@ -62,7 +68,7 @@ export default Vue.extend({
         homeScroll() {
             this.scrolling = true;
             clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = setTimeout(() => this.scrolling = false, 1000);
+            this.scrollTimeout = setTimeout(() => this.scrolling = false, 3000);
             this.updateScrollData();
         },
         yToMonthPhotos(percentage: number) {
@@ -74,27 +80,37 @@ export default Vue.extend({
             }
             return this.photosPerMonth[this.photosPerMonth.length - 1];
         },
-        dateFromScrubEvent(e: TouchEvent): number {
-            let percent = (e.touches[0].pageY - this.$vuetify.application.top - this.tabSize / 2) /
+        dateFromScrubEvent(pageY: number): number {
+            let percent = (pageY - this.$vuetify.application.top - this.tabSize / 2) /
                 (this.canvasHeight - this.tabSize);
             percent = Math.max(0, Math.min(1, percent * 1.01));
             return percent;
         },
-        scrubStart(e: TouchEvent) {
+        touchScrubStart(e: TouchEvent) {
             this.scrubbing = true;
-            let percent = this.dateFromScrubEvent(e);
+            let percent = this.dateFromScrubEvent(e.touches[0].pageY);
             this.homeElement.scrollTo({top: this.scrollHeight * percent});
         },
-        scrubMove(e: TouchEvent) {
+        touchScrubMove(e: TouchEvent) {
             if (this.scrubbing) {
-                let percent = this.dateFromScrubEvent(e);
+                let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+                this.homeElement.scrollTo({top: this.scrollHeight * percent});
+            }
+        },
+        scrubStart(e: MouseEvent) {
+            this.scrubbing = true;
+            let percent = this.dateFromScrubEvent(e.pageY);
+            this.homeElement.scrollTo({top: this.scrollHeight * percent});
+        },
+        scrubMove(e: MouseEvent) {
+            if (this.scrubbing) {
+                let percent = this.dateFromScrubEvent(e.pageY);
                 this.homeElement.scrollTo({top: this.scrollHeight * percent});
             }
         },
         scrubEnd() {
-            if (this.scrubbing) {
+            if (this.scrubbing)
                 this.scrubbing = false;
-            }
         },
     },
     computed: {
@@ -144,6 +160,7 @@ export default Vue.extend({
     font-weight: 500;
     white-space: nowrap;
     font-size: 14px;
+    margin-right: 5px;
 }
 
 .scrub-tab {
@@ -151,5 +168,6 @@ export default Vue.extend({
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 </style>

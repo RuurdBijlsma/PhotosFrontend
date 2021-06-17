@@ -8,6 +8,7 @@
              :style="{height: canvasHeight + 'px'}"
              @mouseenter="overScrub=true"
              @mouseleave="overScrub=false"
+             @touchstart="touchScrubStart"
              @mousedown="scrubStart"/>
     </div>
 </template>
@@ -41,12 +42,16 @@ export default Vue.extend({
         cancelAnimationFrame(this.renderAnimationFrame);
         document.removeEventListener('mousemove', this.scrubMove);
         document.removeEventListener('mouseup', this.scrubEnd);
+        document.removeEventListener('touchmove', this.touchScrubMove);
+        document.removeEventListener('touchend', this.scrubEnd);
         this.homeElement.removeEventListener('scroll', this.homeScroll);
     },
     async mounted() {
         this.homeElement = document.querySelector(`#${this.homeId}`) as HTMLElement;
         document.addEventListener('mousemove', this.scrubMove, false);
         document.addEventListener('mouseup', this.scrubEnd, false);
+        document.addEventListener('touchmove', this.touchScrubMove, false);
+        document.addEventListener('touchend', this.scrubEnd, false);
         this.homeElement.addEventListener('scroll', this.homeScroll, false);
 
         this.canvas = this.$refs.scrubber as HTMLCanvasElement;
@@ -69,11 +74,10 @@ export default Vue.extend({
             }
             return this.photosPerMonth[this.photosPerMonth.length - 1];
         },
-        dateFromScrubEvent(e: MouseEvent): [number, MonthPhotos] {
-            let percent = (e.pageY - this.$vuetify.application.top) / this.canvas.height;
+        dateFromScrubEvent(pageY: number): number {
+            let percent = (pageY - this.$vuetify.application.top) / this.canvas.height;
             percent = Math.max(0, Math.min(1, percent * 1.01));
-            let mp = this.yToMonthPhotos(percent);
-            return [percent, mp];
+            return percent;
         },
         render() {
             this.renderAnimationFrame = requestAnimationFrame(this.render);
@@ -184,14 +188,25 @@ export default Vue.extend({
                 y += this.photosPerMonth[i].height / scrollHeight * this.canvas.height;
             }
         },
+        touchScrubStart(e: TouchEvent) {
+            this.scrubbing = true;
+            let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+            this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
+        },
+        touchScrubMove(e: TouchEvent) {
+            if (this.scrubbing) {
+                let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+                this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
+            }
+        },
         scrubStart(e: MouseEvent) {
             this.scrubbing = true;
-            let [percent] = this.dateFromScrubEvent(e);
+            let percent = this.dateFromScrubEvent(e.pageY);
             this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
         },
         scrubMove(e: MouseEvent) {
             if (this.scrubbing) {
-                let [percent] = this.dateFromScrubEvent(e);
+                let percent = this.dateFromScrubEvent(e.pageY);
                 this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
             }
             if (this.overScrub || this.scrubbing) {
