@@ -57,7 +57,6 @@ export default Vue.extend({
             this.leaflet.bounds = this.startBounds;
         } else {
             let bounds = await this.$store.dispatch('apiRequest', {url: 'photos/totalBounds'});
-            console.log(bounds);
             let minCorner = L.latLng(bounds.minlat, bounds.minlng, 0);
             let maxCorner = L.latLng(bounds.maxlat, bounds.maxlng, 0);
             this.leaflet.bounds = L.latLngBounds(minCorner, maxCorner).pad(0.05);
@@ -75,7 +74,6 @@ export default Vue.extend({
         mapPanned(b: L.LatLngBounds) {
             clearTimeout(this.panTimeout);
             this.panTimeout = setTimeout(async () => {
-                console.log(1, b);
                 this.leaflet.bounds = b;
                 this.photosInBounds = this.updateFromBounds();
                 await this.addMarkers();
