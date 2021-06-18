@@ -55,6 +55,7 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
+// filter by date on /map page to see photos in that date range
 // Add settings page
 //      On this page:
 //      Set api url
