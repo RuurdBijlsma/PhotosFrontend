@@ -66,14 +66,10 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // rotate image in ui
 // make way to enlarge map in search page
 // add mapbox token to Users account
-// make map component with images that load on panning the map
 // dark map theme
 // see server status in ui somewhere (save logs and show)
-// map view in big photo view
 // animated webp not showing in grid, but showing in big pic?
-// video controls in big photo viewer
 // albums
-// world with photos
 // show logged in state in app bar
 // add image subtype 'animation' for gifs
 // refresh photo on search page is bugged

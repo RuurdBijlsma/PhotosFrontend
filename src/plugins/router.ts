@@ -60,6 +60,12 @@ const routes: Array<RouteConfig> = [
         component: () => import('../views/Explore.vue')
     },
     {
+        path: '/map',
+        name: 'Map',
+        meta: {title: 'Map - Ruurd Photos'},
+        component: () => import('../views/Map.vue')
+    },
+    {
         path: '/settings',
         name: 'Settings',
         meta: {title: 'Settings - Ruurd Photos'},
