@@ -10,7 +10,7 @@
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="media && media.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photos/tiny/${media.id}.webp`"
+                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"
                            :src="`${api}/photos/full/${media.id}`"
                            :key="media.id"
                            ref="image"
@@ -18,11 +18,11 @@
                     </v-img>
                 </v-zoomer>
                 <video class="element-item"
-                       :poster="`${api}/photos/big/${media.id}.webp`"
+                       :poster="`${api}/photo/big/${media.id}.webp`"
                        controls
                        v-else-if="media"
                        autoplay
-                       :src="`${api}/photos/webm/${media.id}.webm`">
+                       :src="`${api}/photo/webm/${media.id}.webm`">
                 </video>
                 <v-btn icon dark @click="close" class="back-button btn">
                     <v-icon>mdi-arrow-left</v-icon>

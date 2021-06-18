@@ -118,8 +118,8 @@ export default Vue.extend({
                 marker.addTo(this.mapRef.mapObject);
                 marker.on('click', (e: any) => {
                     const content = photo.type === 'image' ?
-                        `<img height="${mediaHeight}" width="${mediaHeight * ratio}" src="${api}/photos/tiny/${photo.id}.webp" alt="Image at ${e.latlng.lat}, ${e.latlng.lng}">` :
-                        `<video height="${mediaHeight}" width="${mediaHeight * ratio}" src="${api}/photos/webm/${photo.id}.webm" autoplay controls loop>`;
+                        `<img height="${mediaHeight}" width="${mediaHeight * ratio}" src="${api}/photo/tiny/${photo.id}.webp" alt="Image at ${e.latlng.lat}, ${e.latlng.lng}">` :
+                        `<video height="${mediaHeight}" width="${mediaHeight * ratio}" src="${api}/photo/webm/${photo.id}.webm" autoplay controls loop>`;
                     this.popup
                         .setLatLng(e.latlng)
                         .setContent(`<a href="${location.pathname}#/photo/${photo.id}">${content}</a>`)

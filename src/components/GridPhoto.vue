@@ -29,7 +29,7 @@
             <video :poster="`${getThumbUrl(media.id, layoutMedia.visualHeight)}`"
                    muted loop
                    ref="video"
-                   :src="`${api}/photos/webm/${media.id}.webm`"/>
+                   :src="`${api}/photo/webm/${media.id}.webm`"/>
             <div class="video-overlay">
                 <div class="video-info">
                     <span class="video-duration">{{ toHms(media.duration / 1000) }}</span>
@@ -78,7 +78,7 @@ export default Vue.extend({
                 size = 'small';
             if (height > 500)
                 size = 'big';
-            return `${api}/photos/${size}/${id}.webp`;
+            return `${api}/photo/${size}/${id}.webp`;
         },
         toHms(seconds: number) {
             return secondsToHms(seconds);

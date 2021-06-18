@@ -7,7 +7,7 @@
         <h3 class="mt-5">Places</h3>
         <perfect-scrollbar class="grid">
             <router-link v-for="place in places" :key="place.text" class="item" :to="`/search/${place.text}`">
-                <v-img class="item-img" :src="`${api}/photos/tiny/${place.MediaItemId}.webp`"
+                <v-img class="item-img" :src="`${api}/photo/tiny/${place.MediaItemId}.webp`"
                        gradient="to top right, rgba(50,62,100,.5), rgba(25,32,72,0)">
                     <div class="item-text">{{ place.text }}</div>
                 </v-img>
@@ -17,7 +17,7 @@
         <h3 class="mt-5">Things</h3>
         <perfect-scrollbar class="grid">
             <router-link v-for="label in labels" :key="label.text" class="item" :to="`/search/${label.text}`">
-                <v-img class="item-img" :src="`${api}/photos/tiny/${label.MediaItemId}.webp`"
+                <v-img class="item-img" :src="`${api}/photo/tiny/${label.MediaItemId}.webp`"
                        gradient="to top right, rgba(50,62,100,.5), rgba(25,32,72,0)">
                     <div class="item-text">{{ label.text }}</div>
                 </v-img>
