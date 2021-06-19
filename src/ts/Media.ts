@@ -65,7 +65,7 @@ export class Media {
     static fromObject({
                           id = '',
                           filename = '',
-                          createDate = -1,
+                          createDateString = '',
                           width = 0,
                           height = 0,
                           type = '',
@@ -102,7 +102,7 @@ export class Media {
                 levels: Object.values(levels),
             }
         }) : null;
-        return new Media(id, filename, new Date(createDate), width, height,
+        return new Media(id, filename, new Date(createDateString), width, height,
             type === 'image' ? 'photo' : 'video',
             (['portrait', 'vr', 'slomo'].includes(subType) ? subType : 'none') as MediaSubType,
             durationMs, classifications, location, isFinite(+bytes) ? +bytes : null, exif,

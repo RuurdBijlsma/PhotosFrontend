@@ -55,6 +55,7 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
+// year is wrong for mobile scrubber when at very bottom of localhost scrub
 // display bounds of search result on map
 // map is higher z-index than settings menu
 // remove next buttons when zoomed in on /photo
@@ -62,7 +63,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // Add settings page
 //      On this page:
 //      Set api url
-//      See failed processes and get button to retry them
+//      See failed processes and get button to retry them (!important)
 // Upload photo
 // select photos and do batch actions (actions also in menu in Photo.vue)
 // Download photo

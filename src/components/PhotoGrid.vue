@@ -1,25 +1,32 @@
 <template>
     <div class="photo-grid roboto">
-        <div class="photo-row" v-for="row in photoRows">
-            <div class="photo-block"
-                 :style="{marginRight: grid.blockMarginRight + 'px'}"
-                 v-for="block in row.layoutBlocks">
-                <div class="block-date"
-                     v-if="block.showDate"
-                     :title="block.dateString"
-                     :style="{maxWidth: Math.floor(block.width) + 'px'}">
-                    <router-link class="no-style"
-                                 :to="`/?date=${formatDate(block.date, 'yyyy-MM-dd')}`">
-                        {{ block.dateString }}
-                    </router-link>
+        <v-lazy :height="row.height"
+                transition="none"
+                class="photo-row"
+                v-for="row in photoRows" :style="{
+            marginTop: row.hasDate ? 0 : grid.mediaMargin + 'px'
+        }">
+            <div>
+                <div class="photo-block"
+                     :style="{marginRight: grid.blockMarginRight + 'px'}"
+                     v-for="block in row.layoutBlocks">
+                    <div class="block-date"
+                         v-if="block.showDate"
+                         :title="block.dateString"
+                         :style="{maxWidth: Math.floor(block.width) + 'px'}">
+                        <router-link class="no-style"
+                                     :to="`/?date=${formatDate(block.date, 'yyyy-MM-dd')}`">
+                            {{ block.dateString }}
+                        </router-link>
+                    </div>
+                    <grid-photo
+                        class="grid-photo"
+                        :style="{marginRight: grid.mediaMargin + 'px'}"
+                        v-for="layoutMedia in block.layoutMedias"
+                        :key="layoutMedia.media.id" :layout-media="layoutMedia"/>
                 </div>
-                <grid-photo
-                    class="grid-photo"
-                    :style="{marginRight: grid.mediaMargin + 'px'}"
-                    v-for="layoutMedia in block.layoutMedias"
-                    :key="layoutMedia.media.id" :layout-media="layoutMedia"/>
             </div>
-        </div>
+        </v-lazy>
     </div>
 </template>
 
@@ -239,7 +246,7 @@ export default Vue.extend({
                 speling: 150,
                 maxScale: 2,
             } : {
-                blockMarginRight: 40,
+                blockMarginRight: 25,
                 blockDateHeight: 40,
                 mediaMargin: 5,
                 blockHeight: 240,

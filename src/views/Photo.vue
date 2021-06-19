@@ -6,12 +6,13 @@
             <div class="media-item">
                 <div class="top-gradient"/>
                 <v-zoomer
+                    :zoomed.sync="imgZoomed"
                     :max-scale="10"
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="media && media.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"
-                           :src="`${api}/photos/full/${media.id}`"
+                    <v-img :lazy-src="`${api}/photo/tiny/${this.media.id}.webp`"
+                           :src="`${api}/photos/full/${this.media.id}`"
                            :key="media.id"
                            ref="image"
                            contain>
@@ -31,7 +32,7 @@
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
                 <v-menu :close-on-content-click="false"
-                        :nudge-left="150"
+                        :nudge-left="180"
                         min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn">
@@ -74,10 +75,10 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn fab dark :disabled="!canSkipLeft" @click="previous" class="prev-button btn">
+                <v-btn fab dark :disabled="!canSkipLeft" @click="previous" class="prev-button btn" v-show="!imgZoomed">
                     <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
-                <v-btn fab dark :disabled="!canSkipRight" @click="next" class="next-button btn">
+                <v-btn fab dark :disabled="!canSkipRight" @click="next" class="next-button btn" v-show="!imgZoomed">
                     <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
             </div>
@@ -282,6 +283,7 @@ export default Vue.extend({
         reprocessLoading: false,
         deleteLoading: false,
         fixDateLoading: false,
+        imgZoomed: false,
     }),
     beforeDestroy() {
         document.removeEventListener('keydown', this.handleKey);
@@ -431,9 +433,6 @@ export default Vue.extend({
                 this.loadInfo++;
             }
             this.isLoading.delete(id);
-        },
-        waitSleep(ms = 1000) {
-            return new Promise(resolve => setTimeout(resolve, ms));
         },
     },
     computed: {

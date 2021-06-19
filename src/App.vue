@@ -28,8 +28,8 @@
 
             <v-menu :close-on-content-click="false">
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn icon>
-                        <v-icon v-bind="attrs" v-on="on">mdi-cog-outline</v-icon>
+                    <v-btn icon v-bind="attrs" v-on="on">
+                        <v-icon>mdi-cog-outline</v-icon>
                     </v-btn>
                 </template>
                 <v-list dense>
@@ -283,6 +283,10 @@ html, body {
 .no-style {
     text-decoration: none;
     color: inherit !important;
+}
+
+.leaflet-pane{
+    z-index: 4 !important;
 }
 
 .logo-icon {

@@ -119,16 +119,20 @@ export default new Vuex.Store({
                 })
             }));
         },
-        async getCachedPhotos({state, dispatch}, o: { year: number, month: number }): Promise<Media[]> {
+        async getCachedPhotos({state, dispatch, commit}, o: { year: number, month: number }): Promise<Media[]> {
             let key = o.year.toString() + o.month;
+            console.log(state.cachedPhotos, state.cachedPhotos.hasOwnProperty)
             if (state.cachedPhotos.hasOwnProperty(key)) {
+                console.log(`using cache for ${o.year} ${o.month}`)
                 return state.cachedPhotos[key] as Media[];
             }
             let photos = await dispatch('apiRequest', {
                 url: 'photos/month-photos',
                 body: {month: [o.year, o.month]}
             });
-            return photos.map(Media.fromObject);
+            let cachedPhotos = photos.map(Media.fromObject);
+            commit('cachedPhotos', {key, media: cachedPhotos});
+            return cachedPhotos;
         },
         apiRequest: async ({state, getters}, {url, body = {}}): Promise<any> => {
             if (!getters.isLoggedIn)
