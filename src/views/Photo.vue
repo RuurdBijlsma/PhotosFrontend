@@ -7,13 +7,13 @@
                 <div class="top-gradient"/>
                 <v-zoomer
                     :zoomed.sync="imgZoomed"
-                    :max-scale="10"
+                    :max-scale="20"
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="media && media.type === 'photo'">
                     <v-img :lazy-src="`${api}/photo/tiny/${this.media.id}.webp`"
-                           :src="`${api}/photos/full/${this.media.id}`"
-                           :key="media.id"
+                           :src="imgSrc"
+                           :key="imgSrc"
                            ref="image"
                            contain>
                     </v-img>
@@ -436,6 +436,13 @@ export default Vue.extend({
         },
     },
     computed: {
+        imgSrc(): string {
+            if (this.media === null) return '';
+            if (this.imgZoomed) {
+                return `${api}/photos/full/${this.media.id}`
+            }
+            return `${api}/photo/big/${this.media.id}.webp`
+        },
         classifications(): { labels: string, glossary: string }[] | null {
             let classification = this.media?.classifications ?? null;
             if (classification === null)
