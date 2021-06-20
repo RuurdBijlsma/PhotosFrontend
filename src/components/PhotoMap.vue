@@ -12,18 +12,24 @@
             :url="leaflet.url"
             :attribution="leaflet.attribution"
         />
+        <l-rectangle v-if="startBounds !== null"
+                     :bounds="startBounds"
+                     color="red"
+                     fill-color="red"
+                     :weight="leaflet.zoom / 6"
+                     :fill-opacity="0.01"/>
     </l-map>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
-import {LMap, LMarker, LTileLayer} from 'vue2-leaflet';
+import {LMap, LMarker, LTileLayer, LRectangle} from 'vue2-leaflet';
 import L from "leaflet";
 import {api} from "@/ts/constants";
 
 export default Vue.extend({
     name: 'PhotoMap',
-    components: {LMap, LTileLayer, LMarker},
+    components: {LMap, LTileLayer, LMarker, LRectangle},
     props: {
         width: {type: Number, required: true},
         height: {type: Number, required: true},
@@ -52,6 +58,7 @@ export default Vue.extend({
         panTimeout: -1,
     }),
     async mounted() {
+        this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
         this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
         if (this.startBounds) {
             this.leaflet.bounds = this.startBounds;
@@ -77,7 +84,7 @@ export default Vue.extend({
                 this.leaflet.bounds = b;
                 this.photosInBounds = this.updateFromBounds();
                 await this.addMarkers();
-            }, 500);
+            }, 200);
         },
         async updateFromBounds() {
             if (!this.leaflet.bounds) return;
@@ -101,11 +108,12 @@ export default Vue.extend({
 
             this.leaflet.markers.forEach(m => m.remove());
             this.leaflet.markers = [];
+            console.log('zoom', this.leaflet.zoom);
             for (let photo of photosInBounds) {
                 let marker = L.circleMarker(
                     [photo.MediaLocation.latitude, photo.MediaLocation.longitude],
                     {
-                        radius: 10,
+                        radius: 8,
                         color: photo.type === 'image' ? primary : secondary,
                         opacity: 0.6,
                         weight: 2,

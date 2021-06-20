@@ -20,6 +20,7 @@ export interface ILayoutRow {
     hasDate: boolean,
     width: number,
     height: number,
+    id: string,
 }
 
 export interface MonthPhotos {

@@ -128,7 +128,7 @@ export default Vue.extend({
             return `${pixels}px`;
         },
         formattedDate(): string {
-            return format(new Date(this.scrubData.year, this.scrubData.month, 15), 'MMM yyyy')
+            return format(new Date(this.scrubData.year, this.scrubData.month-1, 15), 'MMM yyyy')
         },
         canvasHeight(): number {
             return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;

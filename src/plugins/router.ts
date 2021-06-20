@@ -33,7 +33,7 @@ const routes: Array<RouteConfig> = [
         path: '/date/:month',
         name: 'DateMonth',
         meta: {title: ':month - Ruurd Photos'},
-        component: () => import('../views/Date.vue'),
+        component: () => import('../views/DateSearch.vue'),
         children: [{
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/date/:month/photo/:id',
@@ -45,7 +45,7 @@ const routes: Array<RouteConfig> = [
         path: '/date/:day/:month',
         name: 'DateDay',
         meta: {title: ':day :month - Ruurd Photos'},
-        component: () => import('../views/Date.vue'),
+        component: () => import('../views/DateSearch.vue'),
         children: [{
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/date/:day/:month/photo/:id',
@@ -70,6 +70,12 @@ const routes: Array<RouteConfig> = [
         name: 'Settings',
         meta: {title: 'Settings - Ruurd Photos'},
         component: () => import('../views/Settings.vue')
+    },
+    {
+        path: '/trash',
+        name: 'Trash',
+        meta: {title: 'Trash - Ruurd Photos'},
+        component: () => import('../views/Trash.vue')
     },
     {
         path: '/login',

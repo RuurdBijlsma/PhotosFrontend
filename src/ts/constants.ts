@@ -1,6 +1,6 @@
 import {getScrollbarWidth} from "@/ts/utils";
 
-const testRuurdDev = false;
+const testRuurdDev = true;
 
 export const api = process.env.NODE_ENV === 'development' && !testRuurdDev
     ? 'http://localhost:3000'

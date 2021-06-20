@@ -55,10 +55,7 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
-// year is wrong for mobile scrubber when at very bottom of localhost scrub
 // display bounds of search result on map
-// map is higher z-index than settings menu
-// remove next buttons when zoomed in on /photo
 // filter by date on /map page to see photos in that date range
 // Add settings page
 //      On this page:
@@ -71,7 +68,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // rotate image in ui
 // make way to enlarge map in search page
 // add mapbox token to Users account
-// dark map theme
 // see server status in ui somewhere (save logs and show)
 // animated webp not showing in grid, but showing in big pic?
 // albums
@@ -109,7 +105,6 @@ export default Vue.extend({
         if (this.hasDate !== null && !loadingPhoto)
             this.updateFromDateQuery();
         if (loadingPhoto) {
-            console.log(this.photosPerMonth);
             for (let month of this.photosPerMonth)
                 month.loaded = month.viewed;
         }
@@ -275,7 +270,6 @@ export default Vue.extend({
             for (let l of this.photosPerMonth) {
                 if (l.viewed) l.loaded = true;
             }
-            console.log("Reloaded photos");
             if (media === null) return;
             await this.scrollMediaIntoView(media);
         },

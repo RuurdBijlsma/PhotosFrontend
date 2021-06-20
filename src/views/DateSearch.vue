@@ -28,7 +28,7 @@ import {Media} from "@/ts/Media";
 import {months, scrollBarWidth} from "@/ts/constants";
 
 export default Vue.extend({
-    name: 'Search',
+    name: 'DateSearch',
     components: {PhotoGrid},
     data: () => ({
         loading: false,
@@ -41,7 +41,6 @@ export default Vue.extend({
         this.photoGrid = this.$refs.photoGrid;
         this.searchElement = this.$refs.search as HTMLDivElement;
         await this.updateSearch();
-        console.log(this.slicedPhotos);
     },
     methods: {
         async updateSearch() {

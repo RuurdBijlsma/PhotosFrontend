@@ -87,6 +87,9 @@
                     color="secondary">
             {{ snack.text }}
             <template v-slot:action="{ attrs }">
+                <v-btn v-if="snack.to !== null" text v-bind="attrs" :to="snack.to">
+                    {{ snack.toText }}
+                </v-btn>
                 <v-btn text v-bind="attrs"
                        @click="snack.open = false">
                     Dismiss
@@ -126,6 +129,7 @@ export default Vue.extend({
             {name: 'Home', icon: 'mdi-home-outline', to: '/'},
             {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
             {name: 'Photo map', icon: 'mdi-earth', to: '/map'},
+            {name: 'Trash', icon: 'mdi-trash-can-outline', to: '/trash'},
         ],
     }),
     async mounted() {
@@ -272,6 +276,14 @@ html, body {
     user-select: none;
 }
 
+.test-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    background-color: cyan;
+}
+
 .v-application {
     font-family: 'Montserrat', 'Roboto', Arial, sans-serif !important;
 }
@@ -285,7 +297,7 @@ html, body {
     color: inherit !important;
 }
 
-.leaflet-pane{
+.leaflet-pane {
     z-index: 4 !important;
 }
 

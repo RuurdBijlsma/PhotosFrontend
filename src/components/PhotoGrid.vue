@@ -2,10 +2,12 @@
     <div class="photo-grid roboto">
         <v-lazy :height="row.height"
                 transition="none"
+                :class="row.layoutBlocks.flatMap(b => b.layoutMedias.map(l => 'p' + l.media.id))"
                 class="photo-row"
+                :key="row.id"
                 v-for="row in photoRows" :style="{
-            marginTop: row.hasDate ? 0 : grid.mediaMargin + 'px'
-        }">
+                    marginTop: row.hasDate ? 0 : grid.mediaMargin + 'px'
+                }">
             <div>
                 <div class="photo-block"
                      :style="{marginRight: grid.blockMarginRight + 'px'}"
@@ -143,7 +145,8 @@ export default Vue.extend({
                             height: block.height,
                             width: block.width,
                             layoutBlocks: [block],
-                            hasDate: block.showDate
+                            hasDate: block.showDate,
+                            id: Math.random().toString(),
                         };
                         remainingWidth = this.usableWidth - layoutMedia.visualWidth;
                         photoRows.push(row);

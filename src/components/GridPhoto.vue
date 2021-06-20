@@ -1,11 +1,10 @@
 <template>
     <router-link class="photo"
-                 :class="`p${media.id}`"
                  :to="`${currentPath}/photo/${media.id}`"
                  :style="{
-                        height: layoutMedia.visualHeight + 'px',
-                        width: layoutMedia.visualWidth + 'px',
-                     }">
+                    height: layoutMedia.visualHeight + 'px',
+                    width: layoutMedia.visualWidth + 'px',
+                 }">
         <div v-if="media.type === 'photo'"
              class="image-container">
             <div class="image-background"

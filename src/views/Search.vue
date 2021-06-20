@@ -19,7 +19,7 @@
                    }"
                    class="map-leaflet"/>
         <h1 class="search-query search-place" v-if="isPlace && !loading && allResults.length > 0">‟{{ placeName }}”</h1>
-        <div :style="{height: 450 + 'px'}" v-else-if="isPlace" class="placeholder-map"></div>
+        <div :style="{height: 450 + 'px'}" v-else-if="!loading && isPlace" class="placeholder-map"></div>
 
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>

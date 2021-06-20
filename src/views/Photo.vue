@@ -19,6 +19,8 @@
                     </v-img>
                 </v-zoomer>
                 <video class="element-item"
+                       @play="videoPlaying = true"
+                       @pause="videoPlaying = false"
                        :poster="`${api}/photo/big/${media.id}.webp`"
                        controls
                        v-else-if="media"
@@ -75,10 +77,16 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn fab dark :disabled="!canSkipLeft" @click="previous" class="prev-button btn" v-show="!imgZoomed">
+                <v-btn fab dark :disabled="!canSkipLeft"
+                       @click="previous"
+                       class="prev-button btn"
+                       v-show="!imgZoomed">
                     <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
-                <v-btn fab dark :disabled="!canSkipRight" @click="next" class="next-button btn" v-show="!imgZoomed">
+                <v-btn fab dark :disabled="!canSkipRight"
+                       @click="next"
+                       class="next-button btn"
+                       v-show="!imgZoomed">
                     <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
             </div>
@@ -249,9 +257,23 @@
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
-            <div class="location-map mt-5" v-if="media && media.location" @click="openMaps(media.location)">
 
-            </div>
+            <l-map
+                v-if="coordinate && leaflet.zoom"
+                class="location-map mt-5"
+                :zoom="leaflet.zoom"
+                ref="map"
+                :center="coordinate"
+                :options="leaflet.options">
+                <l-tile-layer
+                    :options="leaflet.tileOptions"
+                    :url="leaflet.url"
+                    :attribution="leaflet.attribution"/>
+                <l-marker
+                    v-if="gpsIcon"
+                    :lat-lng="coordinate"
+                    :icon="gpsIcon"/>
+            </l-map>
         </v-sheet>
     </div>
 </template>
@@ -260,16 +282,18 @@
 import Vue from 'vue'
 import {api} from "@/ts/constants"
 import {Location, Media} from "@/ts/Media";
-import {bytesToReadable} from "@/ts/utils";
+import {bytesToReadable, filenameToDate} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
-import {filenameToDate} from "@/ts/utils";
+import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
+import L from "leaflet";
 
 
 export default Vue.extend({
     name: 'Photo',
-    components: {},
+    components: {LMap, LTileLayer, LMarker},
     props: {},
     data: () => ({
+        videoPlaying: false,
         dateMenu: false,
         timeMenu: false,
         editingDate: new Date(),
@@ -284,17 +308,144 @@ export default Vue.extend({
         deleteLoading: false,
         fixDateLoading: false,
         imgZoomed: false,
+        zoomedAtSomePoint: new Set(),
+        leaflet: {
+            zoom: 12,
+            center: null as L.LatLng | null,
+            url: 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            options: {
+                zoomSnap: 0.5,
+            },
+            tileOptions: {
+                id: 'mapbox/streets-v11',
+                accessToken: '',
+            },
+            bounds: null as L.LatLngBounds | null,
+            markers: [] as L.CircleMarker[],
+        },
+        gpsIcon: null as L.Icon | null,
     }),
     beforeDestroy() {
         document.removeEventListener('keydown', this.handleKey);
     },
     async mounted() {
+        this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
+        this.loadGpsIcon();
+
+        this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
         this.$store.commit('keepInView', this.media);
         document.addEventListener('keydown', this.handleKey, false);
+
+        this.loadGpsIcon().then();
     },
     methods: {
+        async loadGpsIcon() {
+            if (this.media === null || this.media.location === null)
+                return null;
+            let canvas = document.createElement('canvas');
+            let context = canvas.getContext('2d');
+            const size = 42;
+            const triangleSize = 8;
+            const strokeWidth = 3;
+            canvas.width = size;
+            // + 10 for the triangle pointer below
+            canvas.height = size + triangleSize;
+
+            let image = new Image();
+            image.src = `${api}/photo/tiny/${this.media.id}.webp`;
+            image.crossOrigin = 'Anonymous'
+            image.onload = () => {
+                if (context === null) return;
+                // const color = this.$vuetify.theme.themes[this.$vuetify.theme.dark ? 'dark' : 'light'].primary as string;
+                const color = 'black'
+                context.fillStyle = color;
+                context.strokeStyle = color;
+
+                // Triangle pointer
+                context.beginPath();
+                context.moveTo(0, (size + triangleSize) / 2);
+                context.lineTo(size, (size + triangleSize) / 2);
+                context.lineTo(size / 2, size + triangleSize);
+                context.fill();
+
+                // Circular image with stroke
+                context.save();
+                context.beginPath();
+                context.arc(size / 2, size / 2, size / 2 - strokeWidth / 2, 0, Math.PI * 2, false);
+                context.lineWidth = strokeWidth;
+                context.stroke();
+                context.clip();
+                this.drawImageProp(context, image, 0, 0, size, size);
+                context.restore();
+
+                // [...document.querySelectorAll('.test-canvas')].forEach(c => c.remove());
+                // canvas.setAttribute('class', 'test-canvas');
+                // document.body.appendChild(canvas);
+
+                const url = canvas.toDataURL();
+                this.gpsIcon = L.icon({
+                    iconUrl: url,
+                    iconSize: [size, size + 10],
+                    iconAnchor: [size / 2, size]
+                });
+            }
+        },
+        /**
+         * By Ken Fyrstenberg Nilsen
+         *
+         * drawImageProp(context, image [, x, y, width, height [,offsetX, offsetY]])
+         *
+         * If image and context are only arguments rectangle will equal canvas
+         */
+        drawImageProp(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, offsetX: number | null = null, offsetY: number | null = null) {
+            if (arguments.length === 2) {
+                x = y = 0;
+                w = ctx.canvas.width;
+                h = ctx.canvas.height;
+            }
+
+            // default offset is center
+            offsetX = typeof offsetX === "number" ? offsetX : 0.5;
+            offsetY = typeof offsetY === "number" ? offsetY : 0.5;
+
+            // keep bounds [0.0, 1.0]
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY < 0) offsetY = 0;
+            if (offsetX > 1) offsetX = 1;
+            if (offsetY > 1) offsetY = 1;
+
+            var iw = img.width,
+                ih = img.height,
+                r = Math.min(w / iw, h / ih),
+                nw = iw * r,   // new prop. width
+                nh = ih * r,   // new prop. height
+                cx, cy, cw, ch, ar = 1;
+
+            // decide which gap to fill
+            if (nw < w) ar = w / nw;
+            if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;  // updated
+            nw *= ar;
+            nh *= ar;
+
+            // calc source rectangle
+            cw = iw / (nw / w);
+            ch = ih / (nh / h);
+
+            cx = (iw - cw) * offsetX;
+            cy = (ih - ch) * offsetY;
+
+            // make sure source rectangle is valid
+            if (cx < 0) cx = 0;
+            if (cy < 0) cy = 0;
+            if (cw > iw) cw = iw;
+            if (ch > ih) ch = ih;
+
+            // fill image in dest. rectangle
+            ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
+        },
         async fixDateFromFile() {
             if (this.media === null) return;
             let filename = this.media.filename;
@@ -316,7 +467,6 @@ export default Vue.extend({
                 this.fixDateLoading = false;
                 return;
             }
-            console.log(filename);
             await this.changeDate(newDate);
             this.fixDateLoading = false;
         },
@@ -354,7 +504,6 @@ export default Vue.extend({
                 this.dateError = '';
                 this.media.createDate = date;
 
-                console.log("Reloading photos");
                 this.$store.commit('reloadPhotos', this.media);
                 return true;
             } else {
@@ -436,9 +585,14 @@ export default Vue.extend({
         },
     },
     computed: {
+        coordinate(): L.LatLng | null {
+            if (this.media === null || this.media.location === null)
+                return null;
+            return L.latLng(this.media.location.latitude, this.media.location.longitude)
+        },
         imgSrc(): string {
             if (this.media === null) return '';
-            if (this.imgZoomed) {
+            if (this.imgZoomed || this.zoomedAtSomePoint.has(this.media.id)) {
                 return `${api}/photos/full/${this.media.id}`
             }
             return `${api}/photo/big/${this.media.id}.webp`
@@ -491,11 +645,11 @@ export default Vue.extend({
         editedDate(): Date {
             return new Date(`${this.createDate} ${this.createTime}`);
         },
-        formattedCreateTime() {
+        formattedCreateTime(): string {
             let date = this.media?.createDate ?? new Date();
             return format(date, 'H:mm:ss');
         },
-        formattedCreateDate() {
+        formattedCreateDate(): string {
             let date = this.media?.createDate ?? new Date();
             return format(date, 'EEEE, do MMMM yyyy');
         },
@@ -533,16 +687,29 @@ export default Vue.extend({
         queue(): Media[] {
             return this.$store.state.viewerQueue;
         },
-        id() {
+        id(): string {
             return this.$route.params.id;
         },
     },
     watch: {
+        imgSrc() {
+            console.log('imgsrc changed', this.imgSrc);
+        },
+        'media.location'() {
+            this.gpsIcon = null;
+            this.loadGpsIcon();
+        },
         media() {
             if (this.media !== null)
                 this.editingDate = this.media?.createDate ?? new Date();
         },
+        imgZoomed() {
+            if (this.imgZoomed && this.media !== null) {
+                this.zoomedAtSomePoint.add(this.media.id);
+            }
+        },
         id() {
+            this.videoPlaying = false;
             this.fullMediaLoad(this.id);
         },
     },
@@ -646,11 +813,11 @@ export default Vue.extend({
 
 .location-map {
     cursor: pointer;
-    width: 100%;
+    width: calc(100% + 40px);
     height: 350px;
-    background-image: linear-gradient(to top right, #b2d5bf, #d3dce8);
     opacity: 0.8;
-    border-radius: 15px;
+    margin-left: -20px;
+    margin-right: -20px;
 }
 
 </style>
