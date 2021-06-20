@@ -22,6 +22,7 @@
                     </v-card>
                 </div>
             </div>
+            <h2 v-else>No items in trash</h2>
             <div class="failed-items mt-10" v-if="errorItems.length > 0">
                 <h2 class="mb-4">Failed to process</h2>
                 <div class="items">

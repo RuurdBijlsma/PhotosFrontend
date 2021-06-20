@@ -55,6 +55,7 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
+// nav drawer is below map in map view
 // display bounds of search result on map
 // filter by date on /map page to see photos in that date range
 // Add settings page
