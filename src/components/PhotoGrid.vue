@@ -22,6 +22,7 @@
                         </router-link>
                     </div>
                     <grid-photo
+                        @selectItem="selectItem"
                         class="grid-photo"
                         :style="{marginRight: grid.mediaMargin + 'px'}"
                         v-for="layoutMedia in block.layoutMedias"
@@ -38,7 +39,7 @@ import {api} from "@/ts/constants"
 import Vue, {PropType} from "vue";
 import {format, formatDistance} from 'date-fns';
 import GridPhoto from "@/components/GridPhoto.vue";
-import {ILayoutBlock, ILayoutMedia, ILayoutRow} from "@/ts/MediaInterfaces";
+import {ILayoutBlock, ILayoutMedia, ILayoutRow, MonthPhotos} from "@/ts/MediaInterfaces";
 
 const d = new Date();
 export default Vue.extend({
@@ -52,12 +53,77 @@ export default Vue.extend({
         api,
         photoRows: [] as ILayoutRow[],
         calculateTimeout: -1,
+        shiftDown: false,
     }),
+    beforeDestroy() {
+        document.removeEventListener('keydown', this.keyDown);
+        document.removeEventListener('keyup', this.keyUp);
+    },
     async mounted() {
+        document.addEventListener('keydown', this.keyDown, false);
+        document.addEventListener('keyup', this.keyUp, false);
         this.calculateLayout();
         this.$emit('ready', this.height);
     },
     methods: {
+        selectItem(media: Media, shiftKey: boolean) {
+            let batch = null;
+            if (shiftKey && this.lastSelectedPhoto !== null) {
+                batch = this.getBatch(media, this.lastSelectedPhoto);
+            }
+            if (batch !== null) {
+                if (this.$store.getters.isSelected(media.id)) {
+                    this.$store.commit('removeBatchFromPhotoSelection', batch);
+                    this.lastSelectedPhoto = this.$store.getters.selectedMedias[this.$store.getters.selectedMedias.length - 1] ?? null;
+                } else {
+                    this.$store.commit('addBatchToPhotoSelection', batch);
+                }
+            } else {
+                if (this.$store.getters.isSelected(media.id)) {
+                    this.$store.commit('removeFromPhotoSelection', media);
+                    if (this.lastSelectedPhoto?.id === media.id) {
+                        this.lastSelectedPhoto = this.$store.getters.selectedMedias[this.$store.getters.selectedMedias.length - 1] ?? null;
+                    }
+                } else {
+                    this.lastSelectedPhoto = media;
+                    this.$store.commit('addToPhotoSelection', media);
+                }
+            }
+        },
+        getBatch(mediaA: Media, mediaB: Media) {
+            let [start, end] = [mediaA, mediaB].sort((a, b) => a.createDate.getTime() - b.createDate.getTime());
+            let startMonth = start.createDate.getFullYear() * 12 + start.createDate.getMonth();
+            let endMonth = end.createDate.getFullYear() * 12 + end.createDate.getMonth();
+            let photosPerMonth: MonthPhotos[] = this.$store.state.photosPerMonth;
+            let relevantMonths = photosPerMonth.filter(p => {
+                let month = p.year * 12 + (p.month - 1);
+                return month >= startMonth && month <= endMonth;
+            }).map(p => p.id);
+            console.log(relevantMonths);
+            let cache = this.$store.state.cachedPhotos;
+            let photos = [];
+            for (let id of relevantMonths) {
+                if (!cache.hasOwnProperty(id))
+                    return null;
+                photos.push(...cache[id])
+            }
+            let indexStart = photos.findIndex(p => p.id === start.id);
+            let indexEnd = photos.findIndex(p => p.id === end.id);
+            console.log(indexStart, indexEnd);
+            if (indexStart === -1 || indexEnd === -1)
+                return null;
+            return photos.slice(indexEnd, indexStart + 1);
+        },
+        keyDown(e: KeyboardEvent) {
+            if (e.key === 'Shift') {
+                this.shiftDown = true;
+            }
+        },
+        keyUp(e: KeyboardEvent) {
+            if (e.key === 'Shift') {
+                this.shiftDown = false;
+            }
+        },
         formatDate(date: number | Date, dateFormat: string) {
             if (typeof date === 'number')
                 date = new Date(date);
@@ -240,6 +306,17 @@ export default Vue.extend({
         },
     },
     computed: {
+        lastSelectedPhoto: {
+            get(): Media {
+                return this.$store.state.lastSelectedPhoto;
+            },
+            set(v: Media) {
+                this.$store.commit('lastSelectedPhoto', v);
+            },
+        },
+        isSelecting(): boolean {
+            return this.$store.getters.isSelecting;
+        },
         grid(): { blockMarginRight: number, blockDateHeight: number, mediaMargin: number, blockHeight: number, speling: number, maxScale: number } {
             return this.$vuetify.breakpoint.mobile ? {
                 blockMarginRight: 10,
@@ -267,6 +344,9 @@ export default Vue.extend({
             if (path.endsWith('/'))
                 return path.substr(0, path.length - 1)
             return path;
+        },
+        photoSelection(): Media[] {
+            return this.$store.state.photoSelection;
         },
     },
     watch: {

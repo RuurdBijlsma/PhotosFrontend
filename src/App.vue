@@ -108,6 +108,8 @@
                 <v-icon>{{ page.icon }}</v-icon>
             </v-btn>
         </v-bottom-navigation>
+
+        <selection-info/>
     </v-app>
 </template>
 
@@ -115,10 +117,11 @@
 import Vue from 'vue';
 import {months, shortMonths} from "@/ts/constants";
 import CustomDialog from "@/components/CustomDialog.vue";
+import SelectionInfo from "@/components/SelectionInfo.vue";
 
 export default Vue.extend({
     name: 'App',
-    components: {CustomDialog},
+    components: {SelectionInfo, CustomDialog},
     data: () => ({
         searchTip: '',
         query: '',
@@ -276,14 +279,6 @@ html, body {
     user-select: none;
 }
 
-.test-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 10000;
-    background-color: cyan;
-}
-
 .v-application {
     font-family: 'Montserrat', 'Roboto', Arial, sans-serif !important;
 }
@@ -297,8 +292,16 @@ html, body {
     color: inherit !important;
 }
 
+.v-navigation-drawer {
+    z-index: 6 !important;
+}
+
 .leaflet-pane {
     z-index: 4 !important;
+}
+
+.leaflet-top, .leaflet-bottom {
+    z-index: 5 !important;
 }
 
 .logo-icon {

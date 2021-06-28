@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import {api} from "@/ts/constants"
 import VuexPersistence from "vuex-persist"
 import {Media} from "@/ts/Media";
+import {MonthPhotos} from "@/ts/MediaInterfaces";
 
 const vuexLocal = new VuexPersistence({
     reducer: (state: any) => ({
@@ -47,11 +48,19 @@ export default new Vuex.Store({
             onConfirm: () => 0,
             onCancel: () => 0,
         },
-    },
-    getters: {
-        isLoggedIn: state => state.email !== '' && state.password !== '',
+        photosPerMonth: [] as MonthPhotos[],
+        photoSelection: {} as any,
+        lastSelectedPhoto: null as Media | null,
+        delayedIsSelecting: false,
     },
     mutations: {
+        delayedIsSelecting: (state, value) => state.delayedIsSelecting = value,
+        lastSelectedPhoto: (state, value) => state.lastSelectedPhoto = value,
+        clearPhotoSelection: state => state.photoSelection = {},
+        removeBatchFromPhotoSelection: (state, medias) => medias.forEach((m: Media) => Vue.delete(state.photoSelection, m.id)),
+        addBatchToPhotoSelection: (state, medias) => medias.forEach((m: Media) => Vue.set(state.photoSelection, m.id, m)),
+        addToPhotoSelection: (state, media) => Vue.set(state.photoSelection, media.id, media),
+        removeFromPhotoSelection: (state, media) => Vue.delete(state.photoSelection, media.id),
         addSnackObject: (state, snack) => state.snackbars.push(snack),
         removeSnack: (state, snack) => state.snackbars.splice(state.snackbars.indexOf(snack), 1),
         searchResultsHigh: (state, v: Media[]) => state.searchResults.high = v,
@@ -61,6 +70,7 @@ export default new Vuex.Store({
         placeName: (state, v: string) => state.searchResults.placeName = v,
         mapboxKey: (state, v: string) => state.mapboxKey = v,
 
+        photosPerMonth: (state, v: MonthPhotos[]) => state.photosPerMonth = v,
         showInfo: (state, v: boolean) => state.showInfo = v,
         reloadPhotos: (state, reloadPhotos: boolean | Media) => state.reloadPhotos = reloadPhotos,
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
@@ -91,16 +101,23 @@ export default new Vuex.Store({
             state.prompt.onCancel = onCancel;
         },
     },
+    getters: {
+        selectedMedias: state => {
+            let medias: Media[] = Object.values(state.photoSelection);
+            return medias.sort((a: Media, b: Media) => a.createDate.getTime() - b.createDate.getTime());
+        },
+        isLoggedIn: state => state.email !== '' && state.password !== '',
+        isSelected: state => (mediaId: string) => state.photoSelection.hasOwnProperty(mediaId),
+        isSelecting: state => Object.keys(state.photoSelection).length > 0,
+    },
     actions: {
-        addSnack: async ({state, commit}, {text,toText='Go', to = null, timeout = 3000}) => {
-            let snack = {text,toText, to, open: true, timeout, id: Math.random()};
+        addSnack: async ({state, commit}, {text, toText = 'Go', to = null, timeout = 3000}) => {
+            let snack = {text, toText, to, open: true, timeout, id: Math.random()};
             commit('addSnackObject', snack);
-            return new Promise<void>(resolve => {
-                setTimeout(() => {
-                    commit('removeSnack', snack);
-                    resolve();
-                }, timeout + 500);
-            });
+            setTimeout(() => {
+                commit('removeSnack', snack);
+            }, timeout + 500);
+            return;
         },
         async showPrompt({commit}, {
             title = 'Are you sure?',

@@ -724,7 +724,7 @@ export default Vue.extend({
     height: 100%;
     position: fixed;
     background-color: grey;
-    z-index: 5;
+    z-index: 6;
     display: flex;
     --button-padding: 20px;
 }

@@ -1,10 +1,9 @@
 import {getScrollbarWidth} from "@/ts/utils";
 
-const testRuurdDev = true;
-
-export const api = process.env.NODE_ENV === 'development' && !testRuurdDev
-    ? 'http://localhost:3000'
-    : 'https://api.ruurd.dev'
+export const api =
+    localStorage.getItem('api') === null ?
+        (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://api.ruurd.dev') :
+        localStorage.api;
 
 export const months = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];

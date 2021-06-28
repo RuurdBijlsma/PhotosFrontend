@@ -55,15 +55,9 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
-// nav drawer is below map in map view
-// display bounds of search result on map
+// mobile layout for info pane in large photo
 // filter by date on /map page to see photos in that date range
-// Add settings page
-//      On this page:
-//      Set api url
-//      See failed processes and get button to retry them (!important)
 // Upload photo
-// select photos and do batch actions (actions also in menu in Photo.vue)
 // Download photo
 // backup knop in settings
 // rotate image in ui
@@ -73,6 +67,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // animated webp not showing in grid, but showing in big pic?
 // albums
 // show logged in state in app bar
+// allow log out
 // add image subtype 'animation' for gifs
 // refresh photo on search page is bugged
 
@@ -84,7 +79,6 @@ export default Vue.extend({
 
         gridHeight: 240,
         waitPpm: null as null | Promise<MonthPhotos[]>,
-        photosPerMonth: [] as MonthPhotos[],
 
         homeElement: {} as HTMLElement,
         indexInView: 0,
@@ -276,6 +270,14 @@ export default Vue.extend({
         },
     },
     computed: {
+        photosPerMonth: {
+            get(): MonthPhotos[] {
+                return this.$store.state.photosPerMonth;
+            },
+            set(v: MonthPhotos[]) {
+                this.$store.commit('photosPerMonth', v);
+            },
+        },
         hasDate(): null | Date {
             if (this.$route.query.date === undefined || this.$route.query.date === null) return null;
             let date = new Date(this.$route.query.date as string);
