@@ -70,6 +70,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // allow log out
 // add image subtype 'animation' for gifs
 // refresh photo on search page is bugged
+// Allow select in full /photo page
 
 export default Vue.extend({
     name: 'Home',
