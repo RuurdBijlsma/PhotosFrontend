@@ -82,8 +82,8 @@ export default Vue.extend({
         },
     },
     watch: {
-        viewedItem(oldVal, newVal) {
-            this.loadItems(oldVal - newVal);
+        viewedItem(oldVal: number, newVal: number) {
+            this.loadItems((oldVal - newVal) as 1 | -1);
         },
     },
 })
