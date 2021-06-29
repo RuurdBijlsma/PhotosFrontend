@@ -56,6 +56,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // mobile layout for info pane in large photo
+// mobile select photos
 // filter by date on /map page to see photos in that date range
 // Upload photo
 // Download photo

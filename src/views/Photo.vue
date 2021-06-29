@@ -1,7 +1,10 @@
 <template>
-    <div class="media-photo">
+    <div class="media-photo" :style="{
+        flexDirection: $vuetify.breakpoint.mobile ? 'column' : 'row',
+    }">
         <div class="left-pane" :style="{
-            width: `calc(100% - ${infoPaneSize}px)`
+            width: ($vuetify.breakpoint.mobile || !showInfo) ? '100%' : `calc(100% - ${infoPaneSize}px)`,
+            minHeight: $vuetify.breakpoint.mobile ? '100vh' : null,
         }">
             <div class="media-item">
                 <div class="top-gradient"/>
@@ -11,7 +14,7 @@
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="media && media.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${this.media.id}.webp`"
+                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"
                            :src="imgSrc"
                            :key="imgSrc"
                            ref="image"
@@ -27,17 +30,26 @@
                        autoplay
                        :src="`${api}/photo/webm/${media.id}.webm`">
                 </video>
-                <v-btn icon dark @click="close" class="back-button btn">
+                <v-btn icon dark @click="close" class="back-button btn" :style="{
+                    bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                    top: $vuetify.breakpoint.mobile ? null : '20px',
+                }">
                     <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
-                <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn">
+                <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn" :style="{
+                    bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                    top: $vuetify.breakpoint.mobile ? null : '20px',
+                }">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
                 <v-menu :close-on-content-click="false"
                         :nudge-left="180"
                         min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
-                        <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn">
+                        <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
+                            bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                            top: $vuetify.breakpoint.mobile ? null : '20px',
+                        }">
                             <v-icon>mdi-dots-vertical</v-icon>
                         </v-btn>
                     </template>
@@ -92,10 +104,17 @@
             </div>
         </div>
         <v-sheet class="right-pane" :style="{
-            marginRight: showInfo ? '0' : '-400px',
-            width: `${infoPaneSize}px`,
+            right: ($vuetify.breakpoint.mobile || showInfo) ? '0' : '-400px',
+            top: $vuetify.breakpoint.mobile ? '100%' : null,
+            transform: $vuetify.breakpoint.mobile ?
+                (showInfo ? `translateY(-100%)` : `translateY(0%)`) :
+                (showInfo ? `translateX(0` : `translateX(${infoPaneSize}px)`),
+            width: $vuetify.breakpoint.mobile ? '100%' : `${infoPaneSize}px`,
         }" :key="loadInfo">
-            <div class="info-header">
+            <div v-ripple class="mobile-header" @click="showInfo = false" v-if="$vuetify.breakpoint.mobile">
+                <v-icon>mdi-chevron-down</v-icon>
+            </div>
+            <div class="info-header" v-else>
                 <v-btn @click="showInfo = false" icon>
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
@@ -725,15 +744,17 @@ export default Vue.extend({
     position: fixed;
     background-color: grey;
     z-index: 6;
-    display: flex;
     --button-padding: 20px;
 }
 
 .left-pane {
     background-color: black;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
     display: block;
-    flex-grow: 1;
+    transition: width 0.25s;
 }
 
 .media-item {
@@ -765,17 +786,17 @@ export default Vue.extend({
 }
 
 .back-button {
-    top: var(--button-padding);
+    /*top: var(--button-padding);*/
     left: var(--button-padding);
 }
 
 .info-button {
-    top: var(--button-padding);
+    /*top: var(--button-padding);*/
     right: calc(var(--button-padding) * 2 + 36px);
 }
 
 .menu-button {
-    top: var(--button-padding);
+    /*top: var(--button-padding);*/
     right: var(--button-padding);
 }
 
@@ -789,22 +810,32 @@ export default Vue.extend({
     left: var(--button-padding);
 }
 
-.media-photo > * {
-    width: 100%;
-    height: 100%;
-}
-
 .right-pane {
-    transition: margin-right 0.25s;
-    margin-right: 0;
-    padding: 20px;
-    position: relative;
+    transition: transform 0.25s;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    position: fixed;
     display: block;
+    z-index: 8;
+    overflow-y: auto;
+    padding: 0;
 }
 
 .info-header {
+    padding: 20px;
+    padding-bottom: 0;
     display: flex;
     align-items: center;
+}
+
+.mobile-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 60px;
+    padding: 0 !important;
 }
 
 .info-content {
@@ -813,11 +844,9 @@ export default Vue.extend({
 
 .location-map {
     cursor: pointer;
-    width: calc(100% + 40px);
+    width: 100%;
     height: 350px;
     opacity: 0.8;
-    margin-left: -20px;
-    margin-right: -20px;
 }
 
 </style>
