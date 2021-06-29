@@ -31,14 +31,14 @@
                        :src="`${api}/photo/webm/${media.id}.webm`">
                 </video>
                 <v-btn icon dark @click="close" class="back-button btn" :style="{
-                    bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                    top: $vuetify.breakpoint.mobile ? null : '20px',
+                    // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                    // top: $vuetify.breakpoint.mobile ? null : '20px',
                 }">
                     <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
                 <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn" :style="{
-                    bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                    top: $vuetify.breakpoint.mobile ? null : '20px',
+                    // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                    // top: $vuetify.breakpoint.mobile ? null : '20px',
                 }">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
@@ -47,8 +47,8 @@
                         min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
-                            bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                            top: $vuetify.breakpoint.mobile ? null : '20px',
+                            // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
+                            // top: $vuetify.breakpoint.mobile ? null : '20px',
                         }">
                             <v-icon>mdi-dots-vertical</v-icon>
                         </v-btn>
@@ -104,11 +104,10 @@
             </div>
         </div>
         <v-sheet class="right-pane" :style="{
-            right: ($vuetify.breakpoint.mobile || showInfo) ? '0' : '-400px',
             top: $vuetify.breakpoint.mobile ? '100%' : null,
             transform: $vuetify.breakpoint.mobile ?
                 (showInfo ? `translateY(-100%)` : `translateY(0%)`) :
-                (showInfo ? `translateX(0` : `translateX(${infoPaneSize}px)`),
+                (showInfo ? `translateX(0px)` : `translateX(${infoPaneSize}px)`),
             width: $vuetify.breakpoint.mobile ? '100%' : `${infoPaneSize}px`,
         }" :key="loadInfo">
             <div v-ripple class="mobile-header" @click="showInfo = false" v-if="$vuetify.breakpoint.mobile">
@@ -786,17 +785,17 @@ export default Vue.extend({
 }
 
 .back-button {
-    /*top: var(--button-padding);*/
+    top: var(--button-padding);
     left: var(--button-padding);
 }
 
 .info-button {
-    /*top: var(--button-padding);*/
+    top: var(--button-padding);
     right: calc(var(--button-padding) * 2 + 36px);
 }
 
 .menu-button {
-    /*top: var(--button-padding);*/
+    top: var(--button-padding);
     right: var(--button-padding);
 }
 
