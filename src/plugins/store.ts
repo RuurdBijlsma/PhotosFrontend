@@ -36,7 +36,7 @@ export default new Vuex.Store({
         password: '',
         viewerQueue: [] as Media[],
         keepInView: null as Media | null,
-        showInfo: true,
+        showInfo: false,
         mapboxKey: '',
         cachedPhotos: {} as any,
         prompt: {
