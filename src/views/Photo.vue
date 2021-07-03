@@ -92,15 +92,15 @@
             <v-btn fab dark :disabled="!canSkipLeft"
                    @click="previous"
                    class="prev-button btn"
-                   v-if="$refs.photoGallery"
-                   v-show="!$refs.photoGallery.imgZoomed">
+                   v-if="photoGallery"
+                   v-show="!photoGallery.imgZoomed">
                 <v-icon>mdi-chevron-left</v-icon>
             </v-btn>
             <v-btn fab dark :disabled="!canSkipRight"
                    @click="next"
                    class="next-button btn"
-                   v-if="$refs.photoGallery"
-                   v-show="!$refs.photoGallery.imgZoomed">
+                   v-if="photoGallery"
+                   v-show="!photoGallery.imgZoomed">
                 <v-icon>mdi-chevron-right</v-icon>
             </v-btn>
         </div>
@@ -343,8 +343,10 @@ export default Vue.extend({
             markers: [] as L.CircleMarker[],
         },
         gpsIcon: null as L.Icon | null,
+        photoGallery: null as any,
     }),
     async mounted() {
+        this.photoGallery = this.$refs.photoGallery;
         this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
         this.loadGpsIcon();
 
@@ -556,11 +558,11 @@ export default Vue.extend({
             this.$router.push(newPath);
         },
         previous() {
-            this.$refs.photoGallery.swiper.slidePrev();
+            this.photoGallery.swiper.slidePrev();
             return;
         },
         next() {
-            this.$refs.photoGallery.swiper.slideNext();
+            this.photoGallery.swiper.slideNext();
             return;
         },
         async fullMediaLoad(idOverride: string | null = null) {
@@ -685,7 +687,7 @@ export default Vue.extend({
             const resize = () => {
                 animationFrame = requestAnimationFrame(resize);
                 console.log("ResizeHandler")
-                this.$refs.photoGallery.swiper.resize.resizeHandler();
+                this.photoGallery.swiper.resize.resizeHandler();
             }
             resize();
             setTimeout(() => cancelAnimationFrame(animationFrame), 250);

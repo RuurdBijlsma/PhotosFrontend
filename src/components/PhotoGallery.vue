@@ -75,7 +75,7 @@ export default Vue.extend({
         this.id = this.$route.params.id;
         this.swiper = (this.$refs.swiper as any).$swiper;
         this.swiper.resizeObserver = true;
-        window.swiper = this.swiper;
+        // window.swiper = this.swiper;
 
         this.startIndex = Math.max(0, this.index - carouselBuffer);
         this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
