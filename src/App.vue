@@ -66,7 +66,7 @@
             <v-list dense nav>
                 <v-list-item v-for="page in pages" exact
                              :to="page.to" :key="page.to"
-                             @click="scrollToTop">
+                             @mousedown="scrollToTop">
                     <v-list-item-icon>
                         <v-icon>{{ page.icon }}</v-icon>
                     </v-list-item-icon>

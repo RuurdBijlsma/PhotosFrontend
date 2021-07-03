@@ -4,6 +4,8 @@
             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
          }">
         <div class="container">
+            <photo3></photo3>
+
             <div class="trash-items" v-if="trashItems.length > 0">
                 <h2 class="mb-4">Trash</h2>
                 <div class="items">
@@ -52,9 +54,11 @@
 import {format} from "date-fns";
 import Vue from "vue";
 import {api} from "@/ts/constants";
+import Photo3 from "@/views/Photo3.vue";
 
 export default Vue.extend({
     name: "Trash",
+    components: {Photo3},
     data: () => ({
         trashItems: [] as any[],
         errorItems: [] as any[],

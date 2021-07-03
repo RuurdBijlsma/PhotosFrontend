@@ -14,7 +14,7 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/photo/:id',
             name: 'HomePhoto',
-            component: () => import('../views/Photo.vue')
+            component: () => import('../views/Photo2.vue')
         }],
     },
     {
