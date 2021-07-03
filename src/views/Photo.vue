@@ -6,102 +6,103 @@
             width: ($vuetify.breakpoint.mobile || !showInfo) ? '100%' : `calc(100% - ${infoPaneSize}px)`,
             minHeight: $vuetify.breakpoint.mobile ? '100vh' : null,
         }">
-            <div class="media-item">
-                <div class="top-gradient"/>
-                <v-zoomer
-                    :zoomed.sync="imgZoomed"
-                    :max-scale="20"
-                    :zooming-elastic="false"
-                    class="element-item"
-                    v-if="media && media.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"
-                           :src="imgSrc"
-                           :key="imgSrc"
-                           ref="image"
-                           contain>
-                    </v-img>
-                </v-zoomer>
-                <video class="element-item"
-                       @play="videoPlaying = true"
-                       @pause="videoPlaying = false"
-                       :poster="`${api}/photo/big/${media.id}.webp`"
-                       controls
-                       v-else-if="media"
-                       autoplay
-                       :src="`${api}/photo/webm/${media.id}.webm`">
-                </video>
-                <v-btn icon dark @click="close" class="back-button btn" :style="{
+            <div class="top-gradient"/>
+            <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
+            <!--                <v-zoomer-->
+            <!--                    :zoomed.sync="imgZoomed"-->
+            <!--                    :max-scale="20"-->
+            <!--                    :zooming-elastic="false"-->
+            <!--                    class="element-item"-->
+            <!--                    v-if="media && media.type === 'photo'">-->
+            <!--                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"-->
+            <!--                           :src="imgSrc"-->
+            <!--                           :key="imgSrc"-->
+            <!--                           ref="image"-->
+            <!--                           contain>-->
+            <!--                    </v-img>-->
+            <!--                </v-zoomer>-->
+            <!--                <video class="element-item"-->
+            <!--                       @play="videoPlaying = true"-->
+            <!--                       @pause="videoPlaying = false"-->
+            <!--                       :poster="`${api}/photo/big/${media.id}.webp`"-->
+            <!--                       controls-->
+            <!--                       v-else-if="media"-->
+            <!--                       autoplay-->
+            <!--                       :src="`${api}/photo/webm/${media.id}.webm`">-->
+            <!--                </video>-->
+            <v-btn icon dark @click="close" class="back-button btn" :style="{
                     // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
                     // top: $vuetify.breakpoint.mobile ? null : '20px',
                 }">
-                    <v-icon>mdi-arrow-left</v-icon>
-                </v-btn>
-                <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn" :style="{
+                <v-icon>mdi-arrow-left</v-icon>
+            </v-btn>
+            <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn" :style="{
                     // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
                     // top: $vuetify.breakpoint.mobile ? null : '20px',
                 }">
-                    <v-icon>mdi-information-outline</v-icon>
-                </v-btn>
-                <v-menu :close-on-content-click="false"
-                        :nudge-left="180"
-                        min-width="auto">
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
+                <v-icon>mdi-information-outline</v-icon>
+            </v-btn>
+            <v-menu :close-on-content-click="false"
+                    :nudge-left="180"
+                    min-width="auto">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
                             // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
                             // top: $vuetify.breakpoint.mobile ? null : '20px',
                         }">
-                            <v-icon>mdi-dots-vertical</v-icon>
-                        </v-btn>
-                    </template>
-                    <v-list dense>
-                        <v-list-item @click="reprocess(media)">
-                            <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
-                                <v-icon v-else>mdi-auto-fix</v-icon>
-                            </v-list-item-avatar>
-                            <v-list-item-content>
-                                <v-list-item-title>
-                                    Reprocess item
-                                </v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                        <v-list-item @click="fixDateFromFile()">
-                            <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
-                                <v-icon v-else>mdi-calendar-range</v-icon>
-                            </v-list-item-avatar>
-                            <v-list-item-content>
-                                <v-list-item-title>
-                                    Fix date from filename
-                                </v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                        <v-list-item @click="deleteItem()">
-                            <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
-                                <v-icon v-else>mdi-delete-outline</v-icon>
-                            </v-list-item-avatar>
-                            <v-list-item-content>
-                                <v-list-item-title>
-                                    Delete
-                                </v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-                <v-btn fab dark :disabled="!canSkipLeft"
-                       @click="previous"
-                       class="prev-button btn"
-                       v-show="!imgZoomed">
-                    <v-icon>mdi-chevron-left</v-icon>
-                </v-btn>
-                <v-btn fab dark :disabled="!canSkipRight"
-                       @click="next"
-                       class="next-button btn"
-                       v-show="!imgZoomed">
-                    <v-icon>mdi-chevron-right</v-icon>
-                </v-btn>
-            </div>
+                        <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                </template>
+                <v-list dense>
+                    <v-list-item @click="reprocess(media)">
+                        <v-list-item-avatar>
+                            <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
+                            <v-icon v-else>mdi-auto-fix</v-icon>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                Reprocess item
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item @click="fixDateFromFile()">
+                        <v-list-item-avatar>
+                            <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
+                            <v-icon v-else>mdi-calendar-range</v-icon>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                Fix date from filename
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item @click="deleteItem()">
+                        <v-list-item-avatar>
+                            <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
+                            <v-icon v-else>mdi-delete-outline</v-icon>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                Delete
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+            <v-btn fab dark :disabled="!canSkipLeft"
+                   @click="previous"
+                   class="prev-button btn"
+                   v-if="$refs.photoGallery"
+                   v-show="!$refs.photoGallery.imgZoomed">
+                <v-icon>mdi-chevron-left</v-icon>
+            </v-btn>
+            <v-btn fab dark :disabled="!canSkipRight"
+                   @click="next"
+                   class="next-button btn"
+                   v-if="$refs.photoGallery"
+                   v-show="!$refs.photoGallery.imgZoomed">
+                <v-icon>mdi-chevron-right</v-icon>
+            </v-btn>
         </div>
         <v-sheet class="right-pane" :style="{
             top: $vuetify.breakpoint.mobile ? '100%' : null,
@@ -304,11 +305,12 @@ import {bytesToReadable, filenameToDate} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
 import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
 import L from "leaflet";
+import PhotoGallery from "@/components/PhotoGallery.vue";
 
 
 export default Vue.extend({
     name: 'Photo',
-    components: {LMap, LTileLayer, LMarker},
+    components: {PhotoGallery, LMap, LTileLayer, LMarker},
     props: {},
     data: () => ({
         videoPlaying: false,
@@ -325,8 +327,6 @@ export default Vue.extend({
         reprocessLoading: false,
         deleteLoading: false,
         fixDateLoading: false,
-        imgZoomed: false,
-        zoomedAtSomePoint: new Set(),
         leaflet: {
             zoom: 12,
             center: null as L.LatLng | null,
@@ -344,9 +344,6 @@ export default Vue.extend({
         },
         gpsIcon: null as L.Icon | null,
     }),
-    beforeDestroy() {
-        document.removeEventListener('keydown', this.handleKey);
-    },
     async mounted() {
         this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
         this.loadGpsIcon();
@@ -354,8 +351,6 @@ export default Vue.extend({
         this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
-        this.$store.commit('keepInView', this.media);
-        document.addEventListener('keydown', this.handleKey, false);
 
         this.loadGpsIcon().then();
     },
@@ -555,38 +550,18 @@ export default Vue.extend({
             this.$store.commit('reloadPhotos', true);
             this.reprocessLoading = false;
         },
-        handleKey(e: KeyboardEvent) {
-            switch (true) {
-                case e.key === 'ArrowRight':
-                    this.next();
-                    break;
-                case e.key === 'ArrowLeft':
-                    this.previous();
-                    break;
-            }
-        },
         close() {
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
             let newPath = '/' + path.slice(0, path.length - 2).join('/');
             this.$router.push(newPath);
         },
         previous() {
-            let prev = this.queue[this.index - 1];
-            if (!prev) return;
-            this.media = prev;
-            this.$store.commit('keepInView', this.media);
-            this.fullMediaLoad();
-            let path = this.$route.path.split('/');
-            this.$router.replace([...path.slice(0, path.length - 1), prev.id].join('/'));
+            this.$refs.photoGallery.swiper.slidePrev();
+            return;
         },
         next() {
-            let next = this.queue[this.index + 1];
-            if (!next) return;
-            this.media = next;
-            this.$store.commit('keepInView', this.media);
-            this.fullMediaLoad();
-            let path = this.$route.path.split('/');
-            this.$router.replace([...path.slice(0, path.length - 1), next.id].join('/'));
+            this.$refs.photoGallery.swiper.slideNext();
+            return;
         },
         async fullMediaLoad(idOverride: string | null = null) {
             let id = idOverride ?? this.media?.id ?? this.id;
@@ -607,13 +582,6 @@ export default Vue.extend({
             if (this.media === null || this.media.location === null)
                 return null;
             return L.latLng(this.media.location.latitude, this.media.location.longitude)
-        },
-        imgSrc(): string {
-            if (this.media === null) return '';
-            if (this.imgZoomed || this.zoomedAtSomePoint.has(this.media.id)) {
-                return `${api}/photos/full/${this.media.id}`
-            }
-            return `${api}/photo/big/${this.media.id}.webp`
         },
         classifications(): { labels: string, glossary: string }[] | null {
             let classification = this.media?.classifications ?? null;
@@ -710,8 +678,17 @@ export default Vue.extend({
         },
     },
     watch: {
-        imgSrc() {
-            console.log('imgsrc changed', this.imgSrc);
+        showInfo() {
+            if (this.$vuetify.breakpoint.mobile)
+                return;
+            let animationFrame = -1;
+            const resize = () => {
+                animationFrame = requestAnimationFrame(resize);
+                console.log("ResizeHandler")
+                this.$refs.photoGallery.swiper.resize.resizeHandler();
+            }
+            resize();
+            setTimeout(() => cancelAnimationFrame(animationFrame), 250);
         },
         'media.location'() {
             this.gpsIcon = null;
@@ -720,11 +697,6 @@ export default Vue.extend({
         media() {
             if (this.media !== null)
                 this.editingDate = this.media?.createDate ?? new Date();
-        },
-        imgZoomed() {
-            if (this.imgZoomed && this.media !== null) {
-                this.zoomedAtSomePoint.add(this.media.id);
-            }
         },
         id() {
             this.videoPlaying = false;
@@ -756,12 +728,6 @@ export default Vue.extend({
     transition: width 0.25s;
 }
 
-.media-item {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
 .top-gradient {
     position: absolute;
     width: 100%;
@@ -770,13 +736,10 @@ export default Vue.extend({
     background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.37), transparent);
 }
 
-.element-item {
+.photo-gallery {
+    position: relative;
     width: 100%;
     height: 100%;
-}
-
-.element-item >>> .zoomer {
-    display: flex;
 }
 
 .btn {

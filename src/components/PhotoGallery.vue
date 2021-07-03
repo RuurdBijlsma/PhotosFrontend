@@ -3,7 +3,6 @@
         @slideChange="slideChange"
         @slideChangeTransitionEnd="transitionEnd"
         @slideNextTransitionStart="checkSpaceRight"
-        @slidePrevTransitionEnd="checkSpaceLeft"
         class="swiper" ref="swiper" :options="swiperOption">
         <swiper-slide v-for="item in items" :key="item.id">
             <div class="slide-container">
@@ -16,8 +15,8 @@
                     class="element-item"
                     v-if="item && item.type === 'photo'">
                     <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
-                           :src="`${api}/photo/big/${item.id}.webp`"
-                           :key="item.id"
+                           :src="imgSrc(item.id, zoomedImgs.has(id))"
+                           :key="item.id + zoomedImgs.has(item.id)"
                            ref="image"
                            class="zoomer-image"
                            contain>
@@ -36,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue, {PropType} from 'vue'
 import {api} from "@/ts/constants"
 import {Media} from "@/ts/Media";
 import {Swiper, SwiperSlide} from 'vue-awesome-swiper'
@@ -45,16 +44,21 @@ import 'swiper/css/swiper.css'
 const carouselBuffer = 3;
 
 export default Vue.extend({
-    name: 'Photo',
+    name: 'PhotoGallery',
     components: {Swiper, SwiperSlide},
-    props: {},
+    props: {
+        queue: {
+            type: [] as PropType<Media[]>,
+        },
+    },
     data: () => ({
+        changeUrlTimeout: -1,
+        allowTouch: true,
         api,
         viewedItem: 0,
         id: null as null | string,
         items: [] as Media[],
         startIndex: 0,
-        endIndex: 0,
         swiperOption: {
             zoom: true,
             lazy: true,
@@ -70,26 +74,18 @@ export default Vue.extend({
     async mounted() {
         this.id = this.$route.params.id;
         this.swiper = (this.$refs.swiper as any).$swiper;
+        this.swiper.resizeObserver = true;
+        window.swiper = this.swiper;
 
         this.startIndex = Math.max(0, this.index - carouselBuffer);
-        this.endIndex = this.index + 1 + carouselBuffer;
-        this.items = this.queue.slice(this.startIndex, this.endIndex);
-        console.log("MOUNTED", this.items);
+        this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
         let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
-        console.log('sliding to ', viewedItem);
         this.swiper.slideTo(viewedItem, 0, false);
     },
     methods: {
         slideChange() {
-            console.log("Slide change", this.swiper.activeIndex);
             this.viewedItem = this.swiper.activeIndex;
             this.id = this.items[this.viewedItem].id;
-        },
-        transitionEnd() {
-            console.log(this.id);
-            // console.log("zoomers", this.$refs.zoomers);
-            // Update relevant zoomer key
-            // this.resetZoomer();
         },
         resetZoomer() {
             if (this.id !== null) {
@@ -101,46 +97,60 @@ export default Vue.extend({
                 }
             }
         },
-        checkSpaceLeft() {
-
+        transitionEnd() {
             let bufferLeft = this.viewedItem;
             let bufferRight = this.items.length - this.viewedItem;
-            if (bufferLeft < carouselBuffer) {
-                console.log('Increasing buffer left');
+            if (bufferLeft > carouselBuffer * 7) {
+                this.allowTouch = false;
+                let deleteCount = bufferLeft - carouselBuffer;
+                this.startIndex += deleteCount;
+                this.items.splice(0, deleteCount);
+                console.log(`Buffer left too large, deleting first ${deleteCount} slides`);
+                this.swiper.slideTo(this.viewedItem - deleteCount, 0, false);
+                setTimeout(() => this.allowTouch = true, 150);
+            } else if (bufferLeft < carouselBuffer) {
                 if (this.startIndex - 1 >= 0) {
-                    this.startIndex--;
-                    this.items.unshift(this.queue[this.startIndex]);
-                    this.swiper.slideNext(0, false);
-                    // this.$nextTick(() => this.resetZoomer());
-                    if (bufferRight > carouselBuffer * 2) {
-                        console.log("Removing item from end");
-                        // this.endIndex--;
-                        // this.items.splice(this.endIndex, 1);
-                        // this.swiper.slidePrev(0, false);
-                    }
+                    this.allowTouch = false;
+                    let addCount = carouselBuffer * 2 - bufferLeft;
+                    let addItems = this.queue.slice(Math.max(this.startIndex - addCount, 0), this.startIndex);
+                    console.log(`Increasing buffer left by ${addItems.length}`);
+                    this.startIndex -= addItems.length;
+                    this.items.unshift(...addItems);
+                    this.swiper.slideTo(this.viewedItem + addItems.length, 0, false);
+                    setTimeout(() => this.allowTouch = true, 150);
                 }
+            }
+            if (bufferRight > carouselBuffer * 7) {
+                this.allowTouch = false;
+                let deleteCount = bufferRight - carouselBuffer;
+                console.log(`Buffer right too large, deleting last ${deleteCount} slides`, this.items);
+                this.items.splice(this.items.length - deleteCount, deleteCount);
+                // this.swiper.slideTo(this.viewedItem - deleteCount, 0, false);
+                setTimeout(() => this.allowTouch = true, 150);
             }
         },
         checkSpaceRight() {
-            let bufferLeft = this.viewedItem;
             let bufferRight = this.items.length - this.viewedItem;
             if (bufferRight < carouselBuffer) {
-                console.log('Increasing buffer right');
                 if (this.endIndex + 1 < this.queue.length) {
-                    this.endIndex++;
-                    this.items.push(this.queue[this.endIndex]);
-                    // this.$nextTick(() => this.resetZoomer());
-                    if (bufferLeft > carouselBuffer * 2) {
-                        console.log("Removing item from start");
-                        // this.startIndex++;
-                        // this.items.splice(0, 1);
-                        // this.swiper.slideNext(0, false);
-                    }
+                    let addCount = carouselBuffer * 2 - bufferRight;
+                    let addItems = this.queue.slice(this.endIndex + 1, this.endIndex + addCount + 1);
+                    console.log(`Increasing buffer right by ${addItems.length}`);
+                    this.items.push(...addItems);
                 }
             }
         },
+        imgSrc(id: string, hasZoomed: boolean):string{
+            if (this.imgZoomed ||hasZoomed ) {
+                return `${api}/photos/full/${id}`
+            }
+            return `${api}/photo/big/${id}.webp`
+        },
     },
     computed: {
+        endIndex(): number {
+            return this.startIndex + this.items.length;
+        },
         canSkipLeft(): boolean {
             return this.index > 0;
         },
@@ -150,11 +160,13 @@ export default Vue.extend({
         index(): number {
             return this.queue.findIndex(i => i.id === this.id);
         },
-        queue(): Media[] {
-            return this.$store.state.viewerQueue;
-        },
     },
     watch: {
+        allowTouch() {
+            this.swiper.allowSlideNext = this.allowTouch;
+            this.swiper.allowSlidePrev = this.allowTouch;
+            this.swiper.allowTouchMove = this.allowTouch;
+        },
         index() {
             this.$store.commit('keepInView', this.queue[this.index]);
         },
@@ -163,9 +175,22 @@ export default Vue.extend({
                 this.resetZoomer();
                 this.zoomedImgs.add(this.id);
             }
-            this.swiper.allowSlideNext = !this.imgZoomed;
-            this.swiper.allowSlidePrev = !this.imgZoomed;
-            this.swiper.allowTouchMove = !this.imgZoomed;
+            this.allowTouch = !this.imgZoomed;
+        },
+        id(newVal, oldVal) {
+            if (newVal === oldVal) return;
+            if (this.id && this.$route.path.includes(this.id)) return;
+            let path = this.$route.path.split('/').filter(p => p.length !== 0);
+            //@ts-ignore
+            path[path.length - 1] = this.id;
+            clearTimeout(this.changeUrlTimeout);
+            this.changeUrlTimeout = setTimeout(() => {
+                requestAnimationFrame(() => {
+                    console.time('replace url');
+                    this.$router.replace(`/${path.join('/')}`);
+                    console.timeEnd('replace url');
+                })
+            }, 150);
         },
     },
 })
@@ -173,12 +198,6 @@ export default Vue.extend({
 
 <style scoped>
 .swiper {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 6;
     background-color: black;
 }
 
