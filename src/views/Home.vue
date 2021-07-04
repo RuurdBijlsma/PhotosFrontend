@@ -72,6 +72,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // add categories page for the buttons in explore to work
 
 // todo bugs
+// can't rotate app on mobile
 // photo in /photo view is not centered vertically on mobile
 // going to a /photo/id link goes to first photo for some reason
 // Shift-selecting dont work on search page
