@@ -54,24 +54,30 @@ import DesktopScrub from "@/components/DesktopScrub.vue";
 import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
-// todo
-// mobile layout for info pane in large photo
+// todo features
+// albums
+// right click to copy image in /photo pls
 // mobile select photos
-// filter by date on /map page to see photos in that date range
 // Upload photo
 // Download photo
 // backup knop in settings
 // rotate image in ui
-// make way to enlarge map in search page
 // add mapbox token to Users account
-// see server status in ui somewhere (save logs and show)
-// animated webp not showing in grid, but showing in big pic?
-// albums
-// show logged in state in app bar
 // allow log out
+// add login button to menu when not logged in
+// Allow add to selection in full /photo page
+// show logged in state in app bar
+// see server status in ui somewhere (save logs and show)
 // add image subtype 'animation' for gifs
+// add categories page for the buttons in explore to work
+
+// todo bugs
+// going to a /photo/id link goes to first photo for some reason
+// Shift-selecting dont work on search page
+// shift selecting doesn't work when going from old to new
+// animated webp not showing in grid, but showing in big pic?
 // refresh photo on search page is bugged
-// Allow select in full /photo page
+// when going to /home from other page the background grid stays after photos have loaded
 
 export default Vue.extend({
     name: 'Home',
@@ -125,12 +131,14 @@ export default Vue.extend({
             }));
         },
         monthResize(i: number, monthHeight: number) {
+            console.log("Month resize", i);
             Vue.set(this.photosPerMonth[i], 'height', monthHeight);
         },
         monthReady(i: number, monthHeight: number, photos: Media[]) {
-            this.photosPerMonth[i].photos = photos;
-            this.photosPerMonth[i].height = monthHeight;
-            this.photosPerMonth[i].ready = true;
+            console.log("Month ready", i);
+            Vue.set(this.photosPerMonth[i], 'photos', photos);
+            Vue.set(this.photosPerMonth[i], 'height', monthHeight);
+            Vue.set(this.photosPerMonth[i], 'ready', true);
             this.$emit('monthReady', i);
             this.$emit('monthReady' + i);
         },
@@ -327,6 +335,8 @@ export default Vue.extend({
             await this.reloadPhotos();
         },
         async '$store.state.keepInView'() {
+            if (!this.$store.state.keepInView)
+                return;
             await this.waitPpm;
             let media: Media | null = this.$store.state.keepInView;
             await this.scrollMediaIntoView(media);

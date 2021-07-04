@@ -34,8 +34,11 @@ export default Vue.extend({
         width: {type: Number, required: true},
         height: {type: Number, required: true},
         startBounds: {type: L.LatLngBounds},
+        startDate: {type: Date},
+        endDate: {type: Date},
     },
     data: () => ({
+        dateChangeUpdate: -1,
         photosInBounds: null as Promise<any> | null,
         mapRef: null as any,
         // @ts-ignore
@@ -94,6 +97,8 @@ export default Vue.extend({
                     maxLat: this.leaflet.bounds.getNorth(),
                     minLng: this.leaflet.bounds.getWest(),
                     maxLng: this.leaflet.bounds.getEast(),
+                    startDate: this.startDate,
+                    endDate: this.endDate,
                 },
             });
         },
@@ -164,7 +169,22 @@ export default Vue.extend({
         },
     },
     computed: {},
-    watch: {},
+    watch: {
+        startDate() {
+            clearTimeout(this.dateChangeUpdate);
+            this.dateChangeUpdate = setTimeout(async () => {
+                this.photosInBounds = this.updateFromBounds();
+                await this.addMarkers();
+            }, 150);
+        },
+        endDate() {
+            clearTimeout(this.dateChangeUpdate);
+            this.dateChangeUpdate = setTimeout(async () => {
+                this.photosInBounds = this.updateFromBounds();
+                await this.addMarkers();
+            }, 150);
+        },
+    },
 })
 </script>
 

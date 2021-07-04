@@ -1,4 +1,10 @@
-export function  getScrollbarWidth() {
+export function isTouchDevice() {
+    return (('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints > 0));
+}
+
+export function getScrollbarWidth() {
     // Creating invisible container
     const outer: any = document.createElement('div');
     outer.style.visibility = 'hidden';

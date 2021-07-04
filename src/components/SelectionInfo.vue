@@ -1,5 +1,7 @@
 <template>
-    <v-card class="selection-info" v-if="isSelecting">
+    <v-card class="selection-info" v-if="isSelecting" :style="{
+        bottom: $vuetify.application.bottom + 10 + 'px',
+    }">
         <v-card-title>Selected {{ selectionCount }} item{{ selectionCount === 1 ? '' : 's' }}</v-card-title>
         <v-card-subtitle v-if="firstDate !== lastDate">From
             <span class="font-weight-bold">{{ firstDate }}</span>
@@ -157,7 +159,6 @@ export default Vue.extend({
 <style scoped>
 .selection-info {
     position: fixed;
-    bottom: 10px;
     width: 350px;
     left: calc(50% - 175px);
 }

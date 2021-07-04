@@ -92,14 +92,14 @@
             <v-btn fab dark :disabled="!canSkipLeft"
                    @click="previous"
                    class="prev-button btn"
-                   v-if="photoGallery"
+                   v-if="photoGallery && !isTouch"
                    v-show="!photoGallery.imgZoomed">
                 <v-icon>mdi-chevron-left</v-icon>
             </v-btn>
             <v-btn fab dark :disabled="!canSkipRight"
                    @click="next"
                    class="next-button btn"
-                   v-if="photoGallery"
+                   v-if="photoGallery&& !isTouch"
                    v-show="!photoGallery.imgZoomed">
                 <v-icon>mdi-chevron-right</v-icon>
             </v-btn>
@@ -301,7 +301,7 @@
 import Vue from 'vue'
 import {api} from "@/ts/constants"
 import {Location, Media} from "@/ts/Media";
-import {bytesToReadable, filenameToDate} from "@/ts/utils";
+import {bytesToReadable, filenameToDate, isTouchDevice} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
 import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
 import L from "leaflet";
@@ -313,6 +313,7 @@ export default Vue.extend({
     components: {PhotoGallery, LMap, LTileLayer, LMarker},
     props: {},
     data: () => ({
+        isTouch: isTouchDevice(),
         videoPlaying: false,
         dateMenu: false,
         timeMenu: false,

@@ -14,19 +14,20 @@
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="item && item.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
+                    <v-img :lazy-src="`${api}/photo/tiny/${id}.webp`"
                            :src="imgSrc(item.id, zoomedImgs.has(id))"
-                           :key="item.id + zoomedImgs.has(item.id)"
+                           :key="imgSrc(item.id, zoomedImgs.has(id))"
+                           :transition="'none'"
                            ref="image"
                            class="zoomer-image"
                            contain>
                     </v-img>
                 </v-zoomer>
                 <video class="element-item"
+                       :ref="`video${item.id}`"
                        :poster="`${api}/photo/big/${item.id}.webp`"
                        controls
                        v-else-if="item"
-                       autoplay
                        :src="`${api}/photo/webm/${item.id}.webm`">
                 </video>
             </div>
@@ -40,6 +41,7 @@ import {api} from "@/ts/constants"
 import {Media} from "@/ts/Media";
 import {Swiper, SwiperSlide} from 'vue-awesome-swiper'
 import 'swiper/css/swiper.css'
+import {isTouchDevice} from "@/ts/utils";
 
 const carouselBuffer = 3;
 
@@ -60,6 +62,7 @@ export default Vue.extend({
         items: [] as Media[],
         startIndex: 0,
         swiperOption: {
+            spaceBetween: 5,
             zoom: true,
             lazy: true,
             keyboard: {
@@ -71,23 +74,28 @@ export default Vue.extend({
         swiper: null as any,
         imgZoomed: false,
     }),
-    async mounted() {
+    mounted() {
         this.id = this.$route.params.id;
         this.swiper = (this.$refs.swiper as any).$swiper;
         this.swiper.resizeObserver = true;
         // window.swiper = this.swiper;
 
-        this.startIndex = Math.max(0, this.index - carouselBuffer);
-        this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
-        let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
-        this.swiper.slideTo(viewedItem, 0, false);
+        if (this.queue.length > 0)
+            this.initialize();
     },
     methods: {
+        initialize() {
+            this.startIndex = Math.max(0, this.index - carouselBuffer);
+            this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
+            let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
+            this.swiper.slideTo(viewedItem, 0, false);
+        },
         slideChange() {
             this.viewedItem = this.swiper.activeIndex;
             this.id = this.items[this.viewedItem].id;
         },
         resetZoomer() {
+            console.log('resetzoomer, is touch device?', isTouchDevice())
             if (this.id !== null) {
                 if (this.zoomerKeys.hasOwnProperty(this.id)) {
                     let keyVal: number = this.zoomerKeys[this.id];
@@ -140,8 +148,8 @@ export default Vue.extend({
                 }
             }
         },
-        imgSrc(id: string, hasZoomed: boolean):string{
-            if (this.imgZoomed ||hasZoomed ) {
+        imgSrc(id: string, hasZoomed: boolean): string {
+            if ((this.imgZoomed || hasZoomed) && !isTouchDevice()) {
                 return `${api}/photos/full/${id}`
             }
             return `${api}/photo/big/${id}.webp`
@@ -162,6 +170,9 @@ export default Vue.extend({
         },
     },
     watch: {
+        queue() {
+            this.initialize();
+        },
         allowTouch() {
             this.swiper.allowSlideNext = this.allowTouch;
             this.swiper.allowSlidePrev = this.allowTouch;
@@ -172,13 +183,21 @@ export default Vue.extend({
         },
         imgZoomed() {
             if (this.imgZoomed && !this.zoomedImgs.has(this.id)) {
-                this.resetZoomer();
+                if (!isTouchDevice()) {
+                    console.log("this is not a touch device, resetting zoomer on zoom in")
+                    this.resetZoomer();
+                }
                 this.zoomedImgs.add(this.id);
             }
             this.allowTouch = !this.imgZoomed;
         },
         id(newVal, oldVal) {
             if (newVal === oldVal) return;
+            // If switching away from video, pause video
+            let vid = this.$refs['video' + oldVal] as HTMLVideoElement[] | undefined;
+            if (vid)
+                vid[0].pause();
+
             if (this.id && this.$route.path.includes(this.id)) return;
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
             //@ts-ignore
@@ -186,10 +205,8 @@ export default Vue.extend({
             clearTimeout(this.changeUrlTimeout);
             this.changeUrlTimeout = setTimeout(() => {
                 requestAnimationFrame(() => {
-                    console.time('replace url');
                     this.$router.replace(`/${path.join('/')}`);
-                    console.timeEnd('replace url');
-                })
+                });
             }, 150);
         },
     },
