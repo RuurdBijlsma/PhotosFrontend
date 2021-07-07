@@ -13,7 +13,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer/>
-                <v-btn primary text @click="login">Login</v-btn>
+                <v-btn :loading="loginLoading" primary text @click="login">Login</v-btn>
             </v-card-actions>
         </v-card>
     </div>
@@ -23,6 +23,7 @@
 export default {
     name: "Login",
     data: () => ({
+        loginLoading: false,
         showPass: false,
         rules: {
             required: value => !!value || 'Required.',
@@ -33,10 +34,13 @@ export default {
     }),
     methods: {
         async login() {
+            this.loginLoading = true;
             let success = await this.$store.dispatch('checkLogin', {email: this.email, password: this.password});
             if (success) {
+                this.$store.commit('mapboxKey', success.mapboxToken);
                 await this.$router.push("/");
             }
+            this.loginLoading = false;
         },
     },
 }

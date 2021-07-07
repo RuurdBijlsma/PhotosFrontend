@@ -230,6 +230,8 @@ export default Vue.extend({
 }
 
 .zoomer-image {
+    /*noinspection CssInvalidPropertyValue*/
+    image-rendering: -webkit-optimize-contrast;
     width: 100%;
     height: 100%;
 }

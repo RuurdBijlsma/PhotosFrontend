@@ -99,7 +99,6 @@ export default Vue.extend({
                 let month = p.year * 12 + (p.month - 1);
                 return month >= startMonth && month <= endMonth;
             }).map(p => p.id);
-            console.log(relevantMonths);
             let cache = this.$store.state.cachedPhotos;
             let photos = [];
             for (let id of relevantMonths) {
@@ -109,7 +108,7 @@ export default Vue.extend({
             }
             let indexStart = photos.findIndex(p => p.id === start.id);
             let indexEnd = photos.findIndex(p => p.id === end.id);
-            console.log(indexStart, indexEnd);
+            [indexStart, indexEnd] = [indexStart, indexEnd].sort((a, b) => b - a);
             if (indexStart === -1 || indexEnd === -1)
                 return null;
             return photos.slice(indexEnd, indexStart + 1);

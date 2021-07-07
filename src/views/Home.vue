@@ -4,44 +4,54 @@
             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
             padding: pagePadding + 'px',
          }">
-        <router-view/>
+        <div v-if="!loaded && !errored" class="error-container">
+            <v-progress-circular color="primary" :width="5" :size="200" indeterminate></v-progress-circular>
+            <p class="caption mt-3">Loading {{api}}</p>
+        </div>
+        <div v-else-if="!loaded && errored" class="error-container">
+            <v-icon class="error-icon">mdi-alert-circle-outline</v-icon>
+            <p class="caption mt-3">Can't load {{api}}, change API url in <router-link to="/settings">settings</router-link>.</p>
+        </div>
+        <template v-else>
+            <router-view/>
 
-        <div class="photos" :style="{
-            width: `calc(100% - ${scrubberWidth}px)`,
-        }">
-            <div class="lazy-month"
-                 :style="{
+            <div class="photos" :style="{
+                width: `calc(100% - ${scrubberWidth}px)`,
+            }">
+                <div class="lazy-month"
+                     :style="{
                     height: photosPerMonth[i].ready ?
                         'auto' :
                         photosPerMonth[i].height + 'px',
                     backgroundImage: photosPerMonth[i].ready ? 'none' : 'url(img/grid.png)'
                  }"
-                 v-intersect="(...args) => applyLazy(i, ...args)"
-                 v-for="(monthPhotos, i) in photosPerMonth"
-                 :key="monthPhotos.id">
-                <month-grid :index="i"
-                            :year="monthPhotos.year"
-                            :month="monthPhotos.month"
-                            :usable-width="usableWidth"
-                            :ref="`monthGrid${i}`"
-                            @resizeReady="h => monthResize(i, h)"
-                            @ready="(h, p) => monthReady(i, h, p)"
-                            v-if="monthPhotos.loaded"
-                            class="month" :class="`month${i}`"/>
+                     v-intersect="(...args) => applyLazy(i, ...args)"
+                     v-for="(monthPhotos, i) in photosPerMonth"
+                     :key="monthPhotos.id">
+                    <month-grid :index="i"
+                                :year="monthPhotos.year"
+                                :month="monthPhotos.month"
+                                :usable-width="usableWidth"
+                                :ref="`monthGrid${i}`"
+                                @resizeReady="h => monthResize(i, h)"
+                                @ready="(h, p) => monthReady(i, h, p)"
+                                v-if="monthPhotos.loaded"
+                                class="month" :class="`month${i}`"/>
+                </div>
             </div>
-        </div>
 
-        <mobile-scrub class="scrubber"
-                      v-if="$vuetify.breakpoint.mobile && photosPerMonth.length > 0"
-                      home-id="home-element"
-                      :index-in-view="indexInView"
-                      :photos-per-month="photosPerMonth"></mobile-scrub>
-        <desktop-scrub class="scrubber"
-                       v-else-if="photosPerMonth.length > 0"
-                       home-id="home-element"
-                       :index-in-view="indexInView"
-                       :photos-per-month="photosPerMonth">
-        </desktop-scrub>
+            <mobile-scrub class="scrubber"
+                          v-if="$vuetify.breakpoint.mobile && photosPerMonth.length > 0"
+                          home-id="home-element"
+                          :index-in-view="indexInView"
+                          :photos-per-month="photosPerMonth"></mobile-scrub>
+            <desktop-scrub class="scrubber"
+                           v-else-if="photosPerMonth.length > 0"
+                           home-id="home-element"
+                           :index-in-view="indexInView"
+                           :photos-per-month="photosPerMonth">
+            </desktop-scrub>
+        </template>
     </div>
 </template>
 
@@ -62,7 +72,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // Download photo
 // backup knop in settings
 // rotate image in ui
-// add mapbox token to Users account
 // allow log out
 // add login button to menu when not logged in
 // Allow add to selection in full /photo page
@@ -70,6 +79,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // see server status in ui somewhere (save logs and show)
 // add image subtype 'animation' for gifs
 // add categories page for the buttons in explore to work
+// this day 1 year ago thing
 
 // todo bugs
 // can't rotate app on mobile
@@ -87,6 +97,8 @@ export default Vue.extend({
     data: () => ({
         api,
 
+        loaded: false,
+        errored: false,
         gridHeight: 240,
         waitPpm: null as null | Promise<MonthPhotos[]>,
 
@@ -99,7 +111,13 @@ export default Vue.extend({
         this.homeElement = (this.$refs.home as HTMLElement);
 
         let loadingPhoto = this.$route.name === 'HomePhoto';
-        await this.updatePhotosPerMonth(!loadingPhoto && this.hasDate === null, [0]);
+        try {
+            await this.updatePhotosPerMonth(!loadingPhoto && this.hasDate === null, [0]);
+            this.loaded = true;
+        } catch (e) {
+            this.errored = true;
+            console.error(e);
+        }
 
         if (!loadingPhoto && this.hasDate === null)
             setTimeout(() => {
@@ -364,6 +382,7 @@ export default Vue.extend({
 
 <style scoped>
 .home {
+    height:100%;
     overflow-y: scroll;
     width: 100%;
     -ms-overflow-style: none;
@@ -372,6 +391,20 @@ export default Vue.extend({
 
 .home::-webkit-scrollbar {
     display: none;
+}
+
+.error-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70%;
+    flex-direction: column;
+}
+
+.error-icon {
+    font-size: 200px;
+    display: block;
+    opacity:0.5;
 }
 
 .photos {

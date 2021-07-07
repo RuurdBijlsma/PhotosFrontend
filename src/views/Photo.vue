@@ -8,28 +8,6 @@
         }">
             <div class="top-gradient"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <!--                <v-zoomer-->
-            <!--                    :zoomed.sync="imgZoomed"-->
-            <!--                    :max-scale="20"-->
-            <!--                    :zooming-elastic="false"-->
-            <!--                    class="element-item"-->
-            <!--                    v-if="media && media.type === 'photo'">-->
-            <!--                    <v-img :lazy-src="`${api}/photo/tiny/${media.id}.webp`"-->
-            <!--                           :src="imgSrc"-->
-            <!--                           :key="imgSrc"-->
-            <!--                           ref="image"-->
-            <!--                           contain>-->
-            <!--                    </v-img>-->
-            <!--                </v-zoomer>-->
-            <!--                <video class="element-item"-->
-            <!--                       @play="videoPlaying = true"-->
-            <!--                       @pause="videoPlaying = false"-->
-            <!--                       :poster="`${api}/photo/big/${media.id}.webp`"-->
-            <!--                       controls-->
-            <!--                       v-else-if="media"-->
-            <!--                       autoplay-->
-            <!--                       :src="`${api}/photo/webm/${media.id}.webm`">-->
-            <!--                </video>-->
             <v-btn icon dark @click="close" class="back-button btn" :style="{
                     // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
                     // top: $vuetify.breakpoint.mobile ? null : '20px',
@@ -89,20 +67,22 @@
                     </v-list-item>
                 </v-list>
             </v-menu>
-            <v-btn fab dark :disabled="!canSkipLeft"
-                   @click="previous"
-                   class="prev-button btn"
-                   v-if="photoGallery && !isTouch"
-                   v-show="!photoGallery.imgZoomed">
-                <v-icon>mdi-chevron-left</v-icon>
-            </v-btn>
-            <v-btn fab dark :disabled="!canSkipRight"
-                   @click="next"
-                   class="next-button btn"
-                   v-if="photoGallery&& !isTouch"
-                   v-show="!photoGallery.imgZoomed">
-                <v-icon>mdi-chevron-right</v-icon>
-            </v-btn>
+            <div class="prev-button-container skip-button-container"
+                 @click="previous"
+                 v-if="photoGallery && !isTouch && canSkipLeft && !photoGallery.imgZoomed">
+                <v-btn fab dark
+                       class="prev-button btn">
+                    <v-icon>mdi-chevron-left</v-icon>
+                </v-btn>
+            </div>
+            <div class="next-button-container skip-button-container"
+                 @click="next"
+                 v-if="photoGallery && !isTouch && canSkipRight && !photoGallery.imgZoomed">
+                <v-btn fab dark
+                       class="next-button btn">
+                    <v-icon>mdi-chevron-right</v-icon>
+                </v-btn>
+            </div>
         </div>
         <v-sheet class="right-pane" :style="{
             top: $vuetify.breakpoint.mobile ? '100%' : null,
@@ -765,14 +745,42 @@ export default Vue.extend({
     right: var(--button-padding);
 }
 
-.next-button {
-    top: calc(50% - 28px);
-    right: var(--button-padding);
+.skip-button-container{
+    height: 100%;
+    top: 0;
+    position: absolute;
+    width: 15%;
+    min-width:100px;
+    z-index: 1;
+    pointer-events: visible;
+    cursor:pointer;
+}
+.prev-button-container {
+    left: 0;
 }
 
 .prev-button {
+    opacity: 0;
     top: calc(50% - 28px);
     left: var(--button-padding);
+}
+
+.prev-button-container:hover .prev-button {
+    opacity: .8;
+}
+
+.next-button-container {
+    right: 0;
+}
+
+.next-button-container:hover .next-button {
+    opacity: .8;
+}
+
+.next-button {
+    opacity: 0;
+    top: calc(50% - 28px);
+    right: var(--button-padding);
 }
 
 .right-pane {

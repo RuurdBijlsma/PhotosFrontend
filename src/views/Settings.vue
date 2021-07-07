@@ -5,10 +5,16 @@
             Get Mapbox token
         </a>
         <v-form>
-            <v-text-field name="mapboxKey" outlined class="mt-4" label="Mapbox Key" v-model="mapboxKey"/>
+            <div class="token">
+                <v-text-field name="mapboxKey" outlined class="mt-4" label="Mapbox Key" v-model="mapboxKey"/>
+                <v-icon v-if="tokenChangeSaved" class="ml-4 mb-4" color="success" title="Token saved">mdi-check</v-icon>
+            </div>
             <v-text-field name="apiUrl" outlined class="mt-4" label="API endpoint" v-model="apiUrl"/>
         </v-form>
-        <v-btn outlined v-if="reloadNeeded" @click="reload" :loading="rotating"><v-icon class="mr-3">mdi-reload</v-icon> Apply changes</v-btn>
+        <v-btn outlined v-if="reloadNeeded" @click="reload" :loading="rotating">
+            <v-icon class="mr-3">mdi-reload</v-icon>
+            Apply changes
+        </v-btn>
     </div>
 </template>
 
@@ -21,10 +27,12 @@ export default Vue.extend({
     data: () => ({
         apiUrlChanged: false,
         rotating: false,
+        updateServerToken: -1,
+        tokenChangeSaved: false,
     }),
     methods: {
         reload() {
-            this.rotating=true;
+            this.rotating = true;
             location.reload();
         },
     },
@@ -46,7 +54,14 @@ export default Vue.extend({
                 return this.$store.state.mapboxKey;
             },
             set(v: string) {
-                this.$store.commit('mapboxKey', v);
+                this.tokenChangeSaved = false;
+                clearTimeout(this.updateServerToken);
+                this.updateServerToken = setTimeout(async () => {
+                    console.warn("UPDATING SERVER TOKEN");
+                    await this.$store.dispatch('apiRequest', {url: 'photos/setMapboxToken', body: {token: v}});
+                    this.$store.commit('mapboxKey', v);
+                    this.tokenChangeSaved = true;
+                }, 500);
             },
         },
     }
@@ -58,5 +73,9 @@ export default Vue.extend({
     padding: 30px;
     max-width: 1000px;
     margin: 0 auto;
+}
+
+.token {
+    display: flex;
 }
 </style>
