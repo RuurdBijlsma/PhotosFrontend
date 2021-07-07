@@ -65,8 +65,8 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo features
+// mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // albums
-// right click to copy image in /photo pls
 // mobile select photos
 // Upload photo
 // Download photo
@@ -82,6 +82,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // this day 1 year ago thing
 
 // todo bugs
+// right click to copy image in /photo pls
 // can't rotate app on mobile
 // photo in /photo view is not centered vertically on mobile
 // going to a /photo/id link goes to first photo for some reason

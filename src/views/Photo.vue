@@ -712,6 +712,7 @@ export default Vue.extend({
 }
 
 .top-gradient {
+    pointer-events: none;
     position: absolute;
     width: 100%;
     height: 100px;

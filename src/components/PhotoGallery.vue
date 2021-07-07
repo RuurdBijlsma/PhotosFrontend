@@ -14,9 +14,10 @@
                     :zooming-elastic="false"
                     class="element-item"
                     v-if="item && item.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${id}.webp`"
-                           :src="imgSrc(item.id, zoomedImgs.has(id))"
-                           :key="imgSrc(item.id, zoomedImgs.has(id))"
+                    <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
+                           @mousedown.right="insertImg"
+                           :src="imgSrc(item.id, zoomedImgs.has(item.id))"
+                           :key="imgSrc(item.id, zoomedImgs.has(item.id))"
                            :transition="'none'"
                            ref="image"
                            class="zoomer-image"
@@ -73,12 +74,18 @@ export default Vue.extend({
         zoomedImgs: new Set(),
         swiper: null as any,
         imgZoomed: false,
+        copyImg: null as null | HTMLImageElement,
     }),
+    beforeDestroy() {
+        if (this.copyImg !== null)
+            this.copyImg.remove();
+    },
     mounted() {
         this.id = this.$route.params.id;
         this.swiper = (this.$refs.swiper as any).$swiper;
         this.swiper.resizeObserver = true;
         // window.swiper = this.swiper;
+
 
         if (this.queue.length > 0)
             this.initialize();
@@ -89,6 +96,30 @@ export default Vue.extend({
             this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
             let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
             this.swiper.slideTo(viewedItem, 0, false);
+        },
+        insertImg(e: MouseEvent) {
+            if (this.id === null) return;
+            if (this.copyImg !== null)
+                this.copyImg.remove();
+            let img = document.createElement('img');
+            img.src = this.imgSrc(this.id, this.zoomedImgs.has(this.id));
+            img.style.position = 'fixed';
+            img.style.zIndex = '5000';
+            let size = 40;
+            img.style.opacity = '0';
+            img.style.width = size + 'px';
+            img.style.height = size + 'px';
+            img.style.top = e.pageY - size / 2 + 'px';
+            img.style.left = e.pageX - size / 2 + 'px';
+            this.copyImg = img;
+            document.body.appendChild(img);
+            document.body.addEventListener('contextmenu', e => {
+                size = 4;
+                img.style.top = e.pageY - size / 2 + 'px';
+                img.style.left = e.pageX - size / 2 + 'px';
+                img.style.width = size + 'px';
+                img.style.height = size + 'px';
+            }, {once: true});
         },
         slideChange() {
             this.viewedItem = this.swiper.activeIndex;
