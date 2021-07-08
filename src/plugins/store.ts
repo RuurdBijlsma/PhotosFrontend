@@ -52,8 +52,10 @@ export default new Vuex.Store({
         photoSelection: {} as any,
         lastSelectedPhoto: null as Media | null,
         delayedIsSelecting: false,
+        uploadResults: [] as {file: string, result: { success: boolean, id: string, error: string }}[],
     },
     mutations: {
+        uploadResults: (state, value) => state.uploadResults = value,
         delayedIsSelecting: (state, value) => state.delayedIsSelecting = value,
         lastSelectedPhoto: (state, value) => state.lastSelectedPhoto = value,
         clearPhotoSelection: state => state.photoSelection = {},
@@ -111,7 +113,7 @@ export default new Vuex.Store({
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
     },
     actions: {
-        addSnack: async ({state, commit}, {text, toText = 'Go', to = null, timeout = 3000}) => {
+        addSnack: async ({state, commit}, {text, toText = 'Go', to = null, timeout = 4000}) => {
             let snack = {text, toText, to, open: true, timeout, id: Math.random()};
             commit('addSnackObject', snack);
             setTimeout(() => {

@@ -2,6 +2,9 @@
     <div class="login">
         <v-card class="login-card">
             <v-card-title>Login</v-card-title>
+            <v-card-subtitle>
+                <router-link to="/settings" class="no-style">{{ api }}</router-link>
+            </v-card-subtitle>
             <v-card-text>
                 <v-text-field label="Email" v-model="email"/>
                 <v-text-field type="password" label="Password" v-model="password"
@@ -20,6 +23,8 @@
 </template>
 
 <script>
+import {api} from "@/ts/constants";
+
 export default {
     name: "Login",
     data: () => ({
@@ -31,6 +36,7 @@ export default {
         },
         email: '',
         password: '',
+        api,
     }),
     methods: {
         async login() {

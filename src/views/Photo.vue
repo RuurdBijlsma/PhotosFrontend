@@ -21,6 +21,7 @@
                 <v-icon>mdi-information-outline</v-icon>
             </v-btn>
             <v-menu :close-on-content-click="false"
+                    v-model="showPhotoMenu"
                     :nudge-left="180"
                     min-width="auto">
                 <template v-slot:activator="{ on, attrs }">
@@ -62,6 +63,17 @@
                         <v-list-item-content>
                             <v-list-item-title>
                                 Delete
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item @click="downloadItem()">
+                        <v-list-item-avatar>
+                            <v-progress-circular :size="25" :width="2" indeterminate v-if="downloadLoading"/>
+                            <v-icon v-else>mdi-download</v-icon>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title>
+                                Download
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
@@ -308,6 +320,7 @@ export default Vue.extend({
         reprocessLoading: false,
         deleteLoading: false,
         fixDateLoading: false,
+        downloadLoading: false,
         leaflet: {
             zoom: 12,
             center: null as L.LatLng | null,
@@ -325,6 +338,7 @@ export default Vue.extend({
         },
         gpsIcon: null as L.Icon | null,
         photoGallery: null as any,
+        showPhotoMenu: false,
     }),
     async mounted() {
         this.photoGallery = this.$refs.photoGallery;
@@ -338,6 +352,25 @@ export default Vue.extend({
         this.loadGpsIcon().then();
     },
     methods: {
+        async downloadItem() {
+            this.downloadLoading = true;
+            await fetch(`${api}/photos/full/${this.id}`)
+                .then(resp => resp.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    // the filename you want
+                    a.download = this.media?.filename ?? 'image.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(() => alert('oh no!'));
+            this.showPhotoMenu = false;
+            this.downloadLoading = false;
+        },
         async loadGpsIcon() {
             if (this.media === null || this.media.location === null)
                 return null;
@@ -464,6 +497,7 @@ export default Vue.extend({
                 return;
             }
             await this.changeDate(newDate);
+            this.showPhotoMenu = false;
             this.fixDateLoading = false;
         },
         async deleteItem() {
@@ -475,6 +509,7 @@ export default Vue.extend({
                 confirmText: 'Delete',
             });
             if (!accepted) {
+                this.showPhotoMenu = false;
                 this.deleteLoading = false;
                 return;
             }
@@ -488,6 +523,7 @@ export default Vue.extend({
             } else {
                 this.$store.dispatch('addSnack', {text: 'Failed to delete ' + this.media.filename}).then();
             }
+            this.showPhotoMenu = false;
             this.deleteLoading = false;
         },
         async changeDate(date: Date) {
@@ -518,6 +554,7 @@ export default Vue.extend({
                 this.dateError = isDateMenu ? 'Failed to set date!' : 'Failed to set time!';
             }
             this.dateLoading = false;
+            this.showPhotoMenu = false;
         },
         openMaps(location: Location | null) {
             if (location === null)
@@ -532,6 +569,7 @@ export default Vue.extend({
             await this.$router.replace(`/${path.join('/')}`);
             this.$store.commit('reloadPhotos', true);
             this.reprocessLoading = false;
+            this.showPhotoMenu = false;
         },
         close() {
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
@@ -746,16 +784,17 @@ export default Vue.extend({
     right: var(--button-padding);
 }
 
-.skip-button-container{
+.skip-button-container {
     height: 100%;
     top: 0;
     position: absolute;
     width: 15%;
-    min-width:100px;
+    min-width: 100px;
     z-index: 1;
     pointer-events: visible;
-    cursor:pointer;
+    cursor: pointer;
 }
+
 .prev-button-container {
     left: 0;
 }

@@ -321,16 +321,16 @@ export default Vue.extend({
                 blockMarginRight: 10,
                 blockDateHeight: 40,
                 mediaMargin: 3,
-                blockHeight: 200,
-                speling: 150,
+                blockHeight: 180,
+                speling: 80,
                 maxScale: 2,
             } : {
                 blockMarginRight: 25,
                 blockDateHeight: 40,
                 mediaMargin: 5,
-                blockHeight: 240,
-                speling: 80,
-                maxScale: 1.73,
+                blockHeight: 180,
+                speling: 50,
+                maxScale: 1.5,
             };
         },
         height(): number {

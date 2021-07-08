@@ -69,10 +69,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // albums
 // mobile select photos
 // Upload photo
-// Download photo
-// backup knop in settings
 // rotate image in ui
-// allow log out
 // add login button to menu when not logged in
 // Allow add to selection in full /photo page
 // show logged in state in app bar
@@ -82,8 +79,8 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // this day 1 year ago thing
 
 // todo bugs
-// right click to copy image in /photo pls
-// can't rotate app on mobile
+// BIG BUG reloading on far away /photo (not loaded at top of /) shows first image and not correct image
+// orientation in web app
 // photo in /photo view is not centered vertically on mobile
 // going to a /photo/id link goes to first photo for some reason
 // Shift-selecting dont work on search page
@@ -100,7 +97,7 @@ export default Vue.extend({
 
         loaded: false,
         errored: false,
-        gridHeight: 240,
+        gridHeight: 200,
         waitPpm: null as null | Promise<MonthPhotos[]>,
 
         homeElement: {} as HTMLElement,

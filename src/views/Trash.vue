@@ -7,7 +7,7 @@
             <div class="trash-items" v-if="trashItems.length > 0">
                 <h2 class="mb-4">Trash</h2>
                 <div class="items">
-                    <v-card :max-width="350" v-for="item in trashItems" :key="item.filePath">
+                    <v-card :max-width="350" v-for="item in trashItems" :key="item.filePath" class="mb-8">
                         <v-img :max-height="200" :src="`${api}/photos/blocked/${item.id}`"></v-img>
                         <v-card-title>{{ item.filePath }}</v-card-title>
                         <v-card-subtitle>
@@ -26,7 +26,7 @@
             <div class="failed-items mt-10" v-if="errorItems.length > 0">
                 <h2 class="mb-4">Failed to process</h2>
                 <div class="items">
-                    <v-card :max-width="350" v-for="item in errorItems" :key="item.filePath">
+                    <v-card :max-width="350" v-for="item in errorItems" :key="item.filePath" class="mb-8">
                         <v-img :max-height="200" :src="`${api}/photos/blocked/${item.id}`"></v-img>
                         <v-card-title>{{ item.filePath }}</v-card-title>
                         <v-card-subtitle>

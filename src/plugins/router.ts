@@ -78,6 +78,12 @@ const routes: Array<RouteConfig> = [
         component: () => import('../views/Trash.vue')
     },
     {
+        path: '/upload',
+        name: 'Upload',
+        meta: {title: 'Upload results - Ruurd Photos'},
+        component: () => import('../views/UploadResult.vue')
+    },
+    {
         path: '/login',
         name: 'Login',
         meta: {title: 'Login - Ruurd Photos'},

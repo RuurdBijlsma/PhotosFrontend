@@ -5,7 +5,7 @@
                     height: layoutMedia.visualHeight + 'px',
                     width: layoutMedia.visualWidth + 'px',
                     transform: selected ? `scale(0.92)` : null,
-                    boxShadow: selected ? `0 0 0 20px #e1eff8, inset 0 0 0 3px #e1eff8` : null,
+                    boxShadow: selected ? `0 0 0 20px ${selectionColor}, inset 0 0 0 3px ${selectionColor}` : null,
                  }">
         <div v-if="media.type === 'photo'"
              class="image-container">
@@ -131,6 +131,9 @@ export default Vue.extend({
         },
     },
     computed: {
+        selectionColor() {
+            return this.$vuetify.theme.themes[this.$vuetify.theme.dark ? 'dark' : 'light'].selectionColor;
+        },
         delayedIsSelecting: {
             get(): boolean {
                 return this.$store.state.delayedIsSelecting;
