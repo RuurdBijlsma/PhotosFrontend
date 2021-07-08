@@ -80,6 +80,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo bugs
 // BIG BUG reloading on far away /photo (not loaded at top of /) shows first image and not correct image
+// upload not working on ruurd.dev
 // orientation in web app
 // photo in /photo view is not centered vertically on mobile
 // going to a /photo/id link goes to first photo for some reason
