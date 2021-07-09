@@ -85,6 +85,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // orientation in web app
 // Shift-selecting sometimes dont work on search page
 // refresh photo on search page is bugged
+// Delete zip files in ./thumbnails/zip at some point
 
 export default Vue.extend({
     name: 'Home',
