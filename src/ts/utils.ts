@@ -1,3 +1,19 @@
+export async function downloadFromUrl(url: string, filename: string) {
+    await fetch(url)
+        .then(resp => resp.blob())
+        .then(blob => {
+            const objUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = objUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(e => console.warn('file download error', e));
+}
+
 export function isTouchDevice() {
     return (('ontouchstart' in window) ||
         (navigator.maxTouchPoints > 0) ||

@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar elevation="1" app clipped-left>
+    <v-app-bar elevation="0" app clipped-left>
         <router-link to="/" class="home-link no-style">
             <img class="logo-icon" src="../assets/transparent-color-icon-256.png"
                  alt="icon">
@@ -301,8 +301,8 @@ export default Vue.extend({
     margin-left: 10px;
 }
 
-.logo-text > * {
-    min-width: 100% !important;
+.logo-text >>> * {
+    width: auto !important;
 }
 
 .theme-switch {

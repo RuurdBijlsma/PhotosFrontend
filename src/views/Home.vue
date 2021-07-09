@@ -80,15 +80,11 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo bugs
 // BIG BUG reloading on far away /photo (not loaded at top of /) shows first image and not correct image
+// going to a /photo/id link goes to first photo for some reason
 // upload not working on ruurd.dev
 // orientation in web app
-// photo in /photo view is not centered vertically on mobile
-// going to a /photo/id link goes to first photo for some reason
-// Shift-selecting dont work on search page
-// shift selecting doesn't work when going from old to new
-// animated webp not showing in grid, but showing in big pic?
+// Shift-selecting sometimes dont work on search page
 // refresh photo on search page is bugged
-// when going to /home from other page the background grid stays after photos have loaded
 
 export default Vue.extend({
     name: 'Home',
@@ -98,7 +94,7 @@ export default Vue.extend({
 
         loaded: false,
         errored: false,
-        gridHeight: 200,
+        gridHeight: 190,
         waitPpm: null as null | Promise<MonthPhotos[]>,
 
         homeElement: {} as HTMLElement,

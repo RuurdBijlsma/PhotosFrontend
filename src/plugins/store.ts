@@ -113,7 +113,7 @@ export default new Vuex.Store({
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
     },
     actions: {
-        addSnack: async ({state, commit}, {text, toText = 'Go', to = null, timeout = 4000}) => {
+        addSnack: ({state, commit}, {text, toText = 'Go', to = null, timeout = 4000}) => {
             let snack = {text, toText, to, open: true, timeout, id: Math.random()};
             commit('addSnackObject', snack);
             setTimeout(() => {

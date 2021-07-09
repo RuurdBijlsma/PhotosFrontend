@@ -105,6 +105,7 @@ export default Vue.extend({
                 a.click();
                 window.URL.revokeObjectURL(url);
             } catch (e) {
+                console.warn("Download failed", e);
             } finally {
                 Vue.set(item, 'downloading', false);
             }

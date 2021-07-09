@@ -17,12 +17,12 @@ export default new Vuetify({
             dark: {
                 primary: '#5996d1',
                 secondary: '#c95313',
-                selectionColor: '#113c6c',
+                selectionColor: '#252b32',
             },
             light: {
                 primary: '#318bd5',
                 secondary: '#d05524',
-                selectionColor: '#9cc8e8',
+                selectionColor: '#dae5f3',
             }
         }
     }

@@ -293,7 +293,7 @@
 import Vue from 'vue'
 import {api} from "@/ts/constants"
 import {Location, Media} from "@/ts/Media";
-import {bytesToReadable, filenameToDate, isTouchDevice} from "@/ts/utils";
+import {bytesToReadable, downloadFromUrl, filenameToDate, isTouchDevice} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
 import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
 import L from "leaflet";
@@ -354,20 +354,7 @@ export default Vue.extend({
     methods: {
         async downloadItem() {
             this.downloadLoading = true;
-            await fetch(`${api}/photos/full/${this.id}`)
-                .then(resp => resp.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    // the filename you want
-                    a.download = this.media?.filename ?? 'image.jpg';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
-                .catch(() => alert('oh no!'));
+            await downloadFromUrl(`${api}/photos/full/${this.id}`, this.media?.filename ?? 'image.jpg');
             this.showPhotoMenu = false;
             this.downloadLoading = false;
         },

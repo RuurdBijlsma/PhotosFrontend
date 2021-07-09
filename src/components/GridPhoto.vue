@@ -4,13 +4,17 @@
                  :style="{
                     height: layoutMedia.visualHeight + 'px',
                     width: layoutMedia.visualWidth + 'px',
-                    transform: selected ? `scale(0.92)` : null,
-                    boxShadow: selected ? `0 0 0 20px ${selectionColor}, inset 0 0 0 3px ${selectionColor}` : null,
+                    backgroundColor: selectionColor,
                  }">
         <div v-if="media.type === 'photo'"
              class="image-container">
             <div class="image-background"
-                 :style="{backgroundImage: `url(${getThumbUrl(media.id, layoutMedia.visualHeight)})`}"/>
+                 :style="{
+                    backgroundImage: `url(${getThumbUrl(media.id, layoutMedia.visualHeight)})`,
+                    clipPath: selected ?
+                         `polygon(15px 15px, calc(100% - 15px) 15px, calc(100% - 15px) calc(100% - 15px), 15px calc(100% - 15px))` :
+                         `polygon(0 0, 100% 0, 100% 100%, 0 100%)`,
+                }"/>
             <div class="image-overlay">
                 <div class="image-info">
                     <v-btn class="zoom-button" if="isSelecting" color="white" small icon
@@ -28,6 +32,8 @@
                     </v-icon>
                 </div>
                 <div class="item-select" @mousedown="selectItem($event)" @click.prevent="updateIsSelecting" :style="{
+                    top: selected ? '-3px' : '0',
+                    left: selected ? '-3px' : '0',
                     width: delayedIsSelecting ? '100%' : null,
                     height: delayedIsSelecting ? '100%' : null,
                     opacity: isSelecting ? '1 !important' : null,
@@ -52,6 +58,11 @@
             <video :poster="`${getThumbUrl(media.id, layoutMedia.visualHeight)}`"
                    muted loop
                    ref="video"
+                   :style="{
+                        clipPath: selected ?
+                             `polygon(15px 15px, calc(100% - 15px) 15px, calc(100% - 15px) calc(100% - 15px), 15px calc(100% - 15px))` :
+                             `polygon(0 0, 100% 0, 100% 100%, 0 100%)`,
+                   }"
                    :src="`${api}/photo/webm/${media.id}.webm`"/>
             <div class="video-overlay">
                 <div class="video-info">
@@ -64,6 +75,8 @@
                     </v-icon>
                 </div>
                 <div class="item-select" @mousedown="selectItem($event)" @click.prevent="updateIsSelecting" :style="{
+                    top: selected ? '-3px' : '0',
+                    left: selected ? '-3px' : '0',
                     width: delayedIsSelecting ? '100%' : null,
                     height: delayedIsSelecting ? '100%' : null,
                     opacity: isSelecting ? '1 !important' : null,
@@ -131,8 +144,8 @@ export default Vue.extend({
         },
     },
     computed: {
-        selectionColor() {
-            return this.$vuetify.theme.themes[this.$vuetify.theme.dark ? 'dark' : 'light'].selectionColor;
+        selectionColor(): string {
+            return this.themeColors.selectionColor;
         },
         delayedIsSelecting: {
             get(): boolean {
@@ -148,9 +161,9 @@ export default Vue.extend({
         selected(): boolean {
             return this.$store.getters.isSelected(this.media.id);
         },
-        themeColors() {
+        themeColors(): { selectionColor: string } {
             let isDark = this.$vuetify.theme.dark;
-            return this.$vuetify.theme.themes[isDark ? 'dark' : 'light'];
+            return this.$vuetify.theme.themes[isDark ? 'dark' : 'light'] as any;
         },
         media() {
             return this.layoutMedia.media;
@@ -171,8 +184,6 @@ export default Vue.extend({
 .photo {
     display: inline-block;
     margin-bottom: -3px;
-    background-color: rgba(128, 128, 128, 0.2);
-    transition: 0.2s;
 }
 
 .photo:hover .item-select {
@@ -198,6 +209,7 @@ export default Vue.extend({
     position: absolute;
     top: 0;
     border-radius: 1px;
+    transition: clip-path 0.2s !important;
 }
 
 .image-overlay {
@@ -207,6 +219,7 @@ export default Vue.extend({
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
+    background-image: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.15));
     border-radius: 3px;
 }
 
@@ -215,6 +228,7 @@ export default Vue.extend({
 }
 
 .item-select {
+    transition: top 0.2s, left 0.2s;
     position: absolute;
     padding: 10px;
     left: 0;
@@ -228,6 +242,7 @@ export default Vue.extend({
     display: block;
     position: absolute;
     border-radius: 3px;
+    transition: clip-path 0.2s !important;
 }
 
 .video-overlay {
@@ -237,7 +252,7 @@ export default Vue.extend({
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    background-image: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.2));
+    background-image: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.15));
     border-radius: 3px;
 }
 

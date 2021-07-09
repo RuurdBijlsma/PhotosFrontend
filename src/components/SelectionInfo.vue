@@ -21,6 +21,9 @@
             <v-btn plain small @click="fixDate" icon title="Fix date from filename" :loading="loading.fixDate">
                 <v-icon>mdi-calendar-range</v-icon>
             </v-btn>
+            <v-btn plain small @click="downloadItems" icon title="Download" :loading="loading.download">
+                <v-icon>mdi-download-outline</v-icon>
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -29,6 +32,8 @@
 import {Media} from "@/ts/Media";
 import Vue from "vue";
 import {format} from "date-fns";
+import {downloadFromUrl} from "@/ts/utils";
+import {api} from "@/ts/constants";
 
 export default Vue.extend({
     name: 'SelectionInfo',
@@ -37,9 +42,42 @@ export default Vue.extend({
             delete: false,
             reprocess: false,
             fixDate: false,
+            download: false,
         },
     }),
     methods: {
+        async downloadItems() {
+            this.loading.download = true;
+            if (this.selectedMedias.length < 5) {
+                let fullMedias = await Promise.all(this.selectedMedias.map(m => this.$store.dispatch('apiRequest', {url: `photos/${m.id}`})));
+                let promises = [];
+                for (let media of fullMedias) {
+                    console.log(media);
+                    promises.push(downloadFromUrl(`${api}/photos/full/${media.id}`, media.filename));
+                }
+                await Promise.all(promises);
+            } else {
+                try {
+                    let {zipId} = await this.$store.dispatch('apiRequest', {
+                        url: `photos/batchDownload`,
+                        body: {ids: this.selectedMedias.map(p => p.id)},
+                    });
+                    console.log('zip id', zipId);
+                    let start = this.selectedMedias[0].createDate;
+                    let end = this.selectedMedias[this.selectedMedias.length - 1].createDate;
+                    [start, end] = [start, end].sort((a, b) => a.getTime() - b.getTime());
+                    let startString = format(start, 'yyyy-MM-dd');
+                    let endString = format(end, 'yyyy-MM-dd');
+                    const filename = startString !== endString ? `photos_${startString}_${endString}` : startString;
+                    await downloadFromUrl(`${api}/photos/zip/${zipId}`, `${filename}.zip`);
+                } catch (e) {
+                    await this.$store.dispatch('addSnack', {text: `Couldn't download files, ${e.message}`});
+                    console.warn('cant download', e);
+                }
+            }
+            this.clearSelection();
+            this.loading.download = false;
+        },
         async batchAction({
                               name = 'delete',
                               subTitleInfix = 'delete',
@@ -127,6 +165,7 @@ export default Vue.extend({
                 successText: 'Successfully fixed dates of items!',
                 confirmText: 'Fix dates',
                 reloadItems: true,
+                clearSelection: true,
             });
         },
         clearSelection() {
