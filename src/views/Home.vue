@@ -44,13 +44,12 @@
                           v-if="$vuetify.breakpoint.mobile && photosPerMonth.length > 0"
                           home-id="home-element"
                           :index-in-view="indexInView"
-                          :photos-per-month="photosPerMonth"></mobile-scrub>
+                          :photos-per-month="photosPerMonth"/>
             <desktop-scrub class="scrubber"
                            v-else-if="photosPerMonth.length > 0"
                            home-id="home-element"
                            :index-in-view="indexInView"
-                           :photos-per-month="photosPerMonth">
-            </desktop-scrub>
+                           :photos-per-month="photosPerMonth"/>
         </template>
     </div>
 </template>
@@ -64,21 +63,23 @@ import DesktopScrub from "@/components/DesktopScrub.vue";
 import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
-// todo features
+// todo big features
+// manage backups page (view backups / restore db / backup db)
 // add full nice docker-compose so its easy to set up
 // * Add nice readme to PhotosServer
 // * Rename PhotosServer to Photos, rename this repo to PhotosFrontend or something
-// * Add backups to /media folder on PhotosServer
 // * Possibly add https support to PhotosServer by allowing domain and ssl keys config
-// mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // albums
+// see server status in ui somewhere (save logs and show)
+
+// todo small features
+// api url default is weird now with docker
+// mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // mobile select photos
-// Upload photo
 // rotate image in ui
 // add login button to menu when not logged in
 // Allow add to selection in full /photo page
 // show logged in state in app bar
-// see server status in ui somewhere (save logs and show)
 // add image subtype 'animation' for gifs
 // add categories page for the buttons in explore to work
 // this day 1 year ago thing
