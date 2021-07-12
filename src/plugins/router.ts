@@ -92,7 +92,8 @@ const routes: Array<RouteConfig> = [
 ]
 
 const router = new VueRouter({
-    routes
+    mode: (process.env.HISTORY_MODE ?? 'false') === 'true' ? 'history' : 'hash',
+    routes,
 })
 
 router.beforeEach((to, from, next) => {

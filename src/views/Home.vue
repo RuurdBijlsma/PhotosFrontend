@@ -77,6 +77,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // add image subtype 'animation' for gifs
 // add categories page for the buttons in explore to work
 // this day 1 year ago thing
+// zip can be downloaded from nginx instead of express
 
 // todo bugs
 // BIG BUG reloading on far away /photo (not loaded at top of /) shows first image and not correct image

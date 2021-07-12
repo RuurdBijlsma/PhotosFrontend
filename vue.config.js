@@ -2,7 +2,7 @@ module.exports = {
     transpileDependencies: [
         'vuetify'
     ],
-    publicPath: '/photos',
+    publicPath: process.env.PUBLIC_PATH ?? '/photos',
     pwa: {
         name: 'Photos',
         themeColor: '#5996d1',
