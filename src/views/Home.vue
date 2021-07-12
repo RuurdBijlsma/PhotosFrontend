@@ -68,6 +68,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // add full nice docker-compose so its easy to set up
 // * Add nice readme to PhotosServer
 // * Rename PhotosServer to Photos, rename this repo to PhotosFrontend or something
+// * Add backups to /media folder on PhotosServer
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // albums
 // mobile select photos
