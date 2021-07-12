@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig} from 'vue-router'
 import Home from '../views/Home.vue'
-import env from "../assets/env.json";
+import historyMode from '../env/historyMode';
 
 Vue.use(VueRouter)
 
@@ -93,7 +93,7 @@ const routes: Array<RouteConfig> = [
 ]
 
 const router = new VueRouter({
-    mode: env.historyMode ? 'history' : 'hash',
+    mode: historyMode ? 'history' : 'hash',
     routes,
 })
 
