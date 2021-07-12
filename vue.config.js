@@ -1,8 +1,10 @@
+const env = require('./src/assets/env.json')
+
 module.exports = {
     transpileDependencies: [
         'vuetify'
     ],
-    publicPath: process.env.PUBLIC_PATH ?? '/photos',
+    publicPath: env.publicPath,
     pwa: {
         name: 'Photos',
         themeColor: '#5996d1',
