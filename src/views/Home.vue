@@ -69,6 +69,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // * Add nice readme to PhotosServer
 // * Rename PhotosServer to Photos, rename this repo to PhotosFrontend or something
 // * Add backups to /media folder on PhotosServer
+// * Possibly add https support to PhotosServer by allowing domain and ssl keys config
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // albums
 // mobile select photos
