@@ -1,5 +1,10 @@
 const publicPath = require('./src/env/publicPath.js');
 
+console.warn("PUBLIC PATH IS")
+console.warn("==========================================================================")
+console.warn(publicPath)
+console.warn("==========================================================================")
+
 module.exports = {
     transpileDependencies: [
         'vuetify'
