@@ -64,7 +64,6 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo big features
-// manage backups page (view backups / restore db / backup db)
 // add full nice docker-compose so its easy to set up
 // * Add nice readme to PhotosServer
 // * Rename PhotosServer to Photos, rename this repo to PhotosFrontend or something
@@ -73,6 +72,10 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // see server status in ui somewhere (save logs and show)
 
 // todo small features
+// manage backups page (view backups / restore db / backup db)
+// enter to login
+// show message for unauthorized
+// allow change password/mail/name
 // api url default is weird now with docker
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // mobile select photos
