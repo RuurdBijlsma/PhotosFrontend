@@ -6,11 +6,14 @@
          }">
         <div v-if="!loaded && !errored" class="error-container">
             <v-progress-circular color="primary" :width="5" :size="200" indeterminate></v-progress-circular>
-            <p class="caption mt-3">Loading {{api}}</p>
+            <p class="caption mt-3">Loading {{ api }}</p>
         </div>
         <div v-else-if="!loaded && errored" class="error-container">
             <v-icon class="error-icon">mdi-alert-circle-outline</v-icon>
-            <p class="caption mt-3">Can't load {{api}}, change API url in <router-link to="/settings">settings</router-link>.</p>
+            <p class="caption mt-3">Can't load {{ api }}, change API url in
+                <router-link to="/settings">settings</router-link>
+                .
+            </p>
         </div>
         <template v-else>
             <router-view/>
@@ -89,8 +92,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // zip can be downloaded from nginx instead of express
 
 // todo bugs
-// BIG BUG reloading on far away /photo (not loaded at top of /) shows first image and not correct image
-// going to a /photo/id link goes to first photo for some reason
 // upload not working on ruurd.dev
 // orientation in web app
 // Shift-selecting sometimes dont work on search page
@@ -134,8 +135,11 @@ export default Vue.extend({
         if (this.hasDate !== null && !loadingPhoto)
             this.updateFromDateQuery();
         if (loadingPhoto) {
-            for (let month of this.photosPerMonth)
+            for (let month of this.photosPerMonth) {
+                if (month.viewed)
+                    console.log("Setting loaded true", month);
                 month.loaded = month.viewed;
+            }
         }
     },
     methods: {
@@ -388,7 +392,7 @@ export default Vue.extend({
 
 <style scoped>
 .home {
-    height:100%;
+    height: 100%;
     overflow-y: scroll;
     width: 100%;
     -ms-overflow-style: none;
@@ -399,7 +403,7 @@ export default Vue.extend({
     display: none;
 }
 
-.error-container{
+.error-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -410,7 +414,7 @@ export default Vue.extend({
 .error-icon {
     font-size: 200px;
     display: block;
-    opacity:0.5;
+    opacity: 0.5;
 }
 
 .photos {

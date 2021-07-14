@@ -580,6 +580,7 @@ export default Vue.extend({
             let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
             if (idOverride !== null || this.media === null || id === this.media?.id) {
                 this.media = media;
+                this.$store.commit('keepInView', media);
                 this.loadInfo++;
             }
             this.isLoading.delete(id);

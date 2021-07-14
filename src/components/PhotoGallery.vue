@@ -1,45 +1,52 @@
 <template>
-    <swiper
-        @slideChange="slideChange"
-        @slideChangeTransitionEnd="transitionEnd"
-        @slideNextTransitionStart="checkSpaceRight"
-        class="swiper" ref="swiper" :options="swiperOption">
-        <swiper-slide v-for="item in items" :key="item.id">
-            <div class="slide-container">
-                <v-zoomer
-                    :zoomed.sync="imgZoomed"
-                    :max-scale="20"
-                    :key="zoomerKeys[item.id]"
-                    ref="zoomers"
-                    :zooming-elastic="false"
-                    class="element-item"
-                    v-if="item && item.type === 'photo'">
-                    <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
-                           @mousedown.right="insertImg"
-                           :src="imgSrc(item.id, zoomedImgs.has(item.id))"
-                           :key="imgSrc(item.id, zoomedImgs.has(item.id))"
-                           :transition="'none'"
-                           ref="image"
-                           class="zoomer-image"
-                           contain>
-                    </v-img>
-                </v-zoomer>
-                <video class="element-item"
-                       :ref="`video${item.id}`"
-                       :poster="`${api}/photo/big/${item.id}.webp`"
-                       controls
-                       v-else-if="item"
-                       :src="`${api}/photo/webm/${item.id}.webm`">
-                </video>
-            </div>
-        </swiper-slide>
-    </swiper>
+    <div class="photo-gallery">
+        <v-img v-if="index === -1 && id"
+               :lazy-src="`${api}/photo/tiny/${id}.webp`"
+               contain
+               :src="`${api}/photo/big/${id}.webp`"/>
+        <swiper
+            v-show="index !== -1"
+            @slideChange="slideChange"
+            @slideChangeTransitionEnd="transitionEnd"
+            @slideNextTransitionStart="checkSpaceRight"
+            class="swiper" ref="swiper" :options="swiperOption">
+            <swiper-slide v-for="item in items" :key="item.id">
+                <div class="slide-container">
+                    <v-zoomer
+                        :zoomed.sync="imgZoomed"
+                        :max-scale="20"
+                        :key="zoomerKeys[item.id]"
+                        ref="zoomers"
+                        :zooming-elastic="false"
+                        class="element-item"
+                        v-if="item && item.type === 'photo'">
+                        <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
+                               @mousedown.right="insertImg"
+                               :src="imgSrc(item.id, zoomedImgs.has(item.id))"
+                               :key="imgSrc(item.id, zoomedImgs.has(item.id))"
+                               :transition="'none'"
+                               ref="image"
+                               class="zoomer-image"
+                               contain>
+                        </v-img>
+                    </v-zoomer>
+                    <video class="element-item"
+                           :ref="`video${item.id}`"
+                           :poster="`${api}/photo/big/${item.id}.webp`"
+                           controls
+                           v-else-if="item"
+                           :src="`${api}/photo/webm/${item.id}.webm`">
+                    </video>
+                </div>
+            </swiper-slide>
+        </swiper>
+    </div>
 </template>
 
 <script lang="ts">
 import Vue, {PropType} from 'vue'
 import {api} from "@/ts/constants"
-import {Media} from "@/ts/Media";
+import {Media, MediaType, MediaSubType} from "@/ts/Media";
 import {Swiper, SwiperSlide} from 'vue-awesome-swiper'
 import 'swiper/css/swiper.css'
 import {isTouchDevice} from "@/ts/utils";
@@ -86,12 +93,14 @@ export default Vue.extend({
         this.swiper.resizeObserver = true;
         // window.swiper = this.swiper;
 
-
         if (this.queue.length > 0)
             this.initialize();
     },
     methods: {
         initialize() {
+            if (this.index === -1 && this.id !== null) {
+                return;
+            }
             this.startIndex = Math.max(0, this.index - carouselBuffer);
             this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
             let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
@@ -210,7 +219,8 @@ export default Vue.extend({
             this.swiper.allowTouchMove = this.allowTouch;
         },
         index() {
-            this.$store.commit('keepInView', this.queue[this.index]);
+            if (this.index !== -1)
+                this.$store.commit('keepInView', this.queue[this.index]);
         },
         imgZoomed() {
             if (this.imgZoomed && !this.zoomedImgs.has(this.id)) {
@@ -245,6 +255,11 @@ export default Vue.extend({
 </script>
 
 <style scoped>
+.photo-gallery > * {
+    width: 100%;
+    height: 100%;
+}
+
 .swiper {
     background-color: black;
 }
