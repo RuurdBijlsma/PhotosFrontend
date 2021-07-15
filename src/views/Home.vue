@@ -92,6 +92,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // zip can be downloaded from nginx instead of express
 
 // todo bugs
+// HISTORY MODE DOESNT WORK ON NGINX
 // upload not working on ruurd.dev
 // orientation in web app
 // Shift-selecting sometimes dont work on search page
