@@ -71,8 +71,8 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // see server status in ui somewhere (save logs and show)
 
 // todo small features
+// allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // manage backups page (view backups / restore db / backup db)
-// enter to login
 // show message for unauthorized
 // allow change password/mail/name
 // api url default is weird now with docker
@@ -91,7 +91,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // upload not working on ruurd.dev
 // orientation in web app
 // Shift-selecting sometimes dont work on search page
-// refresh photo on search page is bugged
+// refresh /photo on search page is bugged
 // Delete zip files in ./thumbnails/zip at some point
 
 export default Vue.extend({
