@@ -67,10 +67,6 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo big features
-// add full nice docker-compose so its easy to set up
-// * Add nice readme to PhotosServer
-// * Rename PhotosServer to Photos, rename this repo to PhotosFrontend or something
-// * Possibly add https support to PhotosServer by allowing domain and ssl keys config
 // albums
 // see server status in ui somewhere (save logs and show)
 
@@ -92,7 +88,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // zip can be downloaded from nginx instead of express
 
 // todo bugs
-// HISTORY MODE DOESNT WORK ON NGINX
 // upload not working on ruurd.dev
 // orientation in web app
 // Shift-selecting sometimes dont work on search page

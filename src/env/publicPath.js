@@ -1,1 +1,1 @@
-module.exports = '/photos'
+module.exports = '/'

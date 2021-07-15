@@ -167,7 +167,7 @@ export default Vue.extend({
             }, {once: true})
         },
         logout() {
-            localStorage.clear();
+            this.$store.commit('login', {email: '', password: ''});
             location.reload();
         },
 

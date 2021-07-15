@@ -11,21 +11,15 @@
             </div>
             <v-text-field name="apiUrl" outlined class="mt-4" label="API endpoint" v-model="apiUrl"/>
         </v-form>
-        <v-btn outlined v-if="reloadNeeded" @click="reload" :loading="rotating">
-            <v-icon class="mr-3">mdi-reload</v-icon>
-            Apply changes
-        </v-btn>
     </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import {api} from "@/ts/constants";
 
 export default Vue.extend({
     name: "Settings",
     data: () => ({
-        apiUrlChanged: false,
         rotating: false,
         updateServerToken: -1,
         tokenChangeSaved: false,
@@ -37,18 +31,6 @@ export default Vue.extend({
         },
     },
     computed: {
-        reloadNeeded() {
-            return this.apiUrlChanged;
-        },
-        apiUrl: {
-            get(): string {
-                return api;
-            },
-            set(v: string) {
-                localStorage.api = v;
-                this.apiUrlChanged = v !== api;
-            },
-        },
         mapboxKey: {
             get(): string {
                 return this.$store.state.mapboxKey;

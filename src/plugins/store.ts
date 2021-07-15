@@ -4,6 +4,7 @@ import {api} from "@/ts/constants"
 import VuexPersistence from "vuex-persist"
 import {Media} from "@/ts/Media";
 import {MonthPhotos} from "@/ts/MediaInterfaces";
+import router from "@/plugins/router";
 
 const vuexLocal = new VuexPersistence({
     reducer: (state: any) => ({
@@ -52,7 +53,7 @@ export default new Vuex.Store({
         photoSelection: {} as any,
         lastSelectedPhoto: null as Media | null,
         delayedIsSelecting: false,
-        uploadResults: [] as {file: string, result: { success: boolean, id: string, error: string }}[],
+        uploadResults: [] as { file: string, result: { success: boolean, id: string, error: string } }[],
     },
     mutations: {
         uploadResults: (state, value) => state.uploadResults = value,
@@ -152,8 +153,12 @@ export default new Vuex.Store({
             return cachedPhotos;
         },
         apiRequest: async ({state, getters}, {url, body = {}}): Promise<any> => {
-            if (!getters.isLoggedIn)
-                return {loggedIn: false, result: null};
+            if (!getters.isLoggedIn) {
+                let routeName = location.pathname;
+                if (routeName !== '/login')
+                    await router.push('/login');
+                return null;
+            }
 
             let txt = await fetch(`${state.api}/${url}`, {
                 method: 'POST',
@@ -168,8 +173,8 @@ export default new Vuex.Store({
                 return null;
             }
         },
-        async checkLogin({state, commit}, {email, password}) {
-            let result = await fetch(`${state.api}/auth`, {
+        async checkLogin({state, commit}, {email, password, api = null}) {
+            let result = await fetch(`${api ?? state.api}/auth`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({auth: {email, password}}),
