@@ -78,7 +78,9 @@ export default Vue.extend({
     async mounted() {
         if (!this.$store.getters.isLoggedIn && this.$route.name !== 'Login')
             await this.$router.push('/login');
-        console.log(this.$store);
+        console.log('window.store = ', this.$store);
+        // @ts-ignore
+        window.store = this.$store;
     },
     methods: {
         scrollToTop() {

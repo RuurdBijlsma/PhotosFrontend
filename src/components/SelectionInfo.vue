@@ -69,7 +69,7 @@ export default Vue.extend({
                     let startString = format(start, 'yyyy-MM-dd');
                     let endString = format(end, 'yyyy-MM-dd');
                     const filename = startString !== endString ? `photos_${startString}_${endString}` : startString;
-                    await downloadFromUrl(`${api}/photos/zip/${zipId}`, `${filename}.zip`);
+                    await downloadFromUrl(`${api}/photo/zip/${zipId}.zip`, `${filename}.zip`);
                 } catch (e) {
                     await this.$store.dispatch('addSnack', {text: `Couldn't download files, ${e.message}`});
                     console.warn('cant download', e);

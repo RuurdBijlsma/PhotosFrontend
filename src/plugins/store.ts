@@ -152,7 +152,7 @@ export default new Vuex.Store({
             commit('cachedPhotos', {key, media: cachedPhotos});
             return cachedPhotos;
         },
-        apiRequest: async ({state, getters}, {url, body = {}}): Promise<any> => {
+        apiRequest: async ({state, getters, dispatch}, {url, body = {}}): Promise<any> => {
             if (!getters.isLoggedIn) {
                 let routeName = location.pathname;
                 if (routeName !== '/login')
@@ -160,12 +160,20 @@ export default new Vuex.Store({
                 return null;
             }
 
-            let txt = await fetch(`${state.api}/${url}`, {
+            let response = await fetch(`${state.api}/${url}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({auth: {email: state.email, password: state.password}, ...body}),
-            }).then(j => j.text());
+            });
 
+            if (response.status === 401) {
+                await dispatch('addSnack', {text: 'Your login credentials seem to be incorrect'});
+                if (router.currentRoute.name !== 'Login')
+                    await router.push('/login');
+                return null;
+            }
+
+            let txt = await response.text();
             try {
                 return JSON.parse(txt);
             } catch (e) {

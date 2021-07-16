@@ -70,7 +70,13 @@ const routes: Array<RouteConfig> = [
         path: '/settings',
         name: 'Settings',
         meta: {title: 'Settings - Ruurd Photos'},
-        component: () => import('../views/Settings.vue')
+        component: () => import('../views/settings/Settings.vue'),
+        children: [{
+            meta: {title: 'Map settings - Ruurd Photos'},
+            path: '/settings/map',
+            name: 'MapSettings',
+            component: () => import('../views/settings/MapSettings.vue')
+        }],
     },
     {
         path: '/trash',

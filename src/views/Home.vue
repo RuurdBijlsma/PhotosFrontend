@@ -71,6 +71,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // see server status in ui somewhere (save logs and show)
 
 // todo small features
+// set max skip interval when holding right/left on /photo
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // manage backups page (view backups / restore db / backup db)
 // show message for unauthorized
