@@ -82,17 +82,17 @@ export class Media {
             latitude: MediaLocation.latitude,
             longitude: MediaLocation.longitude,
             altitude: MediaLocation.altitude,
-            places: MediaLocation.MediaPlaces?.map?.((p: { type: string, text: string }) => ({
+            places: MediaLocation.Places?.map?.((p: { type: string, text: string }) => ({
                 type: p.type,
                 name: p.text,
             })) as { type: string, name: string }[]
         } : null;
         let classifications: (Classification[] | null) = MediaClassifications ? MediaClassifications.map((c: any) => {
             let levels = {} as any;
-            for (let {level, text} of c.MediaGlossaries) {
+            for (let {level, text} of c.Glossaries) {
                 levels[level] = {glossary: text, level};
             }
-            for (let {level, text} of c.MediaLabels) {
+            for (let {level, text} of c.Labels) {
                 if (!levels[level].labels)
                     levels[level].labels = [];
                 levels[level].labels.push(text);

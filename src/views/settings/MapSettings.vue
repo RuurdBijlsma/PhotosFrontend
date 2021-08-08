@@ -16,7 +16,7 @@
 import Vue from "vue";
 
 export default Vue.extend({
-    name: "Settings",
+    name: "MapSettings",
     data: () => ({
         updateServerToken: -1,
         tokenChangeSaved: false,

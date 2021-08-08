@@ -1,13 +1,13 @@
 <template>
     <div class="explore"
          :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
-        <h1>Explore</h1>
+        <h3 class="mb-6 text-center">Explore</h3>
         <v-divider/>
 
         <h3 class="mt-5">Places</h3>
         <perfect-scrollbar class="grid">
             <router-link v-for="place in places" :key="place.text" class="item" :to="`/search/${place.text}`">
-                <v-img class="item-img" :src="`${api}/photo/tiny/${place.MediaItemId}.webp`"
+                <v-img class="item-img" :src="`${api}/photo/tiny/${place.MediumId}.webp`"
                        gradient="to top right, rgba(50,62,100,.5), rgba(25,32,72,0)">
                     <div class="item-text">{{ place.text }}</div>
                 </v-img>
@@ -17,7 +17,7 @@
         <h3 class="mt-5">Things</h3>
         <perfect-scrollbar class="grid">
             <router-link v-for="label in labels" :key="label.text" class="item" :to="`/search/${label.text}`">
-                <v-img class="item-img" :src="`${api}/photo/tiny/${label.MediaItemId}.webp`"
+                <v-img class="item-img" :src="`${api}/photo/tiny/${label.MediumId}.webp`"
                        gradient="to top right, rgba(50,62,100,.5), rgba(25,32,72,0)">
                     <div class="item-text">{{ label.text }}</div>
                 </v-img>
@@ -98,6 +98,7 @@ export default {
             this.$store.dispatch('apiRequest', {url: 'photos/labels'}),
             this.$store.dispatch('apiRequest', {url: 'photos/locations'}),
         ]);
+        console.log(this.labels, this.places);
         localStorage.labelsAndPlaces = JSON.stringify({labels: this.labels, places: this.places});
     },
 }
@@ -105,7 +106,7 @@ export default {
 
 <style scoped>
 .explore {
-    padding: 50px;
+    padding: 30px;
     overflow-y: auto;
     width: 100%;
 }

@@ -80,31 +80,30 @@ export default Vue.extend({
             }
             return this.photosPerMonth[this.photosPerMonth.length - 1];
         },
-        dateFromScrubEvent(pageY: number): number {
-            let percent = (pageY - this.$vuetify.application.top - this.tabSize / 2) /
-                (this.canvasHeight - this.tabSize);
+        pageYToPercent(pageY: number): number {
+            let percent = (pageY - this.$vuetify.application.top - this.tabSize / 2) / this.canvasHeight;
             percent = Math.max(0, Math.min(1, percent * 1.01));
             return percent;
         },
         touchScrubStart(e: TouchEvent) {
             this.scrubbing = true;
-            let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+            let percent = this.pageYToPercent(e.touches[0].pageY);
             this.homeElement.scrollTo({top: this.scrollHeight * percent});
         },
         touchScrubMove(e: TouchEvent) {
             if (this.scrubbing) {
-                let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+                let percent = this.pageYToPercent(e.touches[0].pageY);
                 this.homeElement.scrollTo({top: this.scrollHeight * percent});
             }
         },
         scrubStart(e: MouseEvent) {
             this.scrubbing = true;
-            let percent = this.dateFromScrubEvent(e.pageY);
+            let percent = this.pageYToPercent(e.pageY);
             this.homeElement.scrollTo({top: this.scrollHeight * percent});
         },
         scrubMove(e: MouseEvent) {
             if (this.scrubbing) {
-                let percent = this.dateFromScrubEvent(e.pageY);
+                let percent = this.pageYToPercent(e.pageY);
                 this.homeElement.scrollTo({top: this.scrollHeight * percent});
             }
         },
@@ -115,7 +114,7 @@ export default Vue.extend({
     },
     computed: {
         scrubData(): { percent: number, year: number, month: number } {
-            let percent = this.scrollTop / this.scrollHeight;
+            let percent = this.scrollTop / (this.scrollHeight - this.canvasHeight);
             let mp = this.yToMonthPhotos(percent);
             return {
                 percent,
@@ -128,7 +127,7 @@ export default Vue.extend({
             return `${pixels}px`;
         },
         formattedDate(): string {
-            return format(new Date(this.scrubData.year, this.scrubData.month-1, 15), 'MMM yyyy')
+            return format(new Date(this.scrubData.year, this.scrubData.month - 1, 15), 'MMM yyyy')
         },
         canvasHeight(): number {
             return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;

@@ -33,7 +33,7 @@ export default Vue.extend({
         yearTextSize: 13,
         renderAnimationFrame: -1,
         scrollTimeout: -1,
-        scrolling:false,
+        scrolling: false,
         scrubbing: false,
         overScrub: false,
         scrubData: {percent: 0, year: d.getFullYear(), month: d.getMonth() + 1},
@@ -74,8 +74,8 @@ export default Vue.extend({
             }
             return this.photosPerMonth[this.photosPerMonth.length - 1];
         },
-        dateFromScrubEvent(pageY: number): number {
-            let percent = (pageY - this.$vuetify.application.top) / this.canvas.height;
+        pageYToPercent(pageY: number): number {
+            let percent = (pageY - this.$vuetify.application.top) / this.canvasHeight;
             percent = Math.max(0, Math.min(1, percent * 1.01));
             return percent;
         },
@@ -95,14 +95,14 @@ export default Vue.extend({
             }
             let ppmInView = this.photosPerMonth[this.indexInView];
             if (this.scrolling && !this.scrubbing) {
-                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvas.height;
+                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvasHeight;
                 this.drawScrollThumb(
                     y, ppmInView.year ?? 0, ppmInView.month ?? 0,
                     true,
                     true,
                 );
             } else if (!this.scrubbing) {
-                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvas.height;
+                let y = this.homeElement.scrollTop / this.homeElement.scrollHeight * this.canvasHeight;
                 this.drawScrollThumb(
                     y, ppmInView.year ?? 0, ppmInView.month ?? 0,
                     true,
@@ -190,23 +190,23 @@ export default Vue.extend({
         },
         touchScrubStart(e: TouchEvent) {
             this.scrubbing = true;
-            let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+            let percent = this.pageYToPercent(e.touches[0].pageY);
             this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
         },
         touchScrubMove(e: TouchEvent) {
             if (this.scrubbing) {
-                let percent = this.dateFromScrubEvent(e.touches[0].pageY);
+                let percent = this.pageYToPercent(e.touches[0].pageY);
                 this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
             }
         },
         scrubStart(e: MouseEvent) {
             this.scrubbing = true;
-            let percent = this.dateFromScrubEvent(e.pageY);
+            let percent = this.pageYToPercent(e.pageY);
             this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
         },
         scrubMove(e: MouseEvent) {
             if (this.scrubbing) {
-                let percent = this.dateFromScrubEvent(e.pageY);
+                let percent = this.pageYToPercent(e.pageY);
                 this.homeElement.scrollTo({top: this.homeElement.scrollHeight * percent});
             }
             if (this.overScrub || this.scrubbing) {
@@ -226,19 +226,19 @@ export default Vue.extend({
             return this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom;
         },
     },
-    watch: {
-    },
+    watch: {},
 })
 </script>
 
 <style scoped>
-.scrubber{
+.scrubber {
     width: 100px;
     height: 100%;
     position: absolute;
     right: 0;
     top: 0;
 }
+
 .inner-scrub {
     width: 100%;
     height: 100%;

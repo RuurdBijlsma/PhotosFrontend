@@ -71,12 +71,20 @@ const routes: Array<RouteConfig> = [
         name: 'Settings',
         meta: {title: 'Settings - Ruurd Photos'},
         component: () => import('../views/settings/Settings.vue'),
-        children: [{
-            meta: {title: 'Map settings - Ruurd Photos'},
-            path: '/settings/map',
-            name: 'MapSettings',
-            component: () => import('../views/settings/MapSettings.vue')
-        }],
+        children: [
+            {
+                meta: {title: 'Settings - Ruurd Photos'},
+                path: '/settings',
+                name: 'GeneralSettings',
+                component: () => import('../views/settings/GeneralSettings.vue')
+            },
+            {
+                meta: {title: 'Map settings - Ruurd Photos'},
+                path: '/settings/map',
+                name: 'MapSettings',
+                component: () => import('../views/settings/MapSettings.vue')
+            },
+        ],
     },
     {
         path: '/trash',
@@ -89,6 +97,12 @@ const routes: Array<RouteConfig> = [
         name: 'Upload',
         meta: {title: 'Upload results - Ruurd Photos'},
         component: () => import('../views/UploadResult.vue')
+    },
+    {
+        path: '/logs',
+        name: 'Logs',
+        meta: {title: 'Logs - Ruurd Photos'},
+        component: () => import('../views/Logs.vue')
     },
     {
         path: '/login',

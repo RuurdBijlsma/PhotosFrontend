@@ -1,7 +1,15 @@
 <template>
     <div class="settings">
-        <h2 class="mb-6">Settings</h2>
-        <router-view/>
+        <h3 class="mb-6 text-center">Settings</h3>
+        <v-divider/>
+        <div class="links">
+            <v-btn plain exact to="/settings">General</v-btn>
+            <v-btn plain to="/settings/map">Map</v-btn>
+        </div>
+        <v-divider/>
+        <div class="padded">
+            <router-view/>
+        </div>
     </div>
 </template>
 
@@ -18,5 +26,14 @@ export default Vue.extend({
     padding: 30px;
     max-width: 1000px;
     margin: 0 auto;
+}
+
+.links {
+    display: flex;
+    justify-content: space-around;
+}
+
+.padded {
+    padding: 20px;
 }
 </style>

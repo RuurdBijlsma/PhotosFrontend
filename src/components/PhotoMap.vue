@@ -26,6 +26,7 @@ import Vue from 'vue'
 import {LMap, LMarker, LTileLayer, LRectangle} from 'vue2-leaflet';
 import L from "leaflet";
 import {api} from "@/ts/constants";
+import historyMode from "../env/historyMode"
 
 export default Vue.extend({
     name: 'PhotoMap',
@@ -116,7 +117,7 @@ export default Vue.extend({
             console.log('zoom', this.leaflet.zoom);
             for (let photo of photosInBounds) {
                 let marker = L.circleMarker(
-                    [photo.MediaLocation.latitude, photo.MediaLocation.longitude],
+                    [photo.Location.latitude, photo.Location.longitude],
                     {
                         radius: 8,
                         color: photo.type === 'image' ? primary : secondary,
@@ -135,7 +136,7 @@ export default Vue.extend({
                         `<video height="${mediaHeight}" width="${mediaHeight * ratio}" src="${api}/photo/webm/${photo.id}.webm" autoplay controls loop>`;
                     this.popup
                         .setLatLng(e.latlng)
-                        .setContent(`<a href="${location.pathname}#/photo/${photo.id}">${content}</a>`)
+                        .setContent(`<a href="${historyMode ? '' : '#'}/photo/${photo.id}">${content}</a>`)
                         .openOn(this.mapRef.mapObject);
                 });
                 this.leaflet.markers.push(marker);

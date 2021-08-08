@@ -72,7 +72,7 @@ export default Vue.extend({
         pages: [
             {name: 'Home', icon: 'mdi-home-outline', to: '/'},
             {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
-            {name: 'Photo map', icon: 'mdi-earth', to: '/map'},
+            {name: 'Photo map', icon: 'mdi-map-outline', to: '/map'},
         ],
     }),
     async mounted() {

@@ -48,6 +48,14 @@
                         <v-list-item-title>Settings</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
+                <v-list-item to="/logs">
+                    <v-list-item-icon>
+                        <v-icon>mdi-server</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                        <v-list-item-title>Logs</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
                 <v-list-item color="primary">
                     <v-list-item-icon>
                         <v-icon>mdi-brightness-6</v-icon>
@@ -78,7 +86,7 @@
                         <v-list-item-title>Upload</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
-                <v-list-item @click="logout">
+                <v-list-item @click="$store.dispatch('logout')">
                     <v-list-item-icon>
                         <v-icon>mdi-face</v-icon>
                     </v-list-item-icon>
@@ -139,6 +147,7 @@ export default Vue.extend({
                     data.append('media', file, file.name);
                 }
 
+                await this.$router.push('/logs');
                 let result = await fetch(`${api}/photos/upload`, {
                     method: 'POST',
                     body: data,
@@ -166,11 +175,6 @@ export default Vue.extend({
                 }
             }, {once: true})
         },
-        logout() {
-            this.$store.commit('login', {email: '', password: ''});
-            location.reload();
-        },
-
         enterPressed() {
             this.querySelect = this.query
             let searchComponent: any = this.$refs.search;
