@@ -2,6 +2,7 @@
     <div class="media-photo" :style="{
         flexDirection: $vuetify.breakpoint.mobile ? 'column' : 'row',
     }">
+        <router-view/>
         <div class="left-pane" :style="{
             width: ($vuetify.breakpoint.mobile || !showInfo) ? '100%' : `calc(100% - ${infoPaneSize}px)`,
             minHeight: $vuetify.breakpoint.mobile ? '100vh' : null,
@@ -19,6 +20,9 @@
                     // top: $vuetify.breakpoint.mobile ? null : '20px',
                 }">
                 <v-icon>mdi-information-outline</v-icon>
+            </v-btn>
+            <v-btn icon dark :to="$route.path + '/edit'" class="edit-button btn">
+                <v-icon>mdi-image-edit-outline</v-icon>
             </v-btn>
             <v-menu :close-on-content-click="false"
                     v-model="showPhotoMenu"
@@ -582,6 +586,7 @@ export default Vue.extend({
                 this.media = media;
                 this.$store.commit('keepInView', media);
                 this.loadInfo++;
+                console.log(this.media);
             }
             this.isLoading.delete(id);
         },
@@ -765,6 +770,11 @@ export default Vue.extend({
 .info-button {
     top: var(--button-padding);
     right: calc(var(--button-padding) * 2 + 36px);
+}
+
+.edit-button {
+    top: var(--button-padding);
+    right: calc(var(--button-padding) * 3 + 36px * 2);
 }
 
 .menu-button {

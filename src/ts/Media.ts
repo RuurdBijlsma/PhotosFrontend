@@ -1,5 +1,3 @@
-import {parse, addMinutes} from "date-fns";
-
 export type MediaType = 'photo' | 'video';
 export type MediaSubType = 'none' | 'portrait' | 'vr' | 'slomo';
 
@@ -71,23 +69,23 @@ export class Media {
                           type = '',
                           subType = '',
                           durationMs = null,
-                          MediaClassifications = null as any,
-                          MediaLocation = null as any,
+                          Classifications = null as any,
+                          Location = null as any,
                           bytes = '-1',
                           exif = {},
                       }) {
         subType = subType.toLowerCase();
         type = type.toLowerCase();
-        let location: (Location | null) = MediaLocation ? {
-            latitude: MediaLocation.latitude,
-            longitude: MediaLocation.longitude,
-            altitude: MediaLocation.altitude,
-            places: MediaLocation.Places?.map?.((p: { type: string, text: string }) => ({
+        let location: (Location | null) = Location ? {
+            latitude: Location.latitude,
+            longitude: Location.longitude,
+            altitude: Location.altitude,
+            places: Location.Places?.map?.((p: { type: string, text: string }) => ({
                 type: p.type,
                 name: p.text,
             })) as { type: string, name: string }[]
         } : null;
-        let classifications: (Classification[] | null) = MediaClassifications ? MediaClassifications.map((c: any) => {
+        let classifications: (Classification[] | null) = Classifications ? Classifications.map((c: any) => {
             let levels = {} as any;
             for (let {level, text} of c.Glossaries) {
                 levels[level] = {glossary: text, level};

@@ -14,7 +14,7 @@
                      v-for="block in row.layoutBlocks">
                     <div class="block-date"
                          v-if="block.showDate"
-                         :title="block.dateString"
+                         :title="formatDate(block.date, `EEEE, d MMMM y`)"
                          :style="{maxWidth: Math.floor(block.width) + 'px'}">
                         <router-link class="no-style"
                                      :to="`/?date=${formatDate(block.date, 'yyyy-MM-dd')}`">
@@ -129,8 +129,9 @@ export default Vue.extend({
             return format(date, dateFormat);
         },
         dateToString(date: Date) {
-            if (d.getTime() - date.getTime() < 1000 * 60 * 60 * 24 * 5)
-                return formatDistance(date, d, {addSuffix: true});
+            let distance = formatDistance(date, d, {addSuffix: true});
+            if (+distance.substr(0, distance.indexOf(' ')) < 5)
+                return distance;
 
             let formatString = 'E, d MMM'
             if (date.getFullYear() !== d.getFullYear())

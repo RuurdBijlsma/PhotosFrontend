@@ -15,7 +15,13 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/photo/:id',
             name: 'HomePhoto',
-            component: () => import('../views/Photo.vue')
+            component: () => import('../views/Photo.vue'),
+            children:[{
+                meta: {title: 'Edit photo - Ruurd Photos'},
+                path: '/photo/:id/edit',
+                name: 'EditHomePhoto',
+                component: () => import('../views/EditPhoto.vue'),
+            }],
         }],
     },
     {
@@ -27,7 +33,13 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/search/:query/photo/:id',
             name: 'SearchPhoto',
-            component: () => import('../views/Photo.vue')
+            component: () => import('../views/Photo.vue'),
+            children:[{
+                meta: {title: 'Edit photo - Ruurd Photos'},
+                path: '/search/:query/photo/:id/edit',
+                name: 'EditSearchPhoto',
+                component: () => import('../views/EditPhoto.vue'),
+            }],
         }],
     },
     {
@@ -39,7 +51,13 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/date/:month/photo/:id',
             name: 'DateMonthPhoto',
-            component: () => import('../views/Photo.vue')
+            component: () => import('../views/Photo.vue'),
+            children:[{
+                meta: {title: 'Edit photo - Ruurd Photos'},
+                path: '/date/:month/photo/:id/edit',
+                name: 'EditDateMonthPhoto',
+                component: () => import('../views/EditPhoto.vue'),
+            }],
         }],
     },
     {
@@ -51,7 +69,13 @@ const routes: Array<RouteConfig> = [
             meta: {title: 'Photo - Ruurd Photos'},
             path: '/date/:day/:month/photo/:id',
             name: 'DateDayPhoto',
-            component: () => import('../views/Photo.vue')
+            component: () => import('../views/Photo.vue'),
+            children:[{
+                meta: {title: 'Edit photo - Ruurd Photos'},
+                path: '/date/:day/:month/photo/:id/edit',
+                name: 'EditDateDayPhoto',
+                component: () => import('../views/EditPhoto.vue'),
+            }],
         }],
     },
     {
