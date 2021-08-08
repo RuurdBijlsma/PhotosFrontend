@@ -3,11 +3,28 @@
          :style="{
             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
          }">
+        <v-card class="explainer" outlined>
+            <v-card-title>Clear item lists</v-card-title>
+            <v-card-text>
+                <p>Items on this page won't be reprocessed, either because they've been deleted by you, or because they
+                    failed
+                    to process to many times.</p>
+                <p>Clearing the deleted items list could make deleted items show up again if the original file is still
+                    there.
+                    To fully delete an item, delete the original file from your filesystem.</p>
+                <p>Clearing the blocked list will cause these items to be reprocessed.</p>
+            </v-card-text>
+        </v-card>
         <div class="container">
-            <div class="trash-items" v-if="trashItems.length > 0">
-                <h2 class="mb-4">Trash</h2>
-                <div class="items">
-                    <v-card :max-width="350" v-for="item in trashItems" :key="item.filePath" class="mb-8">
+            <div class="trash-items">
+                <v-divider/>
+                <div class="list-header">
+                    <h3 class="mt-2 mb-2 ml-1">Trash</h3>
+                    <v-btn @click="clearTrash" color="warning" small text>Clear list</v-btn>
+                </div>
+                <v-divider class="mb-4"/>
+                <div class="items" v-if="trashItems.length > 0">
+                    <v-card outlined :max-width="350" v-for="item in trashItems" :key="item.filePath" class="mb-8">
                         <v-img :max-height="200" :src="`${api}/photos/blocked/${item.id}`"></v-img>
                         <v-card-title>{{ item.filePath }}</v-card-title>
                         <v-card-subtitle>
@@ -21,12 +38,17 @@
                         </v-card-actions>
                     </v-card>
                 </div>
+                <p class="caption" v-else>No items in trash</p>
             </div>
-            <h2 v-else>No items in trash</h2>
-            <div class="failed-items mt-10" v-if="errorItems.length > 0">
-                <h2 class="mb-4">Failed to process</h2>
-                <div class="items">
-                    <v-card :max-width="350" v-for="item in errorItems" :key="item.filePath" class="mb-8">
+            <div class="failed-items">
+                <v-divider/>
+                <div class="list-header">
+                    <h3 class="mt-2 mb-2 ml-1">Failed to process</h3>
+                    <v-btn @click="clearErrors" color="warning" small text>Clear list</v-btn>
+                </div>
+                <v-divider class="mb-4"/>
+                <div class="items" v-if="errorItems.length > 0">
+                    <v-card outlined :max-width="350" v-for="item in errorItems" :key="item.filePath" class="mb-8">
                         <v-img :max-height="200" :src="`${api}/photos/blocked/${item.id}`"></v-img>
                         <v-card-title>{{ item.filePath }}</v-card-title>
                         <v-card-subtitle>
@@ -43,6 +65,7 @@
                         </v-card-actions>
                     </v-card>
                 </div>
+                <p class="caption" v-else>No items in "Failed to process"</p>
             </div>
         </div>
     </div>
@@ -63,12 +86,23 @@ export default Vue.extend({
         api,
     }),
     async mounted() {
-        let blocked = await this.$store.dispatch('apiRequest', {url: 'photos/blockedItems'});
-        this.trashItems = blocked.filter((b: { reason: string; }) => b.reason === 'deleted');
-        this.errorItems = blocked.filter((b: { reason: string; }) => b.reason === 'error');
-        console.log(this.trashItems, this.errorItems);
+        await this.loadItems();
     },
     methods: {
+        async loadItems() {
+            let blocked = await this.$store.dispatch('apiRequest', {url: 'photos/blockedItems'});
+            this.trashItems = blocked.filter((b: { reason: string; }) => b.reason === 'deleted');
+            this.errorItems = blocked.filter((b: { reason: string; }) => b.reason === 'error');
+            console.log(this.trashItems, this.errorItems);
+        },
+        async clearErrors() {
+            await this.$store.dispatch('apiRequest', {url: 'photos/clearErrors'});
+            await this.loadItems();
+        },
+        async clearTrash() {
+            await this.$store.dispatch('apiRequest', {url: 'photos/clearTrash'});
+            await this.loadItems();
+        },
         async retry(item: any) {
             Vue.set(item, 'retrying', true);
             let result = await this.$store.dispatch('apiRequest', {
@@ -126,14 +160,37 @@ export default Vue.extend({
     overflow-y: auto;
 }
 
-.container {
-    max-width: 800px;
+.explainer {
+    width: 700px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+@media only screen and (max-width: 730px) {
+    .container {
+        flex-direction: column;
+    }
+}
+
+.container > * {
+    width: calc(50% - 30px);
+}
 
 .items > * {
     margin: 5px;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .error-line {
