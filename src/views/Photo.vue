@@ -345,6 +345,8 @@ export default Vue.extend({
         showPhotoMenu: false,
     }),
     async mounted() {
+        console.log(this.id);
+
         this.photoGallery = this.$refs.photoGallery;
         this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
         this.loadGpsIcon();

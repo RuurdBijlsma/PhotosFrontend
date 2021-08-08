@@ -1,15 +1,15 @@
 <template>
     <div class="logs"
          :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`}">
-        <h3 class="mb-6 text-center">Logs</h3>
-        <v-divider class="mb-7"/>
+        <h3 class="mt-6 mb-6 text-center">Logs</h3>
+        <v-divider/>
 
         <div class="log-content"
              @wheel="userScroll"
              ref="logContent"
-             :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + 150}px)`}">
+             :style="{maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + 80}px)`}">
             <v-sheet class="row" v-for="log in logs" :key="log.id">
-                <v-icon :color="logColor(log.type)" class="icon">{{logIcon(log.type)}}</v-icon>
+                <v-icon :color="logColor(log.type)" class="icon">{{ logIcon(log.type) }}</v-icon>
                 <span class="date">{{ formatDate(log.createdAt, 'HH:mm:ss.SS') }}</span>
                 <v-chip :color="stringToColor(log.tag)" class="tag">{{ log.tag }}</v-chip>
                 <span class="message">{{ log.message }}</span>
@@ -41,7 +41,7 @@ export default Vue.extend({
         await this.updateLogs(false);
         this.updateInterval = setInterval(() => {
             this.updateLogs();
-        }, 3000);
+        }, 1000);
         console.log(this.logs)
     },
     methods: {
@@ -62,9 +62,10 @@ export default Vue.extend({
         },
         async updateLogs(smooth = true) {
             this.logs = await this.$store.dispatch('apiRequest', {url: 'photos/logs'});
-            await this.$nextTick();
-            if (!this.userScrolled)
-                this.scrollDown(smooth);
+            setTimeout(() => {
+                if (!this.userScrolled)
+                    this.scrollDown(smooth);
+            }, 100);
         },
         stringToColor(str: string) {
             let hash = 0;
@@ -104,7 +105,6 @@ export default Vue.extend({
 
 <style scoped>
 .logs {
-    padding: 30px;
     overflow-y: auto;
     width: 100%;
 }
@@ -130,8 +130,8 @@ export default Vue.extend({
     text-overflow: ellipsis;
 }
 
-.icon{
-    width:30px;
+.icon {
+    width: 30px;
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
