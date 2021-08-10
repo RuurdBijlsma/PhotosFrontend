@@ -47,6 +47,7 @@ export default Vue.extend({
     components: {GridPhoto},
     props: {
         usableWidth: {type: Number, required: true},
+        sizeMultiplier: {type: Number, default: 1},
         photos: {type: Array as PropType<Media[]>, required: true},
     },
     data: () => ({
@@ -322,15 +323,15 @@ export default Vue.extend({
                 blockMarginRight: 10,
                 blockDateHeight: 40,
                 mediaMargin: 3,
-                blockHeight: 180,
-                speling: 80,
+                blockHeight: 180 * this.sizeMultiplier,
+                speling: 80 * this.sizeMultiplier,
                 maxScale: 2,
             } : {
                 blockMarginRight: 25,
                 blockDateHeight: 40,
                 mediaMargin: 5,
-                blockHeight: 180,
-                speling: 50,
+                blockHeight: 180 * this.sizeMultiplier,
+                speling: 50 * this.sizeMultiplier,
                 maxScale: 1.5,
             };
         },

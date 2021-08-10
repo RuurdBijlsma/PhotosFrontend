@@ -2,25 +2,10 @@
     <v-app class="app">
         <app-bar/>
 
-        <v-navigation-drawer :expand-on-hover="$vuetify.breakpoint.width < 1600"
-                             :width="180"
-                             permanent app
-                             v-if="!$vuetify.breakpoint.mobile"
-                             clipped
-                             hide-overlay>
-            <v-list dense nav rounded>
-                <v-list-item v-for="page in pages" exact
-                             :to="page.to" :key="page.to"
-                             @mousedown="scrollToTop">
-                    <v-list-item-icon>
-                        <v-icon>{{ page.icon }}</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                        <v-list-item-title>{{ page.name }}</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-            </v-list>
-        </v-navigation-drawer>
+        <navigation-drawer
+            :pages="pages"
+            @scroll-to-top="scrollToTop"
+        />
 
         <v-main>
             <router-view/>
@@ -42,6 +27,7 @@
             </template>
         </v-snackbar>
         <custom-dialog/>
+        <album-dialog/>
 
         <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" shift>
             <v-btn :style="{height: 'inherit !important'}"
@@ -60,19 +46,21 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {api, months, shortMonths} from "@/ts/constants";
 import CustomDialog from "@/components/CustomDialog.vue";
 import SelectionInfo from "@/components/SelectionInfo.vue";
 import AppBar from "@/components/AppBar.vue";
+import AlbumDialog from "@/components/ChooseAlbum.vue";
+import NavigationDrawer from "@/components/NavigationDrawer.vue";
 
 export default Vue.extend({
     name: 'App',
-    components: {AppBar, SelectionInfo, CustomDialog},
+    components: {NavigationDrawer, AlbumDialog, AppBar, SelectionInfo, CustomDialog},
     data: () => ({
         pages: [
-            {name: 'Home', icon: 'mdi-home-outline', to: '/'},
+            {name: 'Photos', icon: 'mdi-image-outline', to: '/'},
             {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
             {name: 'Photo map', icon: 'mdi-map-outline', to: '/map'},
+            {name: 'Albums', icon: 'mdi-image-album', to: '/albums'},
         ],
     }),
     async mounted() {

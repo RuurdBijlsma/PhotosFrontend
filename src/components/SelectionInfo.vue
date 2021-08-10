@@ -24,6 +24,9 @@
             <v-btn plain small @click="downloadItems" icon title="Download" :loading="loading.download">
                 <v-icon>mdi-download-outline</v-icon>
             </v-btn>
+            <v-btn plain small @click="addToAlbum" icon title="Add to album" :loading="loading.album">
+                <v-icon>mdi-plus-circle-outline</v-icon>
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -43,9 +46,68 @@ export default Vue.extend({
             reprocess: false,
             fixDate: false,
             download: false,
+            album: false,
         },
     }),
     methods: {
+        async addToAlbum() {
+            this.loading.album = true;
+            let album: { canceled: boolean, album: any, create: boolean, name: string } = await new Promise(resolve => {
+                this.$store.commit('albumPrompt', {
+                    show: true,
+                    onConfirm: resolve,
+                    onCancel: () => resolve({canceled: true, album: null, create: false, name: ''}),
+                });
+            });
+            if (album.canceled) {
+                this.loading.album = false;
+                return;
+            }
+            if (album.create) {
+                try {
+                    let result = await this.$store.dispatch('apiRequest', {
+                        url: `photos/createAlbum`,
+                        body: {
+                            name: album.name,
+                            ids: this.selectedMedias.map(p => p.id)
+                        },
+                    });
+                    console.log('create', result);
+                    if (result.id) {
+                        this.clearSelection();
+                        this.$store.commit('updateAlbums', true);
+                        await this.$router.push(`/album/${result.id}`);
+                    } else {
+                        throw new Error(result);
+                    }
+                } catch (e) {
+                    await this.$store.dispatch('addSnack', {text: "Can't add to album! " + e.message});
+                    console.warn("Can't add to album", e);
+                }
+            } else {
+                console.log(album);
+                try {
+                    let result = await this.$store.dispatch('apiRequest', {
+                        url: `photos/addToAlbum`,
+                        body: {
+                            id: album.album.AlbumId,
+                            ids: this.selectedMedias.map(p => p.id)
+                        },
+                    });
+                    console.log('add', result);
+                    if (result) {
+                        this.clearSelection();
+                        await this.$router.push(`/album/${album.album.AlbumId}`);
+                    } else {
+                        throw new Error(result);
+                    }
+                } catch (e) {
+                    await this.$store.dispatch('addSnack', {text: "Can't add to album! " + e.message});
+                    console.warn("Can't add to album", e);
+                }
+            }
+            this.loading.album = false;
+        },
         async downloadItems() {
             this.loading.download = true;
             if (this.selectedMedias.length < 5) {
@@ -198,7 +260,7 @@ export default Vue.extend({
 <style scoped>
 .selection-info {
     position: fixed;
-    width: 350px;
+    width: 400px;
     left: calc(50% - 175px);
 }
 </style>

@@ -54,8 +54,17 @@ export default new Vuex.Store({
         lastSelectedPhoto: null as Media | null,
         delayedIsSelecting: false,
         uploadResults: [] as { file: string, result: { success: boolean, id: string, error: string } }[],
+        albumPrompt: {
+            show: false,
+            onConfirm: () => 0,
+            onCancel: () => 0,
+        },
+        updateAlbums: false,
     },
     mutations: {
+        updateAlbums: (state, value) => state.updateAlbums = value,
+        showChooseAlbum: (state, value) => state.albumPrompt.show = value,
+        albumPrompt: (state, value) => state.albumPrompt = value,
         uploadResults: (state, value) => state.uploadResults = value,
         delayedIsSelecting: (state, value) => state.delayedIsSelecting = value,
         lastSelectedPhoto: (state, value) => state.lastSelectedPhoto = value,

@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="prompt.show" width="500">
+    <v-dialog v-model="prompt.show" max-width="500">
         <v-card>
             <v-card-title v-html="prompt.title"/>
             <v-card-text v-html="prompt.subtitle"/>
@@ -34,7 +34,7 @@ export default {
         'prompt.show'() {
             if (!this.prompt.show)
                 this.prompt.onCancel();
-        }
+        },
     },
     computed: {
         prompt(){

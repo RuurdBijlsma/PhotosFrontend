@@ -134,6 +134,30 @@ const routes: Array<RouteConfig> = [
         meta: {title: 'Login - Ruurd Photos'},
         component: () => import('../views/Login.vue')
     },
+    {
+        path: '/albums',
+        name: 'Albums',
+        meta: {title: 'Albums - Ruurd Photos'},
+        component: () => import('../views/Albums.vue')
+    },
+    {
+        path: '/album/:albumId',
+        name: 'Album',
+        meta: {title: 'Album - Ruurd Photos'},
+        component: () => import('../views/Album.vue'),
+        children: [{
+            meta: {title: 'Photo - Ruurd Photos'},
+            path: '/album/:albumId/photo/:id',
+            name: 'AlbumPhoto',
+            component: () => import('../views/Photo.vue'),
+            children:[{
+                meta: {title: 'Edit photo - Ruurd Photos'},
+                path: '/album/:albumId/photo/:id/edit',
+                name: 'EditAlbumPhoto',
+                component: () => import('../views/EditPhoto.vue'),
+            }],
+        }],
+    },
 ]
 
 const router = new VueRouter({
