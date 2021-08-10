@@ -66,29 +66,23 @@ import DesktopScrub from "@/components/DesktopScrub.vue";
 import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
-// todo big features
-// albums
-// see server status in ui somewhere (save logs and show)
-
-// todo small features
+// todo
+// Allow remove from album
 // set max skip interval when holding right/left on /photo
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
-// manage backups page (view backups / restore db / backup db)
 // show message for unauthorized
 // allow change password/mail/name
 // api url default is weird now with docker
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // mobile select photos
-// rotate image in ui
 // add login button to menu when not logged in
 // Allow add to selection in full /photo page
-// show logged in state in app bar
 // add image subtype 'animation' for gifs
 // add categories page for the buttons in explore to work
 // this day 1 year ago thing
-// zip can be downloaded from nginx instead of express
 
 // todo bugs
+// restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app
 // Shift-selecting sometimes dont work on search page
