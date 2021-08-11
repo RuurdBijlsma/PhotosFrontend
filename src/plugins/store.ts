@@ -13,6 +13,11 @@ const vuexLocal = new VuexPersistence({
         verifiedLogin: state.verifiedLogin,
         showInfo: state.showInfo,
         mapboxKey: state.mapboxKey,
+        google: {
+            refreshToken: state.google.refreshToken,
+            clientId: state.google.clientId,
+            clientSecret: state.google.clientSecret,
+        },
     }),
     storage: window.localStorage,
 })
@@ -21,6 +26,11 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
+        google: {
+            refreshToken: '',
+            clientId: '',
+            clientSecret: '',
+        },
         api,
         snackbars: [] as any[],
         reloadPhotos: false as boolean | Media,
@@ -62,6 +72,9 @@ export default new Vuex.Store({
         updateAlbums: false,
     },
     mutations: {
+        refreshToken: (state, value) => state.google.refreshToken = value,
+        clientId: (state, value) => state.google.clientId = value,
+        clientSecret: (state, value) => state.google.clientSecret = value,
         updateAlbums: (state, value) => state.updateAlbums = value,
         showChooseAlbum: (state, value) => state.albumPrompt.show = value,
         albumPrompt: (state, value) => state.albumPrompt = value,

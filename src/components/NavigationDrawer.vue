@@ -37,9 +37,10 @@
 
                     <v-list-item dense v-for="album in albums"
                                  :key="album.id"
-                                 :to="`/album/${album.AlbumId}`">
+                                 :to="`/album/${album.id}`">
                         <v-list-item-avatar class="avatar" :size="isExpanded ? 32 : 24" rounded>
-                            <v-img :src="`${api}/photo/tiny/${album.MediumId}.webp`"/>
+                            <v-img v-if="album.MediumId !== null" :src="`${api}/photo/tiny/${album.MediumId}.webp`"/>
+                            <v-icon v-else>mdi-alpha-{{ album.name.substr(0,1).toLowerCase() }}-box-outline</v-icon>
                         </v-list-item-avatar>
                         <v-list-item-content>
                             <v-list-item-title :title="album.name"> {{ album.name }}</v-list-item-title>
@@ -71,6 +72,7 @@ export default Vue.extend({
     }),
     async mounted() {
         await this.loadAlbums();
+        console.log(this.albums);
     },
     methods: {
         goToAlbums(e: MouseEvent) {

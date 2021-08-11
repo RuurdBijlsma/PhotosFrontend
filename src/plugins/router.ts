@@ -108,6 +108,12 @@ const routes: Array<RouteConfig> = [
                 name: 'MapSettings',
                 component: () => import('../views/settings/MapSettings.vue')
             },
+            {
+                meta: {title: 'Import - Ruurd Photos'},
+                path: '/settings/import',
+                name: 'ImportSettings',
+                component: () => import('../views/settings/ImportSettings.vue')
+            },
         ],
     },
     {

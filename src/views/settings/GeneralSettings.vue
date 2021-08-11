@@ -2,13 +2,13 @@
     <div class="general-settings">
         <span class="caption"><span class="grey--text">Connected to </span>{{ api }}</span>
         <v-btn class="ml-2" x-small plain @click="$store.dispatch('logout')">Log out</v-btn>
-add back        <br>
-        <v-btn class="mt-2" outlined @click="backupDb">Backup database</v-btn>
+        <br>
+        <v-btn text class="mt-2" outlined @click="backupDb">Backup database</v-btn>
         <div class="restore">
 
             <v-dialog v-model="dialog" max-width="700">
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn class="mt-2" outlined v-bind="attrs" v-on="on">Restore database</v-btn>
+                    <v-btn text class="mt-2" outlined v-bind="attrs" v-on="on">Restore database</v-btn>
                 </template>
                 <v-card>
                     <v-card-title>
@@ -21,8 +21,7 @@ add back        <br>
                                 v-for="option in restoreOptions"
                                 :key="option"
                                 :label="option"
-                                :value="option"
-                            ></v-radio>
+                                :value="option"/>
                         </v-radio-group>
                     </v-card-text>
                     <v-divider/>
@@ -34,10 +33,10 @@ add back        <br>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
-<!--            <v-file-input dense hide-details class="mt-2"-->
-<!--                          accept=".dump,*"-->
-<!--                          outlined @change="restoreFromFile"-->
-<!--                          label="Restore database from file"/>-->
+            <!--            <v-file-input dense hide-details class="mt-2"-->
+            <!--                          accept=".dump,*"-->
+            <!--                          outlined @change="restoreFromFile"-->
+            <!--                          label="Restore database from file"/>-->
         </div>
     </div>
 </template>

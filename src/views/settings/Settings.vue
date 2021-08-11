@@ -1,10 +1,14 @@
 <template>
-    <div class="settings">
+    <div class="settings"
+         :style="{
+             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+         }">
         <h3 class="mb-6 text-center">Settings</h3>
         <v-divider/>
         <div class="links">
             <v-btn plain exact to="/settings">General</v-btn>
             <v-btn plain to="/settings/map">Map</v-btn>
+            <v-btn plain to="/settings/import">Import</v-btn>
         </div>
         <v-divider/>
         <div class="padded">
@@ -24,8 +28,7 @@ export default Vue.extend({
 <style scoped>
 .settings {
     padding: 30px;
-    max-width: 1000px;
-    margin: 0 auto;
+    overflow-y: auto;
 }
 
 .links {

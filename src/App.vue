@@ -14,7 +14,7 @@
         <v-snackbar v-for="snack in $store.state.snackbars"
                     :key="snack.id" app
                     v-model="snack.open" :timeout="snack.timeout"
-                    color="secondary">
+                    color="primary">
             {{ snack.text }}
             <template v-slot:action="{ attrs }">
                 <v-btn v-if="snack.to !== null" text v-bind="attrs" :to="snack.to">

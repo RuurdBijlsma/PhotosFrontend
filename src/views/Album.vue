@@ -20,19 +20,19 @@
             </v-btn>
         </v-form>
         <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = true" v-else>{{ album.name }}</h1>
-        <v-divider/>
+        <v-divider class="mb-1"/>
         <div class="album-actions">
             <v-icon class="mr-2">mdi-sort</v-icon>
             <span class="caption">{{ sortOptions.find(o => o.name === sort).summary }}</span>
             <v-spacer/>
-            <v-btn text title="Delete album" @click="deleteAlbum">
+            <v-btn small text title="Delete album" @click="deleteAlbum">
                 <v-icon class="mr-2">mdi-delete-outline</v-icon>
                 Delete
             </v-btn>
 
             <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn text v-bind="attrs" v-on="on">
+                    <v-btn small text v-bind="attrs" v-on="on">
                         <v-icon class="mr-2">mdi-sort</v-icon>
                         Sort
                     </v-btn>
@@ -53,7 +53,12 @@
                 </v-list>
             </v-menu>
         </div>
-        <v-divider/>
+        <v-divider class="mt-1"/>
+        <div v-if="photos.length === 0">
+            <h3 class="mt-8 text-center text-h6">No items in this album, add some on the
+                <router-link to="/">homepage</router-link> by selecting and adding them.
+            </h3>
+        </div>
         <photo-grid ref="photoGrid" :size-multiplier="1.5" :photos="photos" :usable-width="usableWidth"/>
     </div>
 </template>
