@@ -74,7 +74,7 @@ export default Vue.extend({
             zoom: true,
             lazy: true,
             keyboard: {
-                enabled: true,
+                enabled: false,
             },
         },
         zoomerKeys: {} as any,
@@ -82,12 +82,19 @@ export default Vue.extend({
         swiper: null as any,
         imgZoomed: false,
         copyImg: null as null | HTMLImageElement,
+        keyDown: 'none' as 'none' | 'right' | 'left',
+        keyDownInterval: -1,
     }),
     beforeDestroy() {
         if (this.copyImg !== null)
             this.copyImg.remove();
+        document.removeEventListener('keydown', this.handleKey);
+        document.removeEventListener('keyup', this.handleKeyUp);
     },
     mounted() {
+        document.addEventListener('keydown', this.handleKey, false);
+        document.addEventListener('keyup', this.handleKeyUp, false);
+
         this.id = this.$route.params.id;
         this.swiper = (this.$refs.swiper as any).$swiper;
         this.swiper.resizeObserver = true;
@@ -105,6 +112,18 @@ export default Vue.extend({
             this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
             let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
             this.swiper.slideTo(viewedItem, 0, false);
+        },
+        handleKey(e: KeyboardEvent) {
+            if (e.key === 'ArrowRight')
+                this.keyDown = 'right';
+            if (e.key === 'ArrowLeft')
+                this.keyDown = 'left';
+            console.log('down', e.key);
+        },
+        handleKeyUp(e: KeyboardEvent) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft')
+                this.keyDown = 'none';
+            console.log('up', e.key);
         },
         insertImg(e: MouseEvent) {
             if (this.id === null) return;
@@ -210,6 +229,20 @@ export default Vue.extend({
         },
     },
     watch: {
+        keyDown() {
+            if (this.keyDown === 'none') {
+                clearInterval(this.keyDownInterval);
+            } else {
+                const swipeFun = () => {
+                    if (this.keyDown === 'right')
+                        this.swiper.slideNext();
+                    else if (this.keyDown === 'left')
+                        this.swiper.slidePrev();
+                };
+                swipeFun();
+                this.keyDownInterval = setInterval(swipeFun, 400);
+            }
+        },
         queue() {
             this.initialize();
         },

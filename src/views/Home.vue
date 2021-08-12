@@ -68,7 +68,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // Allow add to selection in full /photo page
-// set max skip interval when holding right/left on /photo
 // allow unauthorized to view album if they have link
 // add categories page for the buttons in explore to work
 // add image subtype 'animation' for gifs
@@ -84,7 +83,6 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // mobile select photos
 
 // todo bugs
-// multi select in album dont work
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app

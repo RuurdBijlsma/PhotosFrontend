@@ -92,20 +92,33 @@ export default Vue.extend({
             }
         },
         getBatch(mediaA: Media, mediaB: Media) {
-            let [start, end] = [mediaA, mediaB].sort((a, b) => a.createDate.getTime() - b.createDate.getTime());
-            let startMonth = start.createDate.getFullYear() * 12 + start.createDate.getMonth();
-            let endMonth = end.createDate.getFullYear() * 12 + end.createDate.getMonth();
-            let photosPerMonth: MonthPhotos[] = this.$store.state.photosPerMonth;
-            let relevantMonths = photosPerMonth.filter(p => {
-                let month = p.year * 12 + (p.month - 1);
-                return month >= startMonth && month <= endMonth;
-            }).map(p => p.id);
-            let cache = this.$store.state.cachedPhotos;
-            let photos = [];
-            for (let id of relevantMonths) {
-                if (!cache.hasOwnProperty(id))
-                    return null;
-                photos.push(...cache[id])
+            let [start, end] = [mediaA, mediaB]
+                .sort((a, b) => a.createDate.getTime() - b.createDate.getTime());
+            let photos: Media[];
+            // month based selecting only works on home page,
+            // otherwise (album and search page) use media queue to create selection
+            if (this.$route.name !== 'Home') {
+                photos = this.$store.state.viewerQueue;
+            } else {
+                let startMonth = start.createDate.getFullYear() * 12 + start.createDate.getMonth();
+                let endMonth = end.createDate.getFullYear() * 12 + end.createDate.getMonth();
+                let photosPerMonth: MonthPhotos[] = this.$store.state.photosPerMonth;
+                let relevantMonths = photosPerMonth.filter(p => {
+                    let month = p.year * 12 + (p.month - 1);
+                    return month >= startMonth && month <= endMonth;
+                }).map(p => p.id);
+                let cache = this.$store.state.cachedPhotos;
+                console.log(cache);
+                photos = [];
+                for (let id of relevantMonths) {
+                    if (!cache.hasOwnProperty(id)) {
+                        this.$store.dispatch('addSnack', {
+                            text: "Couldn't complete selection, some photos between the start and end weren't cached.",
+                        });
+                        return null;
+                    }
+                    photos.push(...cache[id])
+                }
             }
             let indexStart = photos.findIndex(p => p.id === start.id);
             let indexEnd = photos.findIndex(p => p.id === end.id);
