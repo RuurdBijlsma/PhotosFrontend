@@ -105,8 +105,12 @@ export default Vue.extend({
             },
         ],
     }),
-    mounted() {
-        this.loadAlbum();
+    beforeDestroy() {
+        this.$store.commit('viewedAlbum', null);
+    },
+    async mounted() {
+        await this.loadAlbum();
+        this.$store.commit('viewedAlbum', this.album);
     },
     methods: {
         async deleteAlbum() {
@@ -171,6 +175,12 @@ export default Vue.extend({
         },
     },
     watch: {
+        '$store.state.updateAlbum'() {
+            if (this.$store.state.updateAlbum) {
+                this.$store.commit('updateAlbum', false);
+                this.loadAlbum();
+            }
+        },
         '$store.state.keepInView'() {
             if (this.$store.state.keepInView !== null) {
                 let photoGrid: any = this.$refs.photoGrid;

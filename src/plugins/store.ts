@@ -70,8 +70,12 @@ export default new Vuex.Store({
             onCancel: () => 0,
         },
         albums: [],
+        viewedAlbum: null,
+        updateAlbum: false,
     },
     mutations: {
+        updateAlbum: (state, value) => state.updateAlbum = value,
+        viewedAlbum: (state, value) => state.viewedAlbum = value,
         albums: (state, value) => state.albums = value,
         refreshToken: (state, value) => state.google.refreshToken = value,
         clientId: (state, value) => state.google.clientId = value,
@@ -136,7 +140,7 @@ export default new Vuex.Store({
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
     },
     actions: {
-        async updateAlbums({commit, dispatch}){
+        async updateAlbums({commit, dispatch}) {
             let albums = await dispatch('apiRequest', {url: 'photos/getAlbums'});
             commit('albums', albums);
         },

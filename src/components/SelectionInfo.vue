@@ -27,6 +27,11 @@
             <v-btn plain small @click="addToAlbum" icon title="Add to album" :loading="loading.album">
                 <v-icon>mdi-plus-circle-outline</v-icon>
             </v-btn>
+            <v-btn v-if="$store.state.viewedAlbum !== null"
+                   plain small @click="removeFromAlbum"
+                   icon title="Remove from album" :loading="loading.removeAlbum">
+                <v-icon>mdi-minus-circle-outline</v-icon>
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -47,9 +52,45 @@ export default Vue.extend({
             fixDate: false,
             download: false,
             album: false,
+            removeAlbum: false,
         },
     }),
     methods: {
+        async removeFromAlbum() {
+            this.loading.removeAlbum = true;
+            let accepted = await this.$store.dispatch('showPrompt', {
+                title: `Are you sure?`,
+                subtitle: `Removing ${
+                    this.selectionCount
+                } items from album "${
+                    this.$store.state.viewedAlbum.name
+                }"?`,
+                confirmText: 'Remove',
+            });
+            if (accepted) {
+                try {
+                    let success = await this.$store.dispatch('apiRequest', {
+                        url: 'photos/removeFromAlbum',
+                        body: {
+                            id: this.$store.state.viewedAlbum.id,
+                            ids: this.selectedMedias.map(p => p.id),
+                        },
+                    });
+                    console.log('success', success);
+                    if (!success) {
+                        await this.$store.dispatch('addSnack', {text: "Couldn't remove items"});
+                    } else {
+                        this.clearSelection();
+                        this.$store.commit('updateAlbum', true);
+                        this.$store.dispatch('updateAlbums').then();
+                    }
+                } catch (e) {
+                    console.warn(e);
+                    await this.$store.dispatch('addSnack', {text: "Couldn't remove items. " + e.message});
+                }
+            }
+            this.loading.removeAlbum = false;
+        },
         async addToAlbum() {
             this.loading.album = true;
             let album: { canceled: boolean, album: any, create: boolean, name: string } = await new Promise(resolve => {

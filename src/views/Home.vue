@@ -67,27 +67,28 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
-// Allow remove from album
+// Allow add to selection in full /photo page
 // set max skip interval when holding right/left on /photo
+// allow unauthorized to view album if they have link
+// add categories page for the buttons in explore to work
+// add image subtype 'animation' for gifs
+
+// Delete zip files in ./thumbnails/zip after a week
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // show message for unauthorized
 // allow change password/mail/name
 // api url default is weird now with docker
+// add login button to menu when not logged in
+// this day 1 year ago thing
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // mobile select photos
-// add login button to menu when not logged in
-// Allow add to selection in full /photo page
-// add image subtype 'animation' for gifs
-// add categories page for the buttons in explore to work
-// this day 1 year ago thing
 
 // todo bugs
+// multi select in album dont work
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app
-// Shift-selecting sometimes dont work on search page
-// refresh /photo on search page is bugged
-// Delete zip files in ./thumbnails/zip at some point
+// refresh /photo on search page dont work
 
 export default Vue.extend({
     name: 'Home',
