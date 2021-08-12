@@ -75,7 +75,7 @@ export default Vue.extend({
                     console.log('create', result);
                     if (result.id) {
                         this.clearSelection();
-                        this.$store.commit('updateAlbums', true);
+                        this.$store.dispatch('updateAlbums').then();
                         await this.$router.push(`/album/${result.id}`);
                     } else {
                         throw new Error(result);

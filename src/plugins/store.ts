@@ -69,13 +69,13 @@ export default new Vuex.Store({
             onConfirm: () => 0,
             onCancel: () => 0,
         },
-        updateAlbums: false,
+        albums: [],
     },
     mutations: {
+        albums: (state, value) => state.albums = value,
         refreshToken: (state, value) => state.google.refreshToken = value,
         clientId: (state, value) => state.google.clientId = value,
         clientSecret: (state, value) => state.google.clientSecret = value,
-        updateAlbums: (state, value) => state.updateAlbums = value,
         showChooseAlbum: (state, value) => state.albumPrompt.show = value,
         albumPrompt: (state, value) => state.albumPrompt = value,
         uploadResults: (state, value) => state.uploadResults = value,
@@ -136,6 +136,10 @@ export default new Vuex.Store({
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
     },
     actions: {
+        async updateAlbums({commit, dispatch}){
+            let albums = await dispatch('apiRequest', {url: 'photos/getAlbums'});
+            commit('albums', albums);
+        },
         logout({commit}) {
             commit('login', {email: '', password: ''});
             location.reload();

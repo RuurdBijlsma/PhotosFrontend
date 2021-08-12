@@ -24,6 +24,8 @@
         <div class="album-actions">
             <v-icon class="mr-2">mdi-sort</v-icon>
             <span class="caption">{{ sortOptions.find(o => o.name === sort).summary }}</span>
+            <span class="ml-2 mr-2">•</span>
+            <span class="caption">{{ photos.length }} items</span>
             <v-spacer/>
             <v-btn small text title="Delete album" @click="deleteAlbum">
                 <v-icon class="mr-2">mdi-delete-outline</v-icon>
@@ -56,7 +58,8 @@
         <v-divider class="mt-1"/>
         <div v-if="photos.length === 0">
             <h3 class="mt-8 text-center text-h6">No items in this album, add some on the
-                <router-link to="/">homepage</router-link> by selecting and adding them.
+                <router-link to="/">homepage</router-link>
+                by selecting and adding them.
             </h3>
         </div>
         <photo-grid ref="photoGrid" :size-multiplier="1.5" :photos="photos" :usable-width="usableWidth"/>
@@ -119,7 +122,7 @@ export default Vue.extend({
                 },
             });
             if (success) {
-                this.$store.commit('updateAlbums', true);
+                this.$store.dispatch('updateAlbums').then();
                 await this.$router.push('/albums');
             } else {
                 await this.$store.dispatch('addSnack', {text: "Couldn't change title."});

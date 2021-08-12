@@ -94,13 +94,13 @@ export default Vue.extend({
     methods: {
         async importAll() {
             this.allImportLoading = true;
-            for (let i = 0; i < this.albums.length; i++) {
+            for (let i = this.albums.length - 1; i >= 0; i--) {
                 let album = this.albums[i];
                 this.statusText = `[${i + 1} / ${this.albums.length}] Importing "${album.title}...`
                 await this.importAlbum(album.title, album.id, false);
             }
             this.statusText = 'Done importing all';
-            this.allImportLoading = true;
+            this.allImportLoading = false;
         },
         async importAlbum(title: string, albumId: string, redirect = true) {
             this.importLoading = true;
@@ -138,6 +138,7 @@ export default Vue.extend({
                     timeout: 10000,
                 });
             } else {
+                this.$store.dispatch('updateAlbums').then();
                 let successes = result.successes.reduce((a: number, b: number) => a + b);
                 if (successes < result.successes.length) {
                     await this.$store.dispatch('addSnack', {

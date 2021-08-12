@@ -40,7 +40,7 @@
                                  :to="`/album/${album.id}`">
                         <v-list-item-avatar class="avatar" :size="isExpanded ? 32 : 24" rounded>
                             <v-img v-if="album.MediumId !== null" :src="`${api}/photo/tiny/${album.MediumId}.webp`"/>
-                            <v-icon v-else>mdi-alpha-{{ album.name.substr(0,1).toLowerCase() }}-box-outline</v-icon>
+                            <v-icon v-else>mdi-alpha-{{ album.name.substr(0, 1).toLowerCase() }}-box-outline</v-icon>
                         </v-list-item-avatar>
                         <v-list-item-content>
                             <v-list-item-title :title="album.name"> {{ album.name }}</v-list-item-title>
@@ -63,7 +63,6 @@ export default Vue.extend({
     data: () => ({
         hover: false,
         api,
-        albums: [],
         pages: [
             {name: 'Photos', icon: 'mdi-image-outline', to: '/'},
             {name: 'Explore', icon: 'mdi-magnify', to: '/explore'},
@@ -71,8 +70,8 @@ export default Vue.extend({
         ],
     }),
     async mounted() {
-        await this.loadAlbums();
-        console.log(this.albums);
+        await this.$store.dispatch('updateAlbums');
+        console.log('nav draw', this.albums);
     },
     methods: {
         goToAlbums(e: MouseEvent) {
@@ -80,21 +79,13 @@ export default Vue.extend({
             this.$router.push('/albums');
             console.log(e);
         },
-        async loadAlbums() {
-            this.albums = await this.$store.dispatch('apiRequest', {url: 'photos/getAlbums'});
-        },
     },
     computed: {
         isExpanded() {
             return this.$vuetify.breakpoint.width >= 1600 || this.hover;
         },
-    },
-    watch: {
-        '$store.state.updateAlbums'() {
-            if (this.$store.state.updateAlbums) {
-                this.$store.commit('updateAlbums', false);
-                this.loadAlbums();
-            }
+        albums() {
+            return this.$store.state.albums;
         },
     },
 });
