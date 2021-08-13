@@ -68,13 +68,11 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // Allow add to selection in full /photo page
-// allow unauthorized to view album if they have link
 // add categories page for the buttons in explore to work
 // add image subtype 'animation' for gifs
 
 // Delete zip files in ./thumbnails/zip after a week
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
-// show message for unauthorized
 // allow change password/mail/name
 // api url default is weird now with docker
 // add login button to menu when not logged in
