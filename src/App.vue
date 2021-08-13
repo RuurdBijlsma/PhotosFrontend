@@ -3,6 +3,7 @@
         <app-bar/>
 
         <navigation-drawer
+            v-if="$store.getters.isLoggedIn"
             :pages="pages"
             @scroll-to-top="scrollToTop"
         />
@@ -63,12 +64,15 @@ export default Vue.extend({
             {name: 'Albums', icon: 'mdi-image-album', to: '/albums'},
         ],
     }),
-    async mounted() {
-        if (!this.$store.getters.isLoggedIn && this.$route.name !== 'Login')
-            await this.$router.push('/login');
+    mounted() {
         console.log('window.store = ', this.$store);
         // @ts-ignore
         window.store = this.$store;
+        this.$router.onReady(async () => {
+            if (!this.$store.getters.isLoggedIn && this.$route?.meta?.requiresAuth !== false) {
+                await this.$router.push('/login');
+            }
+        });
     },
     methods: {
         scrollToTop() {

@@ -131,7 +131,7 @@ export default Vue.extend({
                     let result = await this.$store.dispatch('apiRequest', {
                         url: `photos/addToAlbum`,
                         body: {
-                            id: album.album.AlbumId,
+                            id: album.album.id,
                             ids: this.selectedMedias.map(p => p.id)
                         },
                     });

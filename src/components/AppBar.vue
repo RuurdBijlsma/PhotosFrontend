@@ -11,6 +11,7 @@
         <v-spacer></v-spacer>
 
         <v-autocomplete solo dense
+                        v-if="$store.getters.isLoggedIn"
                         hide-details
                         :label='searchTip === "" ? "Search..." : `Search "${searchTip}"`'
                         prepend-inner-icon="mdi-magnify"
@@ -27,10 +28,17 @@
 
         <v-spacer/>
 
-        <v-btn v-if="!$vuetify.breakpoint.mobile" plain small @click="promptUpload" class="mr-3"
+        <v-btn v-if="!$vuetify.breakpoint.mobile && $store.getters.isLoggedIn"
+               plain small @click="promptUpload" class="mr-3"
                :loading="uploadLoading">
             <v-icon class="mr-2">mdi-upload-outline</v-icon>
             Upload
+        </v-btn>
+
+        <v-btn v-if="!$store.getters.isLoggedIn"
+               text small to="/login" class="mr-3">
+            <v-icon small class="mr-2">mdi-face</v-icon>
+            Login
         </v-btn>
 
         <v-menu :close-on-content-click="false" v-model="showMenu">
@@ -40,7 +48,7 @@
                 </v-btn>
             </template>
             <v-list dense>
-                <v-list-item to="/settings">
+                <v-list-item to="/settings" v-if="$store.getters.isLoggedIn">
                     <v-list-item-icon>
                         <v-icon>mdi-cog</v-icon>
                     </v-list-item-icon>
@@ -48,7 +56,7 @@
                         <v-list-item-title>Settings</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
-                <v-list-item to="/logs">
+                <v-list-item to="/logs" v-if="$store.getters.isLoggedIn">
                     <v-list-item-icon>
                         <v-icon>mdi-server</v-icon>
                     </v-list-item-icon>
@@ -69,7 +77,7 @@
                         <v-switch dense inset v-model="$vuetify.theme.dark"></v-switch>
                     </v-list-item-action>
                 </v-list-item>
-                <v-list-item to="/trash">
+                <v-list-item to="/trash" v-if="$store.getters.isLoggedIn">
                     <v-list-item-icon>
                         <v-icon>mdi-trash-can-outline</v-icon>
                     </v-list-item-icon>
@@ -77,7 +85,7 @@
                         <v-list-item-title>Trash</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
-                <v-list-item @click="promptUpload" v-if="$vuetify.breakpoint.mobile">
+                <v-list-item @click="promptUpload" v-if="$vuetify.breakpoint.mobile && $store.getters.isLoggedIn">
                     <v-list-item-icon>
                         <v-progress-circular :size="25" :width="2" indeterminate v-if="uploadLoading"/>
                         <v-icon v-else>mdi-upload-outline</v-icon>
@@ -86,7 +94,7 @@
                         <v-list-item-title>Upload</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
-                <v-list-item @click="$store.dispatch('logout')">
+                <v-list-item @click="$store.dispatch('logout')" v-if="$store.getters.isLoggedIn">
                     <v-list-item-icon>
                         <v-icon>mdi-face</v-icon>
                     </v-list-item-icon>

@@ -19,7 +19,7 @@
                 Submit
             </v-btn>
         </v-form>
-        <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = true" v-else>{{ album.name }}</h1>
+        <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = $store.getters.isLoggedIn" v-else>{{ album.name }}</h1>
         <v-divider class="mb-1"/>
         <div class="album-actions">
             <v-icon class="mr-2">mdi-sort</v-icon>
@@ -27,7 +27,7 @@
             <span class="ml-2 mr-2">•</span>
             <span class="caption">{{ photos.length }} items</span>
             <v-spacer/>
-            <v-btn small text title="Delete album" @click="deleteAlbum">
+            <v-btn v-if="$store.getters.isLoggedIn" small text title="Delete album" @click="deleteAlbum">
                 <v-icon class="mr-2">mdi-delete-outline</v-icon>
                 Delete
             </v-btn>
@@ -149,13 +149,8 @@ export default Vue.extend({
             }
         },
         async loadAlbum() {
-            console.log('laoding album with sort', this.sort);
-            this.album = await this.$store.dispatch('apiRequest', {
-                url: `photos/getAlbum/${this.id}`,
-                body: {
-                    sort: this.sort,
-                },
-            });
+            console.log('loading album with sort', this.sort);
+            this.album = await fetch(`${api}/photos/album/${this.id}?sort=${this.sort}`).then(r => r.json());
             this.editedTitle = this.album.name;
             this.photos = this.album.Media.map(Media.fromObject);
             console.log('this album', this.album);

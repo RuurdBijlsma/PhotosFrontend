@@ -21,12 +21,13 @@
                 }">
                 <v-icon>mdi-information-outline</v-icon>
             </v-btn>
-            <v-btn icon dark :to="$route.path + '/edit'" class="edit-button btn">
+            <v-btn v-if="$store.getters.isLoggedIn" icon
+                   dark :to="$route.path + '/edit'" class="edit-button btn">
                 <v-icon>mdi-image-edit-outline</v-icon>
             </v-btn>
-            <v-menu :close-on-content-click="false"
+            <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
                     v-model="showPhotoMenu"
-                    :nudge-left="180"
+                    :nudge-left="$store.getters.isLoggedIn ? 180 : 110"
                     min-width="auto">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
@@ -37,7 +38,7 @@
                     </v-btn>
                 </template>
                 <v-list dense>
-                    <v-list-item @click="reprocess(media)">
+                    <v-list-item @click="reprocess(media)" v-if="$store.getters.isLoggedIn">
                         <v-list-item-avatar>
                             <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
                             <v-icon v-else>mdi-auto-fix</v-icon>
@@ -48,7 +49,7 @@
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
-                    <v-list-item @click="fixDateFromFile()">
+                    <v-list-item @click="fixDateFromFile()" v-if="$store.getters.isLoggedIn">
                         <v-list-item-avatar>
                             <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
                             <v-icon v-else>mdi-calendar-range</v-icon>
@@ -59,7 +60,7 @@
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
-                    <v-list-item @click="deleteItem()">
+                    <v-list-item @click="deleteItem()" v-if="$store.getters.isLoggedIn">
                         <v-list-item-avatar>
                             <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
                             <v-icon v-else>mdi-delete-outline</v-icon>
@@ -151,12 +152,13 @@
                                 </template>
                                 <v-card>
                                     <v-date-picker
+                                        :readonly="!$store.getters.isLoggedIn"
                                         class="roboto"
                                         max-width="360"
                                         v-model="createDate"
                                         :max="new Date().toISOString().substr(0, 10)"
                                         min="1950-01-01"/>
-                                    <v-card-actions>
+                                    <v-card-actions v-if="$store.getters.isLoggedIn">
                                         <v-spacer/>
                                         <v-btn text @click="dateMenu=false">Cancel</v-btn>
                                         <v-btn color="primary" text
@@ -181,16 +183,17 @@
                                 </template>
                                 <v-card>
                                     <v-time-picker
+                                        :readonly="!$store.getters.isLoggedIn"
                                         class="roboto"
                                         format="24hr"
                                         use-seconds
                                         scrollable
                                         v-model="createTime"
                                         max-width="360"/>
-                                    <v-card-title class="error--text" v-if="dateError">
+                                    <v-card-title class="error--text" v-if="dateError && $store.getters.isLoggedIn">
                                         {{ dateError }}
                                     </v-card-title>
-                                    <v-card-actions>
+                                    <v-card-actions v-if="$store.getters.isLoggedIn">
                                         <v-spacer/>
                                         <v-btn text @click="timeMenu=false">Cancel</v-btn>
                                         <v-btn color="primary" text
@@ -225,8 +228,8 @@
                     transition="scale-transition"
                     min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
-                        <v-list-item v-bind="attrs"
-                                     v-on="on"
+                        <v-list-item v-bind="$store.getters.isLoggedIn ? attrs : {}"
+                                     v-on="$store.getters.isLoggedIn ? on : {}"
                                      two-line v-if="classifications && classifications.length > 0">
                             <v-list-item-avatar>
                                 <v-icon>mdi-eye</v-icon>
@@ -258,7 +261,25 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-list-item two-line v-if="media.location" :to="`/search/${place}`">
+                <a v-if="!$store.getters.isLoggedIn && coordinate"
+                   class="no-style"
+                   target="_blank"
+                   :href="`https://www.google.com/maps/place/${coordinate.lat},${coordinate.lng}`">
+                    <v-list-item two-line @click="0">
+                        <v-list-item-avatar>
+                            <v-icon>mdi-open-in-new</v-icon>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title v-if="place">
+                                {{ place }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle :title="subPlace">
+                                <span>{{ subPlace }}</span>
+                            </v-list-item-subtitle>
+                        </v-list-item-content>
+                    </v-list-item>
+                </a>
+                <v-list-item two-line v-else-if="media.location" :to="`/search/${place}`">
                     <v-list-item-avatar>
                         <v-icon>mdi-map-marker-outline</v-icon>
                     </v-list-item-avatar>
@@ -274,7 +295,7 @@
             </v-list>
 
             <l-map
-                v-if="coordinate && leaflet.zoom"
+                v-if="coordinate && leaflet.zoom && $store.getters.isLoggedIn"
                 class="location-map mt-5"
                 :zoom="leaflet.zoom"
                 ref="map"
@@ -583,7 +604,15 @@ export default Vue.extend({
                 return;
             this.isLoading.add(id);
 
-            let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
+            let unauthorizedRequest = !this.$store.getters.isLoggedIn && this.$route.name === 'AlbumPhoto';
+            let body = unauthorizedRequest ? {
+                albumId: this.$route.params.albumId
+            } : {};
+            let media = await this.$store.dispatch('apiRequest', {
+                url: `photos/${id}`,
+                body,
+                unauthorizedRequest,
+            }).then(Media.fromObject);
             if (idOverride !== null || this.media === null || id === this.media?.id) {
                 this.media = media;
                 this.$store.commit('keepInView', media);

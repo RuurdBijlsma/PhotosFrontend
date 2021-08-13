@@ -16,7 +16,7 @@ const routes: Array<RouteConfig> = [
             path: '/photo/:id',
             name: 'HomePhoto',
             component: () => import('../views/Photo.vue'),
-            children:[{
+            children: [{
                 meta: {title: 'Edit photo - Ruurd Photos'},
                 path: '/photo/:id/edit',
                 name: 'EditHomePhoto',
@@ -34,7 +34,7 @@ const routes: Array<RouteConfig> = [
             path: '/search/:query/photo/:id',
             name: 'SearchPhoto',
             component: () => import('../views/Photo.vue'),
-            children:[{
+            children: [{
                 meta: {title: 'Edit photo - Ruurd Photos'},
                 path: '/search/:query/photo/:id/edit',
                 name: 'EditSearchPhoto',
@@ -52,7 +52,7 @@ const routes: Array<RouteConfig> = [
             path: '/date/:month/photo/:id',
             name: 'DateMonthPhoto',
             component: () => import('../views/Photo.vue'),
-            children:[{
+            children: [{
                 meta: {title: 'Edit photo - Ruurd Photos'},
                 path: '/date/:month/photo/:id/edit',
                 name: 'EditDateMonthPhoto',
@@ -70,7 +70,7 @@ const routes: Array<RouteConfig> = [
             path: '/date/:day/:month/photo/:id',
             name: 'DateDayPhoto',
             component: () => import('../views/Photo.vue'),
-            children:[{
+            children: [{
                 meta: {title: 'Edit photo - Ruurd Photos'},
                 path: '/date/:day/:month/photo/:id/edit',
                 name: 'EditDateDayPhoto',
@@ -137,7 +137,10 @@ const routes: Array<RouteConfig> = [
     {
         path: '/login',
         name: 'Login',
-        meta: {title: 'Login - Ruurd Photos'},
+        meta: {
+            title: 'Login - Ruurd Photos',
+            requiresAuth: false,
+        },
         component: () => import('../views/Login.vue')
     },
     {
@@ -149,15 +152,23 @@ const routes: Array<RouteConfig> = [
     {
         path: '/album/:albumId',
         name: 'Album',
-        meta: {title: 'Album - Ruurd Photos'},
+        meta: {
+            title: 'Album - Ruurd Photos',
+            requiresAuth: false,
+        },
         component: () => import('../views/Album.vue'),
         children: [{
-            meta: {title: 'Photo - Ruurd Photos'},
+            meta: {
+                title: 'Photo - Ruurd Photos',
+                requiresAuth: false,
+            },
             path: '/album/:albumId/photo/:id',
             name: 'AlbumPhoto',
             component: () => import('../views/Photo.vue'),
-            children:[{
-                meta: {title: 'Edit photo - Ruurd Photos'},
+            children: [{
+                meta: {
+                    title: 'Edit photo - Ruurd Photos',
+                },
                 path: '/album/:albumId/photo/:id/edit',
                 name: 'EditAlbumPhoto',
                 component: () => import('../views/EditPhoto.vue'),

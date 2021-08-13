@@ -186,12 +186,13 @@ export default new Vuex.Store({
             commit('cachedPhotos', {key, media: cachedPhotos});
             return cachedPhotos;
         },
-        apiRequest: async ({state, getters, dispatch}, {url, body = {}}): Promise<any> => {
-            if (!getters.isLoggedIn) {
-                let routeName = location.pathname;
-                if (routeName !== '/login')
-                    await router.push('/login');
-                return null;
+        apiRequest: async ({state, getters, dispatch}, {url, body = {}, unauthorizedRequest=false}): Promise<any> => {
+            let shouldRedirectIfUnauthorized = !(router.currentRoute.name === null || router.currentRoute.meta?.requiresAuth === false);
+            if (!getters.isLoggedIn && !unauthorizedRequest) {
+                if (shouldRedirectIfUnauthorized) {
+                    await router.replace('/login');
+                }
+                return;
             }
 
             let response = await fetch(`${state.api}/${url}`, {
@@ -201,9 +202,10 @@ export default new Vuex.Store({
             });
 
             if (response.status === 401) {
-                await dispatch('addSnack', {text: 'Your login credentials seem to be incorrect'});
-                if (router.currentRoute.name !== 'Login')
+                if (shouldRedirectIfUnauthorized) {
+                    await dispatch('addSnack', {text: 'Your login credentials seem to be incorrect'});
                     await router.push('/login');
+                }
                 return null;
             }
 
