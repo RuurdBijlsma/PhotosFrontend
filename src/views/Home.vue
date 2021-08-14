@@ -76,6 +76,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo bugs
 // wanneer je foto reprocessed of iets anders wat zijn ID veranderd, update alle albums waar die foto dan in zit :'(
+// when delete photo remove it from albums
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app
