@@ -119,6 +119,7 @@ export default Vue.extend({
                         this.$store.dispatch('updateAlbums').then();
                         await this.$router.push(`/album/${result.id}`);
                     } else {
+                        // noinspection ExceptionCaughtLocallyJS
                         throw new Error(result);
                     }
                 } catch (e) {
@@ -140,6 +141,7 @@ export default Vue.extend({
                         this.clearSelection();
                         await this.$router.push(`/album/${album.album.id}`);
                     } else {
+                        // noinspection ExceptionCaughtLocallyJS
                         throw new Error(result);
                     }
                 } catch (e) {
@@ -151,8 +153,21 @@ export default Vue.extend({
         },
         async downloadItems() {
             this.loading.download = true;
+            let unauthorizedRequest = !this.$store.getters.isLoggedIn && this.$route.params.albumId;
+            let body = unauthorizedRequest ? {
+                albumId: this.$route.params.albumId
+            } : {};
+
+            console.log('body',body);
             if (this.selectedMedias.length < 5) {
-                let fullMedias = await Promise.all(this.selectedMedias.map(m => this.$store.dispatch('apiRequest', {url: `photos/${m.id}`})));
+                let fullMedias = await Promise.all(this.selectedMedias.map(
+                    m => this.$store.dispatch('apiRequest', {
+                        url: `photos/${m.id}`,
+                        body,
+                        unauthorizedRequest,
+                    })
+                ));
+                console.log('fullmedias', fullMedias)
                 let promises = [];
                 for (let media of fullMedias) {
                     console.log(media);
@@ -163,7 +178,11 @@ export default Vue.extend({
                 try {
                     let {zipId} = await this.$store.dispatch('apiRequest', {
                         url: `photos/batchDownload`,
-                        body: {ids: this.selectedMedias.map(p => p.id)},
+                        body: {
+                            ids: this.selectedMedias.map(p => p.id),
+                            ...body,
+                        },
+                        unauthorizedRequest,
                     });
                     console.log('zip id', zipId);
                     let start = this.selectedMedias[0].createDate;

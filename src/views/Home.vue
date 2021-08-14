@@ -67,10 +67,6 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
-// Allow add to selection in full /photo page
-// download button in album to download all
-
-// Delete zip files in ./thumbnails/zip after a week
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // allow change password/mail/name
 // api url default is weird now with docker
@@ -79,7 +75,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // mobile select photos
 
 // todo bugs
-// Downloading doesn't work as guest (album view)
+// wanneer je foto reprocessed of iets anders wat zijn ID veranderd, update alle albums waar die foto dan in zit :'(
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app
@@ -383,6 +379,7 @@ export default Vue.extend({
     overflow-y: scroll;
     width: 100%;
     -ms-overflow-style: none;
+    /*noinspection CssUnknownProperty*/
     scrollbar-width: none;
 }
 

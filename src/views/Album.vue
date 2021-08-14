@@ -19,7 +19,8 @@
                 Submit
             </v-btn>
         </v-form>
-        <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = $store.getters.isLoggedIn" v-else>{{ album.name }}</h1>
+        <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = $store.getters.isLoggedIn" v-else>
+            {{ album.name }}</h1>
         <v-divider class="mb-1"/>
         <div class="album-actions">
             <v-icon class="mr-2">mdi-sort</v-icon>
@@ -27,6 +28,11 @@
             <span class="ml-2 mr-2">•</span>
             <span class="caption">{{ photos.length }} items</span>
             <v-spacer/>
+            <v-btn :loading="downloadLoading" small text title="Download album" @click="downloadAlbum">
+                <v-icon class="mr-2">mdi-download-outline</v-icon>
+                Download
+            </v-btn>
+
             <v-btn v-if="$store.getters.isLoggedIn" small text title="Delete album" @click="deleteAlbum">
                 <v-icon class="mr-2">mdi-delete-outline</v-icon>
                 Delete
@@ -71,6 +77,7 @@ import {api, scrollBarWidth} from "@/ts/constants";
 import Vue from "vue";
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
+import {downloadFromUrl} from "@/ts/utils";
 
 export default Vue.extend({
     name: "Album",
@@ -80,6 +87,7 @@ export default Vue.extend({
         album: null as any,
         photos: [] as Media[],
         editTitle: false,
+        downloadLoading: false,
         editedTitle: '',
         sort: 'createDate asc',
         sortOptions: [
@@ -113,6 +121,30 @@ export default Vue.extend({
         this.$store.commit('viewedAlbum', this.album);
     },
     methods: {
+        async downloadAlbum() {
+            this.downloadLoading = true;
+            let unauthorizedRequest = !this.$store.getters.isLoggedIn && this.$route.params.albumId;
+            let body = unauthorizedRequest ? {
+                albumId: this.$route.params.albumId
+            } : {};
+            try {
+                let {zipId} = await this.$store.dispatch('apiRequest', {
+                    url: `photos/batchDownload`,
+                    body: {
+                        ids: this.photos.map(p => p.id),
+                        ...body,
+                    },
+                    unauthorizedRequest,
+                });
+                console.log('zip id', zipId);
+                let filename = this.album.name ?? 'album';
+                await downloadFromUrl(`${api}/photo/zip/${zipId}.zip`, `${filename}.zip`);
+            } catch (e) {
+                await this.$store.dispatch('addSnack', {text: `Couldn't download files, ${e.message}`});
+                console.warn('cant download', e);
+            }
+            this.downloadLoading = false;
+        },
         async deleteAlbum() {
             let accepted = await this.$store.dispatch('showPrompt', {
                 title: `Delete this album?`,

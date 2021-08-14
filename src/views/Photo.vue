@@ -9,81 +9,82 @@
         }">
             <div class="top-gradient"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <v-btn icon dark @click="close" class="back-button btn" :style="{
-                    // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                    // top: $vuetify.breakpoint.mobile ? null : '20px',
-                }">
+            <v-btn icon dark @click="close" class="back-button btn">
                 <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
-            <v-btn icon dark @click="showInfo = !showInfo" class="info-button btn" :style="{
-                    // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                    // top: $vuetify.breakpoint.mobile ? null : '20px',
-                }">
-                <v-icon>mdi-information-outline</v-icon>
-            </v-btn>
-            <v-btn v-if="$store.getters.isLoggedIn" icon
-                   dark :to="$route.path + '/edit'" class="edit-button btn">
-                <v-icon>mdi-image-edit-outline</v-icon>
-            </v-btn>
-            <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
-                    v-model="showPhotoMenu"
-                    :nudge-left="$store.getters.isLoggedIn ? 180 : 110"
-                    min-width="auto">
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn dark icon v-bind="attrs" v-on="on" class="menu-button btn" :style="{
-                            // bottom: $vuetify.breakpoint.mobile ? '20px' : null,
-                            // top: $vuetify.breakpoint.mobile ? null : '20px',
-                        }">
-                        <v-icon>mdi-dots-vertical</v-icon>
-                    </v-btn>
-                </template>
-                <v-list dense>
-                    <v-list-item @click="reprocess(media)" v-if="$store.getters.isLoggedIn">
-                        <v-list-item-avatar>
-                            <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
-                            <v-icon v-else>mdi-auto-fix</v-icon>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                            <v-list-item-title>
-                                Reprocess item
-                            </v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
-                    <v-list-item @click="fixDateFromFile()" v-if="$store.getters.isLoggedIn">
-                        <v-list-item-avatar>
-                            <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
-                            <v-icon v-else>mdi-calendar-range</v-icon>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                            <v-list-item-title>
-                                Fix date from filename
-                            </v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
-                    <v-list-item @click="deleteItem()" v-if="$store.getters.isLoggedIn">
-                        <v-list-item-avatar>
-                            <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
-                            <v-icon v-else>mdi-delete-outline</v-icon>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                            <v-list-item-title>
-                                Delete
-                            </v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
-                    <v-list-item @click="downloadItem()">
-                        <v-list-item-avatar>
-                            <v-progress-circular :size="25" :width="2" indeterminate v-if="downloadLoading"/>
-                            <v-icon v-else>mdi-download</v-icon>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                            <v-list-item-title>
-                                Download
-                            </v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
+            <div class="top-right-buttons btn">
+                <v-btn v-if="isSelecting && !selected" icon dark @click="addToSelection" title="Add to selection">
+                    <v-icon>mdi-circle-outline</v-icon>
+                </v-btn>
+                <v-btn v-if="isSelecting && selected" icon dark @click="removeFromSelection"
+                       title="Remove from selection">
+                    <v-icon>mdi-check-circle</v-icon>
+                </v-btn>
+                <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'" icon
+                       title="Edit image"
+                       dark :to="$route.path + '/edit'">
+                    <v-icon>mdi-image-edit-outline</v-icon>
+                </v-btn>
+                <v-btn icon dark @click="showInfo = !showInfo" title="Show information">
+                    <v-icon>mdi-information-outline</v-icon>
+                </v-btn>
+                <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
+                        v-model="showPhotoMenu"
+                        :nudge-left="$store.getters.isLoggedIn ? 180 : 110"
+                        min-width="auto">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn dark icon v-bind="attrs" v-on="on">
+                            <v-icon>mdi-dots-vertical</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-list dense>
+                        <v-list-item @click="reprocess(media)" v-if="$store.getters.isLoggedIn">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
+                                <v-icon v-else>mdi-auto-fix</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Reprocess item
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item @click="fixDateFromFile()" v-if="$store.getters.isLoggedIn">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
+                                <v-icon v-else>mdi-calendar-range</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Fix date from filename
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item @click="deleteItem()" v-if="$store.getters.isLoggedIn">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
+                                <v-icon v-else>mdi-delete-outline</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Delete
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item @click="downloadItem()">
+                            <v-list-item-avatar>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="downloadLoading"/>
+                                <v-icon v-else>mdi-download</v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    Download
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </div>
             <div class="prev-button-container skip-button-container"
                  @click="previous"
                  v-if="photoGallery && !isTouch && canSkipLeft && !photoGallery.imgZoomed">
@@ -379,6 +380,19 @@ export default Vue.extend({
         this.loadGpsIcon().then();
     },
     methods: {
+        addToSelection() {
+            if (this.media === null) return;
+            this.$store.commit('addToPhotoSelection', this.media);
+            this.$store.commit('lastSelectedPhoto', this.media);
+        },
+        removeFromSelection() {
+            if (this.media === null) return;
+            this.$store.commit('removeFromPhotoSelection', this.media);
+            if (this.$store.state.lastSelectedPhoto?.id === this.media.id) {
+                let newLastSelected = this.$store.getters.selectedMedias[this.$store.getters.selectedMedias.length - 1] ?? null;
+                this.$store.commit('lastSelectedPhoto', newLastSelected);
+            }
+        },
         async downloadItem() {
             this.downloadLoading = true;
             await downloadFromUrl(`${api}/photos/full/${this.id}`, this.media?.filename ?? 'image.jpg');
@@ -623,6 +637,12 @@ export default Vue.extend({
         },
     },
     computed: {
+        isSelecting(): boolean {
+            return this.$store.getters.isSelecting;
+        },
+        selected(): boolean {
+            return this.$store.getters.isSelected(this.media?.id);
+        },
         coordinate(): L.LatLng | null {
             if (this.media === null || this.media.location === null)
                 return null;
@@ -798,19 +818,14 @@ export default Vue.extend({
     left: var(--button-padding);
 }
 
-.info-button {
-    top: var(--button-padding);
-    right: calc(var(--button-padding) * 2 + 36px);
-}
-
-.edit-button {
-    top: var(--button-padding);
-    right: calc(var(--button-padding) * 3 + 36px * 2);
-}
-
-.menu-button {
+.top-right-buttons {
     top: var(--button-padding);
     right: var(--button-padding);
+    display: flex;
+}
+
+.top-right-buttons > * {
+    margin-left: 16px;
 }
 
 .skip-button-container {
