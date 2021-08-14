@@ -138,7 +138,7 @@ export default Vue.extend({
                     console.log('add', result);
                     if (result) {
                         this.clearSelection();
-                        await this.$router.push(`/album/${album.album.AlbumId}`);
+                        await this.$router.push(`/album/${album.album.id}`);
                     } else {
                         throw new Error(result);
                     }

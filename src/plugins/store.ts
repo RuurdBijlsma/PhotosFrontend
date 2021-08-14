@@ -186,7 +186,7 @@ export default new Vuex.Store({
             commit('cachedPhotos', {key, media: cachedPhotos});
             return cachedPhotos;
         },
-        apiRequest: async ({state, getters, dispatch}, {url, body = {}, unauthorizedRequest=false}): Promise<any> => {
+        apiRequest: async ({state, getters, dispatch}, {url, body = {}, unauthorizedRequest = false}): Promise<any> => {
             let shouldRedirectIfUnauthorized = !(router.currentRoute.name === null || router.currentRoute.meta?.requiresAuth === false);
             if (!getters.isLoggedIn && !unauthorizedRequest) {
                 if (shouldRedirectIfUnauthorized) {
@@ -236,17 +236,23 @@ export default new Vuex.Store({
         },
         async search({dispatch, commit, state}, query: string) {
             let {results, info, type} = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
+            console.log({results, info, type})
             commit('searchType', type);
             if (type === 'label')
                 commit('glossary', info);
             else if (type === 'place')
                 commit('placeName', info);
-            let meanRank = results.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / results.length;
-            const threshold = Math.min(meanRank, 1.2);
-            let itemsLow = results.filter((r: any) => r.rank < threshold).map(Media.fromObject);
-            let itemsHigh = results.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
-            commit('searchResultsLow', itemsLow);
-            commit('searchResultsHigh', itemsHigh);
+            if (type === 'date' || type === 'subType') {
+                commit('searchResultsLow', []);
+                commit('searchResultsHigh', results.map(Media.fromObject));
+            } else {
+                let meanRank = results.map((r: any) => r.rank).reduce((a: number, b: number) => a + b, 0) / results.length;
+                const threshold = Math.min(meanRank, 1.2);
+                let itemsLow = results.filter((r: any) => r.rank < threshold).map(Media.fromObject);
+                let itemsHigh = results.filter((r: any) => r.rank >= threshold).map(Media.fromObject);
+                commit('searchResultsLow', itemsLow);
+                commit('searchResultsHigh', itemsHigh);
+            }
         },
     },
     modules: {},

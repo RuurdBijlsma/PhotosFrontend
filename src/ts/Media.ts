@@ -1,5 +1,7 @@
+import {subTypes} from "@/ts/constants";
+
 export type MediaType = 'photo' | 'video';
-export type MediaSubType = 'none' | 'portrait' | 'vr' | 'slomo';
+export type MediaSubType = 'none' | 'portrait' | 'vr' | 'slomo' | 'animation';
 
 export interface Classification {
     confidence: number,
@@ -102,8 +104,8 @@ export class Media {
         }) : null;
         return new Media(id, filename, new Date(createDateString), width, height,
             type === 'image' ? 'photo' : 'video',
-            (['portrait', 'vr', 'slomo'].includes(subType) ? subType : 'none') as MediaSubType,
+            (subTypes.includes(subType) ? subType : 'none') as MediaSubType,
             durationMs, classifications, location, isFinite(+bytes) ? +bytes : null, exif,
-        )
+        );
     }
 }

@@ -29,22 +29,7 @@
         <div class="bottom-stuff" :style="{
             display: $vuetify.breakpoint.width < 1000 ? 'block' : 'flex',
         }">
-            <v-list rounded>
-                <v-subheader>Your activity</v-subheader>
-                <v-list-item to="/favorites">
-                    <v-list-item-icon>
-                        <v-icon>mdi-star-outline</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Favorites</v-list-item-title>
-                </v-list-item>
-                <v-list-item to="/recently-added">
-                    <v-list-item-icon>
-                        <v-icon>mdi-clock-outline</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Recently added</v-list-item-title>
-                </v-list-item>
-            </v-list>
-            <v-list rounded>
+            <v-list rounded dense>
                 <v-subheader>Creations</v-subheader>
                 <v-list-item to="/albums">
                     <v-list-item-icon>
@@ -53,25 +38,31 @@
                     <v-list-item-title>Albums</v-list-item-title>
                 </v-list-item>
             </v-list>
-            <v-list rounded>
+            <v-list rounded dense>
                 <v-subheader>Categories</v-subheader>
-                <v-list-item to="/category/slowmotion">
+                <v-list-item to="/search/slomo">
                     <v-list-item-icon>
                         <v-icon>mdi-motion-play-outline</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>Slowmotion</v-list-item-title>
                 </v-list-item>
-                <v-list-item to="/category/sphere">
+                <v-list-item to="/search/vr">
                     <v-list-item-icon>
                         <v-icon>mdi-rotate-3d-variant</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>Photo Sphere</v-list-item-title>
                 </v-list-item>
-                <v-list-item to="/category/sphere">
+                <v-list-item to="/search/portrait">
                     <v-list-item-icon>
                         <v-icon>mdi-blur</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>Portrait</v-list-item-title>
+                </v-list-item>
+                <v-list-item to="/search/animation">
+                    <v-list-item-icon>
+                        <v-icon>mdi-animation-play-outline</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Animation</v-list-item-title>
                 </v-list-item>
             </v-list>
         </div>
@@ -114,9 +105,9 @@ export default {
 .grid {
     position: relative;
     display: flex;
-    width: calc(100% + 100px);
-    margin-left: -50px;
-    padding: 20px 50px;
+    width: calc(100% + 60px);
+    margin-left: -30px;
+    padding: 20px 30px;
 }
 
 .item {

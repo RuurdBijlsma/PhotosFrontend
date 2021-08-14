@@ -68,19 +68,18 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // Allow add to selection in full /photo page
-// add categories page for the buttons in explore to work
-// add image subtype 'animation' for gifs
+// download button in album to download all
 
 // Delete zip files in ./thumbnails/zip after a week
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // allow change password/mail/name
 // api url default is weird now with docker
-// add login button to menu when not logged in
 // this day 1 year ago thing
 // mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
 // mobile select photos
 
 // todo bugs
+// Downloading doesn't work as guest (album view)
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app

@@ -236,6 +236,7 @@ export default Vue.extend({
             return {type: 'none'};
         },
         isScrubDate(query: string) {
+            if (this.isDate(query).type !== 'none') return {isDate: false, date: new Date};
             let firstIsNumber = !isNaN(+query[0]);
             if (!firstIsNumber) {
                 let startsWithMonth = false;
@@ -256,22 +257,11 @@ export default Vue.extend({
                 return;
             let newPath = null;
 
-
-            let {type, month, day} = this.isDate(this.querySelect);
-            if (type === 'month') {
-                newPath = `/date/${months[(month ?? 1) - 1]}`
-            } else if (type === 'dayMonth') {
-                newPath = `/date/${day}/${months[(month ?? 1) - 1]}`
+            let {isDate, date} = this.isScrubDate(this.querySelect);
+            if (isDate) {
+                newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
             } else {
-                let {isDate, date} = this.isScrubDate(this.querySelect);
-                if (isDate) {
-                    newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-                } else {
-                    if (this.$route.name === 'Search') {
-                        newPath = `/search/${this.querySelect}`;
-                    } else
-                        newPath = `/search/${this.querySelect}`;
-                }
+                newPath = `/search/${this.querySelect}`;
             }
 
             if (this.$route.path !== newPath && newPath !== null)

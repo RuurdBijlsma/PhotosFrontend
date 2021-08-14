@@ -43,42 +43,6 @@ const routes: Array<RouteConfig> = [
         }],
     },
     {
-        path: '/date/:month',
-        name: 'DateMonth',
-        meta: {title: ':month - Ruurd Photos'},
-        component: () => import('../views/DateSearch.vue'),
-        children: [{
-            meta: {title: 'Photo - Ruurd Photos'},
-            path: '/date/:month/photo/:id',
-            name: 'DateMonthPhoto',
-            component: () => import('../views/Photo.vue'),
-            children: [{
-                meta: {title: 'Edit photo - Ruurd Photos'},
-                path: '/date/:month/photo/:id/edit',
-                name: 'EditDateMonthPhoto',
-                component: () => import('../views/EditPhoto.vue'),
-            }],
-        }],
-    },
-    {
-        path: '/date/:day/:month',
-        name: 'DateDay',
-        meta: {title: ':day :month - Ruurd Photos'},
-        component: () => import('../views/DateSearch.vue'),
-        children: [{
-            meta: {title: 'Photo - Ruurd Photos'},
-            path: '/date/:day/:month/photo/:id',
-            name: 'DateDayPhoto',
-            component: () => import('../views/Photo.vue'),
-            children: [{
-                meta: {title: 'Edit photo - Ruurd Photos'},
-                path: '/date/:day/:month/photo/:id/edit',
-                name: 'EditDateDayPhoto',
-                component: () => import('../views/EditPhoto.vue'),
-            }],
-        }],
-    },
-    {
         path: '/explore',
         name: 'Explore',
         meta: {title: 'Explore - Ruurd Photos'},
