@@ -226,14 +226,6 @@ export default new Vuex.Store({
             commit('login', {email, password});
             return result;
         },
-        async dateSearch({dispatch, commit, state}, {
-            day = null as number | null,
-            month = null as number | null,
-        }) {
-            let result = await dispatch('apiRequest', {url: `photos/dateSearch?m=${month}&d=${day}`});
-            let items = result.map(Media.fromObject);
-            commit('dateResults', items);
-        },
         async search({dispatch, commit, state}, query: string) {
             let {results, info, type} = await dispatch('apiRequest', {url: `photos/search?q=${query}`});
             console.log({results, info, type})
