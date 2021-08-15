@@ -202,6 +202,12 @@ export default Vue.extend({
         },
     },
     watch: {
+        '$store.state.reloadPhotos'(){
+            if(this.$store.state.reloadPhotos) {
+                this.$store.commit('reloadPhotos', false);
+                this.loadAlbum();
+            }
+        },
         '$store.state.updateAlbum'() {
             if (this.$store.state.updateAlbum) {
                 this.$store.commit('updateAlbum', false);

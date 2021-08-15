@@ -626,14 +626,20 @@ export default Vue.extend({
                 url: `photos/${id}`,
                 body,
                 unauthorizedRequest,
-            }).then(Media.fromObject);
-            if (idOverride !== null || this.media === null || id === this.media?.id) {
-                this.media = media;
-                this.$store.commit('keepInView', media);
-                this.loadInfo++;
-                console.log(this.media);
+            }).then(m => m ? Media.fromObject(m) : m);
+            if (media === null) {
+                let newPath = this.$route.path.split(this.$route.params.id);
+                await this.$router.replace(newPath[0].substr(0, newPath[0].length - 6));
+            } else {
+                console.log('media loaded', media);
+                if (idOverride !== null || this.media === null || id === this.media?.id) {
+                    this.media = media;
+                    this.$store.commit('keepInView', media);
+                    this.loadInfo++;
+                    console.log(this.media);
+                }
+                this.isLoading.delete(id);
             }
-            this.isLoading.delete(id);
         },
     },
     computed: {

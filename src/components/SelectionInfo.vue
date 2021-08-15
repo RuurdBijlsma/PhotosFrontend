@@ -243,6 +243,7 @@ export default Vue.extend({
 
             if (reloadItems && !allFailed) {
                 this.$store.commit('reloadPhotos', true);
+                this.$store.dispatch('updateAlbums').then();
             }
             if (clearSelection && !allFailed) {
                 this.clearSelection();

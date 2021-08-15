@@ -79,7 +79,7 @@ export default Vue.extend({
             this.loading = false;
             if (success) {
                 // let media = await this.$store.dispatch('apiRequest', {url: `photos/${id}`}).then(Media.fromObject);
-                location.href = `${location.origin}/photo/${id}`;
+                location.href = location.href.substr(0, location.href.length - 5).replace(this.id, id);
             } else {
                 await this.$store.dispatch('addSnack', {text: `Couldn't rotate image!`});
             }

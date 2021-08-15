@@ -101,7 +101,10 @@ export default new Vuex.Store({
 
         photosPerMonth: (state, v: MonthPhotos[]) => state.photosPerMonth = v,
         showInfo: (state, v: boolean) => state.showInfo = v,
-        reloadPhotos: (state, reloadPhotos: boolean | Media) => state.reloadPhotos = reloadPhotos,
+        reloadPhotos: (state, reloadPhotos: boolean | Media) => {
+            state.reloadPhotos = reloadPhotos;
+            state.cachedPhotos = {};
+        },
         scrollToTop: (state, scrollToTop: boolean) => state.scrollToTop = scrollToTop,
         keepInView: (state, keepInView: Media | null) => state.keepInView = keepInView,
         viewerQueue: (state, queue: Media[]) => state.viewerQueue = queue,
