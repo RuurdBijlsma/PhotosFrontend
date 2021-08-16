@@ -20,12 +20,15 @@
                        title="Remove from selection">
                     <v-icon>mdi-check-circle</v-icon>
                 </v-btn>
-                <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'" icon
-                       title="Edit image"
-                       dark :to="$route.path + '/edit'">
+                <v-btn
+                    v-if="!$vuetify.breakpoint.mobile && $store.getters.isLoggedIn && media && media.type === 'photo'"
+                    icon
+                    title="Edit image"
+                    dark :to="$route.path + '/edit'">
                     <v-icon>mdi-image-edit-outline</v-icon>
                 </v-btn>
-                <v-btn icon dark @click="showInfo = !showInfo" title="Show information">
+                <v-btn icon dark @click="showInfo = !showInfo" title="Show information"
+                       v-if="!$vuetify.breakpoint.mobile">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
                 <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
@@ -99,6 +102,19 @@
                 <v-btn fab dark
                        class="next-button btn">
                     <v-icon>mdi-chevron-right</v-icon>
+                </v-btn>
+            </div>
+            <div class="bottom-buttons btn" v-if="$vuetify.breakpoint.mobile">
+                <v-btn icon dark @click="shareMedia" title="Share">
+                    <v-icon>mdi-share-variant-outline</v-icon>
+                </v-btn>
+                <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'"
+                       icon title="Edit image"
+                       dark :to="$route.path + '/edit'">
+                    <v-icon>mdi-image-edit-outline</v-icon>
+                </v-btn>
+                <v-btn icon dark @click="showInfo = !showInfo" title="Show information">
+                    <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
             </div>
         </div>
@@ -380,6 +396,43 @@ export default Vue.extend({
         this.loadGpsIcon().then();
     },
     methods: {
+        async shareMedia() {
+            let type = this.media?.type ?? 'photo';
+            let url = type === 'photo' ? `${api}/photos/full/${this.id}` : `${api}/photo/webm/${this.id}.webm`;
+            let filename = type === 'video' ?
+                ((this.media?.filename ?? 'video') + '.webm') :
+                ((this.media?.filename ?? 'photo') + '.jpg');
+            let mimeType = type === 'video' ? 'video/webm' : 'image/jpeg';
+            if(type==='video'){
+                await navigator.share({
+                    title: this.media?.filename ?? 'Media',
+                    //@ts-ignore
+                    url: url,
+                    text: ' ',
+                });
+            }else{
+                await fetch(url)
+                    .then(response => response.blob())
+                    .then(async blob => {
+                        const file = new File(
+                            [blob],
+                            filename,
+                            {type: mimeType},
+                        );
+                        const filesArray = [file];
+                        //@ts-ignore
+                        if (navigator.canShare && navigator.canShare({files: filesArray})) {
+                            console.log('sharing', filesArray)
+                            await navigator.share({
+                                title: this.media?.filename ?? 'Media',
+                                //@ts-ignore
+                                files: filesArray,
+                                text: ' ',
+                            });
+                        }
+                    });
+            }
+        },
         addToSelection() {
             if (this.media === null) return;
             this.$store.commit('addToPhotoSelection', this.media);
@@ -474,10 +527,10 @@ export default Vue.extend({
             if (offsetX > 1) offsetX = 1;
             if (offsetY > 1) offsetY = 1;
 
-            var iw = img.width,
+            const iw = img.width,
                 ih = img.height,
-                r = Math.min(w / iw, h / ih),
-                nw = iw * r,   // new prop. width
+                r = Math.min(w / iw, h / ih);
+            let nw = iw * r,   // new prop. width
                 nh = ih * r,   // new prop. height
                 cx, cy, cw, ch, ar = 1;
 
@@ -832,6 +885,15 @@ export default Vue.extend({
 
 .top-right-buttons > * {
     margin-left: 16px;
+}
+
+.bottom-buttons {
+    padding: var(--button-padding);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
 }
 
 .skip-button-container {

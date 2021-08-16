@@ -10,16 +10,16 @@
 
         <photo-map v-if="isPlace && bounds !== null"
                    :width="mapWidth"
-                   :height="450"
+                   :height="mapHeight"
                    :start-bounds="bounds"
                    :style="{
-                        height: 450 + 'px',
+                        height: mapHeight + 'px',
                         margin: `-${pagePadding}px -${pagePadding}px 0`,
                         width: `calc(100% + ${pagePadding * 2}px);`,
                    }"
                    class="map-leaflet"/>
         <h1 class="search-query search-place" v-if="isPlace && !loading && allResults.length > 0">‟{{ placeName }}”</h1>
-        <div :style="{height: 450 + 'px'}" v-else-if="!loading && isPlace" class="placeholder-map"></div>
+        <div :style="{height: mapHeight + 'px'}" v-else-if="!loading && isPlace" class="placeholder-map"></div>
 
         <div v-if="loading" class="progress-center">
             <v-progress-circular color="primary" :size="$vuetify.breakpoint.width / 4" indeterminate/>
@@ -101,6 +101,12 @@ export default Vue.extend({
         },
     },
     computed: {
+        mapHeight(): number {
+            return Math.min(
+                this.$vuetify.breakpoint.height - this.$vuetify.application.top - this.$vuetify.application.bottom - 100,
+                450
+            );
+        },
         pagePadding(): number {
             return this.$vuetify.breakpoint.mobile ? 0 : 10;
         },

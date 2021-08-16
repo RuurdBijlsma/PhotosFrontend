@@ -67,12 +67,13 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
+// mobile select photos
+// check if share video works with real url in telegram
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // allow change password/mail/name
 // api url default is weird now with docker
 // this day 1 year ago thing
-// mobile long press on image to save (maybe same method as insertImg in PhotoGallery)
-// mobile select photos
+
 
 // todo bugs
 // restore doesn't work
