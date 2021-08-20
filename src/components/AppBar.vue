@@ -136,7 +136,7 @@ export default Vue.extend({
             let element = document.createElement('input');
             element.setAttribute('type', 'file');
             element.setAttribute('multiple', '');
-            element.setAttribute('accept', 'image/*');
+            element.setAttribute('accept', 'image/*,video/*');
             element.style.display = 'none';
             document.body.appendChild(element);
             element.click();

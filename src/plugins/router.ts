@@ -61,10 +61,10 @@ const routes: Array<RouteConfig> = [
         component: () => import('../views/settings/Settings.vue'),
         children: [
             {
-                meta: {title: 'Settings - Ruurd Photos'},
+                meta: {title: 'Backup settings - Ruurd Photos'},
                 path: '/settings',
-                name: 'GeneralSettings',
-                component: () => import('../views/settings/GeneralSettings.vue')
+                name: 'BackupSettings',
+                component: () => import('../views/settings/BackupSettings.vue')
             },
             {
                 meta: {title: 'Map settings - Ruurd Photos'},

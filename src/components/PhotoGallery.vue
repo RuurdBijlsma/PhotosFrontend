@@ -31,6 +31,9 @@
                         </v-img>
                     </v-zoomer>
                     <video class="element-item"
+                           :style="{
+                                height: $vuetify.breakpoint.mobile ? 'calc(100% - 60px)' : '100%',
+                           }"
                            :ref="`video${item.id}`"
                            :poster="`${api}/photo/big/${item.id}.webp`"
                            controls
@@ -104,7 +107,7 @@ export default Vue.extend({
             this.initialize();
     },
     methods: {
-        initialize() {
+        initialize(autoplay = true) {
             if (this.index === -1 && this.id !== null) {
                 return;
             }
@@ -112,6 +115,13 @@ export default Vue.extend({
             this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
             let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
             this.swiper.slideTo(viewedItem, 0, false);
+            if (this.items[viewedItem]?.type === 'video' && autoplay) {
+                this.$nextTick(() => {
+                    console.log("Autoplaying video!", this.$refs['video' + this.id]);
+                    let video = this.$refs['video' + this.id] as HTMLVideoElement[];
+                    if (video && video.length > 0) video[0].play();
+                });
+            }
         },
         handleKey(e: KeyboardEvent) {
             if (e.key === 'ArrowRight')
@@ -244,7 +254,7 @@ export default Vue.extend({
             }
         },
         queue() {
-            this.initialize();
+            this.initialize(false);
         },
         allowTouch() {
             this.swiper.allowSlideNext = this.allowTouch;
@@ -268,9 +278,13 @@ export default Vue.extend({
         id(newVal, oldVal) {
             if (newVal === oldVal) return;
             // If switching away from video, pause video
-            let vid = this.$refs['video' + oldVal] as HTMLVideoElement[] | undefined;
-            if (vid)
-                vid[0].pause();
+            let oldVid = this.$refs['video' + oldVal] as HTMLVideoElement[] | undefined;
+            if (oldVid)
+                oldVid[0].pause();
+            // If switching to video video, play video
+            let newVid = this.$refs['video' + newVal] as HTMLVideoElement[] | undefined;
+            if (newVid && newVid[0].currentTime === 0)
+                newVid[0].play();
 
             if (this.id && this.$route.path.includes(this.id)) return;
             let path = this.$route.path.split('/').filter(p => p.length !== 0);

@@ -105,7 +105,7 @@
                 </v-btn>
             </div>
             <div class="bottom-buttons btn" v-if="$vuetify.breakpoint.mobile">
-                <v-btn icon dark @click="shareMedia" title="Share">
+                <v-btn icon dark @click="shareMedia" title="Share" :loading="shareLoading">
                     <v-icon>mdi-share-variant-outline</v-icon>
                 </v-btn>
                 <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'"
@@ -381,6 +381,7 @@ export default Vue.extend({
         gpsIcon: null as L.Icon | null,
         photoGallery: null as any,
         showPhotoMenu: false,
+        shareLoading: false,
     }),
     async mounted() {
         console.log(this.id);
@@ -397,20 +398,15 @@ export default Vue.extend({
     },
     methods: {
         async shareMedia() {
-            let type = this.media?.type ?? 'photo';
-            let url = type === 'photo' ? `${api}/photos/full/${this.id}` : `${api}/photo/webm/${this.id}.webm`;
-            let filename = type === 'video' ?
-                ((this.media?.filename ?? 'video') + '.webm') :
-                ((this.media?.filename ?? 'photo') + '.jpg');
-            let mimeType = type === 'video' ? 'video/webm' : 'image/jpeg';
-            if(type==='video'){
-                await navigator.share({
-                    title: this.media?.filename ?? 'Media',
-                    //@ts-ignore
-                    url: url,
-                    text: ' ',
-                });
-            }else{
+            this.shareLoading = true;
+            try {
+                let type = this.media?.type ?? 'photo';
+                let url = type === 'photo' ? `${api}/photos/full/${this.id}` : `${api}/photo/webm/${this.id}.webm`;
+                let filename = type === 'video' ?
+                    ((this.media?.filename ?? 'video') + '.webm') :
+                    ((this.media?.filename ?? 'photo') + '.jpg');
+                let mimeType = type === 'video' ? 'video/webm' : 'image/jpeg';
+                // Download media and share that
                 await fetch(url)
                     .then(response => response.blob())
                     .then(async blob => {
@@ -431,7 +427,12 @@ export default Vue.extend({
                             });
                         }
                     });
+
+            } catch (e) {
+                console.warn("Cant share", e);
+                await this.$store.dispatch('addSnack', {text: `Can't share, ${e.message}`})
             }
+            this.shareLoading = false;
         },
         addToSelection() {
             if (this.media === null) return;
@@ -897,8 +898,8 @@ export default Vue.extend({
 }
 
 .skip-button-container {
-    height: 100%;
-    top: 0;
+    height: calc(100% - 240px);
+    top: 100px;
     position: absolute;
     width: 15%;
     min-width: 100px;

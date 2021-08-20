@@ -22,44 +22,51 @@
         <h1 class="mt-6 mb-6 text-center display-3 pointer" @click="editTitle = $store.getters.isLoggedIn" v-else>
             {{ album.name }}</h1>
         <v-divider class="mb-1"/>
-        <div class="album-actions">
-            <v-icon class="mr-2">mdi-sort</v-icon>
-            <span class="caption">{{ sortOptions.find(o => o.name === sort).summary }}</span>
-            <span class="ml-2 mr-2">•</span>
-            <span class="caption">{{ photos.length }} items</span>
-            <v-spacer/>
-            <v-btn :loading="downloadLoading" small text title="Download album" @click="downloadAlbum">
-                <v-icon class="mr-2">mdi-download-outline</v-icon>
-                Download
-            </v-btn>
+        <div class="album-actions" :style="{
+            flexDirection:  smallWidth? 'column' : 'row',
+            padding: smallWidth ? '10px' : '0',
+        }">
+            <div>
+                <v-icon class="mr-2 ml-2">mdi-sort</v-icon>
+                <span class="caption">{{ sortOptions.find(o => o.name === sort).summary }}</span>
+                <span class="ml-2 mr-2">•</span>
+                <span class="caption">{{ photos.length }} items</span>
+            </div>
+            <v-divider class="mt-3 mb-3" v-if="smallWidth"/>
+            <div>
+                <v-btn :loading="downloadLoading" small text title="Download album" @click="downloadAlbum">
+                    <v-icon class="mr-2">mdi-download-outline</v-icon>
+                    Download
+                </v-btn>
 
-            <v-btn v-if="$store.getters.isLoggedIn" small text title="Delete album" @click="deleteAlbum">
-                <v-icon class="mr-2">mdi-delete-outline</v-icon>
-                Delete
-            </v-btn>
+                <v-btn v-if="$store.getters.isLoggedIn" small text title="Delete album" @click="deleteAlbum">
+                    <v-icon class="mr-2">mdi-delete-outline</v-icon>
+                    Delete
+                </v-btn>
 
-            <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn small text v-bind="attrs" v-on="on">
-                        <v-icon class="mr-2">mdi-sort</v-icon>
-                        Sort
-                    </v-btn>
-                </template>
-                <v-list dense>
-                    <v-list-item-group v-model="sort">
-                        <v-list-item v-for="option in sortOptions" :key="option.name" :value="option.name">
-                            <v-list-item-icon>
-                                <v-icon>
-                                    {{ option.icon }}
-                                </v-icon>
-                            </v-list-item-icon>
-                            <v-list-item-content>
-                                <v-list-item-title>{{ option.summary }}</v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-list-item-group>
-                </v-list>
-            </v-menu>
+                <v-menu offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn small text v-bind="attrs" v-on="on">
+                            <v-icon class="mr-2">mdi-sort</v-icon>
+                            Sort
+                        </v-btn>
+                    </template>
+                    <v-list dense>
+                        <v-list-item-group v-model="sort">
+                            <v-list-item v-for="option in sortOptions" :key="option.name" :value="option.name">
+                                <v-list-item-icon>
+                                    <v-icon>
+                                        {{ option.icon }}
+                                    </v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-content>
+                                    <v-list-item-title>{{ option.summary }}</v-list-item-title>
+                                </v-list-item-content>
+                            </v-list-item>
+                        </v-list-item-group>
+                    </v-list>
+                </v-menu>
+            </div>
         </div>
         <v-divider class="mt-1"/>
         <div v-if="photos.length === 0">
@@ -189,6 +196,9 @@ export default Vue.extend({
         },
     },
     computed: {
+        smallWidth() {
+            return this.$vuetify.breakpoint.width <= 650
+        },
         id() {
             return this.$route.params.albumId;
         },
@@ -202,8 +212,8 @@ export default Vue.extend({
         },
     },
     watch: {
-        '$store.state.reloadPhotos'(){
-            if(this.$store.state.reloadPhotos) {
+        '$store.state.reloadPhotos'() {
+            if (this.$store.state.reloadPhotos) {
                 this.$store.commit('reloadPhotos', false);
                 this.loadAlbum();
             }
@@ -249,6 +259,7 @@ export default Vue.extend({
 
 .album-actions {
     display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 

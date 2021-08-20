@@ -11,7 +11,7 @@
             <v-sheet class="row" v-for="log in logs" :key="log.id">
                 <v-icon :color="logColor(log.type)" class="icon">{{ logIcon(log.type) }}</v-icon>
                 <span class="date">{{ formatDate(log.createdAt, 'HH:mm:ss.SS') }}</span>
-                <v-chip :color="stringToColor(log.tag)" class="tag">{{ log.tag }}</v-chip>
+                <v-chip dark :color="stringToColor(log.tag)" class="tag">{{ log.tag }}</v-chip>
                 <span class="message">{{ log.message }}</span>
             </v-sheet>
             <v-btn class="scroll-button" @click="userScrollDown" color="primary" rounded v-if="userScrolled">
@@ -61,7 +61,9 @@ export default Vue.extend({
             this.userScrolled = true;
         },
         async updateLogs(smooth = true) {
-            this.logs = await this.$store.dispatch('apiRequest', {url: 'photos/logs'});
+            this.logs = await this.$store.dispatch('apiRequest', {
+                url: 'photos/logs'
+            }).then(l => l.reverse());
             setTimeout(() => {
                 if (!this.userScrolled)
                     this.scrollDown(smooth);
@@ -143,6 +145,13 @@ export default Vue.extend({
 
 .tag {
     width: 150px;
+    font-weight: 400;
+    text-shadow:
+        -1px -1px 0 #5d5d5d,
+        1px -1px 0 #5d5d5d,
+        -1px 1px 0 #5d5d5d,
+        1px 1px 0 #5d5d5d;
+    font-family: "Roboto", sans-serif;
 }
 
 .message {

@@ -63,7 +63,8 @@ export default Vue.extend({
 }
 
 .image {
-    margin-right: 20px;
+    margin-right: 10px;
+    margin-left: 10px;
     margin-bottom: 20px;
     border-radius: 10px;
     cursor: pointer;

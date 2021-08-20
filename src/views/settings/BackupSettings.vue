@@ -5,7 +5,6 @@
         <br>
         <v-btn text class="mt-2" outlined @click="backupDb">Backup database</v-btn>
         <div class="restore">
-
             <v-dialog v-model="dialog" max-width="700">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn text class="mt-2" outlined v-bind="attrs" v-on="on">Restore database</v-btn>
@@ -14,6 +13,9 @@
                     <v-card-title>
                         Restore files
                     </v-card-title>
+                    <v-card-subtitle>
+                        Only the 15 most recent backups are shown.
+                    </v-card-subtitle>
                     <v-card-text>
 
                         <v-radio-group v-model="selectedRestoreOption">
@@ -53,6 +55,9 @@ export default Vue.extend({
         restoreOptions: [],
         selectedRestoreOption: null,
     }),
+    mounted(){
+        this.loadRestoreOptions();
+    },
     methods: {
         async restoreChoice() {
             this.$router.push('/logs').then();

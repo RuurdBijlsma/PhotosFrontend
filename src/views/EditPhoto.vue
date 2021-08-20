@@ -1,19 +1,23 @@
 <template>
     <v-sheet dark class="edit-photo" v-if="id">
         <div class="controls">
-            <div class="controls-left">
-                <v-btn class="mr-3" icon :to="prevUrl" exact title="Go back">
-                    <v-icon>mdi-arrow-left</v-icon>
-                </v-btn>
-                <v-btn icon dark @click="hiddenAngle -= Math.PI / 2" title="Rotate left">
-                    <v-icon>mdi-rotate-left</v-icon>
-                </v-btn>
-                <v-btn icon dark @click="hiddenAngle += Math.PI / 2" title="Rotate right">
-                    <v-icon>mdi-rotate-right</v-icon>
-                </v-btn>
-                <v-btn text dark @click="resetAngle" title="Reset rotation">
-                    Reset
-                </v-btn>
+            <div class="controls-left" :style="{
+                flexDirection: $vuetify.breakpoint.mobile ? 'column' : 'row',
+            }">
+                <div class="button-stuff">
+                    <v-btn class="mr-3" icon :to="prevUrl" exact title="Go back">
+                        <v-icon>mdi-arrow-left</v-icon>
+                    </v-btn>
+                    <v-btn icon dark @click="hiddenAngle -= Math.PI / 2" title="Rotate left">
+                        <v-icon>mdi-rotate-left</v-icon>
+                    </v-btn>
+                    <v-btn icon dark @click="hiddenAngle += Math.PI / 2" title="Rotate right">
+                        <v-icon>mdi-rotate-right</v-icon>
+                    </v-btn>
+                    <v-btn text dark @click="resetAngle" title="Reset rotation">
+                        Reset
+                    </v-btn>
+                </div>
                 <div class="slider-stuff">
                     <span class="degrees-text">{{ degrees }}°</span>
                     <v-btn icon @click="angle -= 0.00174532925" class="ml-1 mr-1">
@@ -233,6 +237,8 @@ export default Vue.extend({
 
 .controls-left {
     flex-grow: 1;
+    display: flex;
+    align-items: center;
 }
 
 .controls-left > * {
