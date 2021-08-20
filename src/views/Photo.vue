@@ -400,34 +400,48 @@ export default Vue.extend({
         async shareMedia() {
             this.shareLoading = true;
             try {
+                let mbs = (this.media?.size ?? 0) / 1024 / 1024;
                 let type = this.media?.type ?? 'photo';
-                let url = type === 'photo' ? `${api}/photos/full/${this.id}` : `${api}/photo/webm/${this.id}.webm`;
+                const url = `${api}/photos/full/${this.id}`;
                 let filename = type === 'video' ?
                     ((this.media?.filename ?? 'video') + '.webm') :
                     ((this.media?.filename ?? 'photo') + '.jpg');
                 let mimeType = type === 'video' ? 'video/webm' : 'image/jpeg';
-                // Download media and share that
-                await fetch(url)
-                    .then(response => response.blob())
-                    .then(async blob => {
-                        const file = new File(
-                            [blob],
-                            filename,
-                            {type: mimeType},
-                        );
-                        const filesArray = [file];
+                if (mbs < 50) {
+                    // Download media and share that
+                    await fetch(url)
+                        .then(response => response.blob())
+                        .then(async blob => {
+                            const file = new File(
+                                [blob],
+                                filename,
+                                {type: mimeType},
+                            );
+                            const filesArray = [file];
+                            //@ts-ignore
+                            if (navigator.canShare && navigator.canShare({files: filesArray})) {
+                                console.log('sharing', filesArray)
+                                await navigator.share({
+                                    title: this.media?.filename ?? 'Media',
+                                    //@ts-ignore
+                                    files: filesArray,
+                                    text: ' ',
+                                });
+                            }else{
+                                await navigator.share({
+                                    title: this.media?.filename ?? 'Media',
+                                    //@ts-ignore
+                                    url,
+                                });
+                            }
+                        });
+                } else {
+                    await navigator.share({
+                        title: this.media?.filename ?? 'Media',
                         //@ts-ignore
-                        if (navigator.canShare && navigator.canShare({files: filesArray})) {
-                            console.log('sharing', filesArray)
-                            await navigator.share({
-                                title: this.media?.filename ?? 'Media',
-                                //@ts-ignore
-                                files: filesArray,
-                                text: ' ',
-                            });
-                        }
+                        url,
                     });
-
+                }
             } catch (e) {
                 console.warn("Cant share", e);
                 await this.$store.dispatch('addSnack', {text: `Can't share, ${e.message}`})
