@@ -1,7 +1,7 @@
 <template>
     <div class="search" ref="search" @scroll="homeScroll"
          :style="{
-            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + $store.getters.selectionHeight}px)`,
             padding: pagePadding + 'px',
          }">
         <router-view/>

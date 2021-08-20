@@ -2,7 +2,7 @@
     <div class="album"
          v-if="album"
          :style="{
-             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + $store.getters.selectionHeight}px)`,
              padding: pagePadding + 'px',
          }">
         <router-view/>
@@ -34,21 +34,30 @@
             </div>
             <v-divider class="mt-3 mb-3" v-if="smallWidth"/>
             <div>
-                <v-btn :loading="downloadLoading" small text title="Download album" @click="downloadAlbum">
-                    <v-icon class="mr-2">mdi-download-outline</v-icon>
-                    Download
+                <v-btn text :icon="tinyWidth" :small="!tinyWidth" title="Share album"
+                       @click="shareAlbum">
+                    <v-icon :class="tinyWidth ? '' : 'mr-2'">mdi-share-variant-outline</v-icon>
+                    <span v-if="!tinyWidth">Share</span>
                 </v-btn>
 
-                <v-btn v-if="$store.getters.isLoggedIn" small text title="Delete album" @click="deleteAlbum">
-                    <v-icon class="mr-2">mdi-delete-outline</v-icon>
-                    Delete
+                <v-btn :loading="downloadLoading" :icon="tinyWidth" :small="!tinyWidth"
+                       text title="Download album" @click="downloadAlbum">
+                    <v-icon :class="tinyWidth ? '' : 'mr-2'">mdi-download-outline</v-icon>
+                    <span v-if="!tinyWidth">Download</span>
+                </v-btn>
+
+                <v-btn v-if="$store.getters.isLoggedIn" :icon="tinyWidth"
+                       :small="!tinyWidth" text title="Delete album" @click="deleteAlbum">
+                    <v-icon :class="tinyWidth ? '' : 'mr-2'">mdi-delete-outline</v-icon>
+                    <span v-if="!tinyWidth">Delete</span>
                 </v-btn>
 
                 <v-menu offset-y>
                     <template v-slot:activator="{ on, attrs }">
-                        <v-btn small text v-bind="attrs" v-on="on">
-                            <v-icon class="mr-2">mdi-sort</v-icon>
-                            Sort
+                        <v-btn :icon="tinyWidth" :small="!tinyWidth" text
+                               v-bind="attrs" v-on="on">
+                            <v-icon :class="tinyWidth ? '' : 'mr-2'">mdi-sort</v-icon>
+                            <span v-if="!tinyWidth">Sort</span>
                         </v-btn>
                     </template>
                     <v-list dense>
@@ -84,7 +93,7 @@ import {api, scrollBarWidth} from "@/ts/constants";
 import Vue from "vue";
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
-import {downloadFromUrl} from "@/ts/utils";
+import {downloadFromUrl, isTouchDevice} from "@/ts/utils";
 
 export default Vue.extend({
     name: "Album",
@@ -128,6 +137,18 @@ export default Vue.extend({
         this.$store.commit('viewedAlbum', this.album);
     },
     methods: {
+        async shareAlbum() {
+            const url = location.href + '?api=' + api;
+            if (isTouchDevice()) {
+                await navigator.share({
+                    title: `Check out my photo album "${this.album.name}"`,
+                    url,
+                });
+            } else {
+                await navigator.clipboard.writeText(url);
+                await this.$store.dispatch('addSnack', {text: 'Share URL copied to clipboard!'});
+            }
+        },
         async downloadAlbum() {
             this.downloadLoading = true;
             let unauthorizedRequest = !this.$store.getters.isLoggedIn && this.$route.params.albumId;
@@ -196,8 +217,11 @@ export default Vue.extend({
         },
     },
     computed: {
+        tinyWidth() {
+            return this.$vuetify.breakpoint.width <= 530;
+        },
         smallWidth() {
-            return this.$vuetify.breakpoint.width <= 650
+            return this.$vuetify.breakpoint.width <= 719;
         },
         id() {
             return this.$route.params.albumId;
@@ -265,6 +289,8 @@ export default Vue.extend({
 
 .pointer {
     cursor: pointer;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .edit-form {

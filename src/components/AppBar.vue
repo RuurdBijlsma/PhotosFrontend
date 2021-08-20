@@ -1,7 +1,7 @@
 <template>
     <v-app-bar elevation="0" app clipped-left>
         <router-link to="/" class="home-link no-style">
-            <img class="logo-icon" src="../assets/transparent-color-icon-256.png"
+            <img class="logo-icon" width="256" height="256" src="../assets/transparent-color-icon-256.png"
                  alt="icon">
             <v-app-bar-title v-if="$vuetify.breakpoint.width > 500"
                              class="logo-text">Photos

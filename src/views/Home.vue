@@ -1,7 +1,7 @@
 <template>
     <div class="home" ref="home" id="home-element"
          :style="{
-            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom}px)`,
+            maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + $store.getters.selectionHeight}px)`,
             padding: pagePadding + 'px',
          }">
         <div v-if="!loaded && !errored" class="error-container">
@@ -68,15 +68,13 @@ import MobileScrub from "@/components/MobileScrub.vue";
 
 // todo
 // mobile select photos
-// check if share video works with real url in telegram
 // allow change password and email, register account on first visit, don't store username and password in docker-compose.yml
 // allow change password/mail/name
-// api url default is weird now with docker
 // this day 1 year ago thing
 
 
 // todo bugs
-// millimeters info hier: http://localhost:8080/photo/65db38b908f7aab58a8f540da858b97f 
+// millimeters info hier: http://localhost:8080/photo/65db38b908f7aab58a8f540da858b97f
 // restore doesn't work
 // upload not working on ruurd.dev
 // orientation in web app
@@ -406,7 +404,6 @@ export default Vue.extend({
     position: relative;
     left: 0;
     bottom: 0;
-    height: 100%;
 }
 
 .lazy-month {

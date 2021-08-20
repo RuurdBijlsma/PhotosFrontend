@@ -144,7 +144,9 @@ export default Vue.extend({
         },
         dateToString(date: Date) {
             let distance = formatDistance(date, d, {addSuffix: true});
-            if (+distance.substr(0, distance.indexOf(' ')) < 5)
+            if(distance.includes('hour'))
+                return 'Today';
+            if (distance.includes('day') && +distance.substr(0, distance.indexOf(' ')) < 5)
                 return distance;
 
             let formatString = 'E, d MMM'

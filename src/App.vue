@@ -28,7 +28,7 @@
             </template>
         </v-snackbar>
         <custom-dialog/>
-        <album-dialog/>
+        <album-dialog v-if="$store.getters.isLoggedIn"/>
 
         <v-bottom-navigation app v-if="$vuetify.breakpoint.mobile" shift>
             <v-btn :style="{height: 'inherit !important'}"
@@ -50,7 +50,7 @@ import Vue from 'vue';
 import CustomDialog from "@/components/CustomDialog.vue";
 import SelectionInfo from "@/components/SelectionInfo.vue";
 import AppBar from "@/components/AppBar.vue";
-import AlbumDialog from "@/components/ChooseAlbum.vue";
+import AlbumDialog from "@/components/AlbumDialog.vue";
 import NavigationDrawer from "@/components/NavigationDrawer.vue";
 
 export default Vue.extend({
@@ -98,6 +98,7 @@ export default Vue.extend({
 html, body {
     overflow-y: hidden !important;
     user-select: none;
+    overflow-x: hidden;
 }
 
 .v-application {

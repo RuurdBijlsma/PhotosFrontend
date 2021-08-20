@@ -141,6 +141,7 @@ export default new Vuex.Store({
         isLoggedIn: state => state.email !== '' && state.password !== '',
         isSelected: state => (mediaId: string) => state.photoSelection.hasOwnProperty(mediaId),
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
+        selectionHeight: (state,getters) => getters.isSelecting ? 132 : 0,
     },
     actions: {
         async updateAlbums({commit, dispatch}) {

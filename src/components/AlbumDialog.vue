@@ -22,7 +22,7 @@
                 </v-btn>
                 <v-btn color="primary" text @click="dialogConfirm"
                        :disabled="selectedAlbum === null || albums.length === 0">
-                    Select
+                    Add to album
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -39,7 +39,7 @@ export default {
         newName: '',
     }),
     mounted() {
-        this.loadAlbums();
+            this.loadAlbums();
     },
     methods: {
         async loadAlbums() {

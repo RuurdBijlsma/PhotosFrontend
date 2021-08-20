@@ -1,9 +1,15 @@
 import {getScrollbarWidth} from "@/ts/utils";
 
+let apiOverride = null;
+if (location.search.includes('api=')) {
+    apiOverride = decodeURIComponent(location.search.split('api=')[1].split('&')[0]);
+}
 export const api =
-    localStorage.getItem('api') === null ?
-        (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://api.ruurd.dev') :
-        localStorage.api;
+    apiOverride ??
+        (localStorage.getItem('api') === null ?
+            location.origin + '/api' :
+            localStorage.api);
+console.log({api})
 
 export const months = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];

@@ -1,7 +1,11 @@
 <template>
-    <v-card class="selection-info" v-if="isSelecting" :style="{
-        bottom: $vuetify.application.bottom + 10 + 'px',
-    }">
+    <v-card class="selection-info" :outlined="$vuetify.breakpoint.mobile"
+            v-if="isSelecting"
+            :style="{
+                bottom: $vuetify.application.bottom + ($vuetify.breakpoint.mobile ? 0 : 10) + 'px',
+                width: $vuetify.breakpoint.mobile ? '100%' : '420px',
+                left: $vuetify.breakpoint.mobile ? '0' : 'calc(50% - 210px)',
+            }">
         <v-card-title>Selected {{ selectionCount }} item{{ selectionCount === 1 ? '' : 's' }}</v-card-title>
         <v-card-subtitle v-if="firstDate !== lastDate">From
             <span class="font-weight-bold">{{ firstDate }}</span>
@@ -321,7 +325,5 @@ export default Vue.extend({
 <style scoped>
 .selection-info {
     position: fixed;
-    width: 400px;
-    left: calc(50% - 175px);
 }
 </style>
