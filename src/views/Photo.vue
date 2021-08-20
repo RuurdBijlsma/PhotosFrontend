@@ -402,10 +402,10 @@ export default Vue.extend({
             try {
                 let mbs = (this.media?.size ?? 0) / 1024 / 1024;
                 let type = this.media?.type ?? 'photo';
-                const url = `${api}/photos/full/${this.id}`;
+                const url = type === 'video' ? `${api}/photo/webm/${this.id}.webm` : `${api}/photos/full/${this.id}`;
                 let filename = type === 'video' ?
                     ((this.media?.filename ?? 'video') + '.webm') :
-                    ((this.media?.filename ?? 'photo') + '.jpg');
+                    (this.media?.filename ?? 'photo.jpg');
                 let mimeType = type === 'video' ? 'video/webm' : 'image/jpeg';
                 if (mbs < 50) {
                     // Download media and share that
@@ -423,13 +423,14 @@ export default Vue.extend({
                                 console.log('sharing', filesArray)
                                 await navigator.share({
                                     title: this.media?.filename ?? 'Media',
+                                    text: this.media?.filename ?? 'Media',
                                     //@ts-ignore
                                     files: filesArray,
-                                    text: ' ',
                                 });
-                            }else{
+                            } else {
                                 await navigator.share({
                                     title: this.media?.filename ?? 'Media',
+                                    text: this.media?.filename ?? 'Media',
                                     //@ts-ignore
                                     url,
                                 });
@@ -438,11 +439,14 @@ export default Vue.extend({
                 } else {
                     await navigator.share({
                         title: this.media?.filename ?? 'Media',
+                        text: this.media?.filename ?? 'Media',
                         //@ts-ignore
                         url,
                     });
                 }
             } catch (e) {
+                if (e.message === 'Share canceled')
+                    return;
                 console.warn("Cant share", e);
                 await this.$store.dispatch('addSnack', {text: `Can't share, ${e.message}`})
             }
