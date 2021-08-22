@@ -5,6 +5,7 @@ import VuexPersistence from "vuex-persist"
 import {Media} from "@/ts/Media";
 import {MonthPhotos} from "@/ts/MediaInterfaces";
 import router from "@/plugins/router";
+import vuetify from "@/plugins/vuetify";
 
 const vuexLocal = new VuexPersistence({
     reducer: (state: any) => ({
@@ -13,6 +14,8 @@ const vuexLocal = new VuexPersistence({
         verifiedLogin: state.verifiedLogin,
         showInfo: state.showInfo,
         mapboxKey: state.mapboxKey,
+        videoMuted: state.videoMuted,
+        videoVolume: state.videoVolume,
         google: {
             refreshToken: state.google.refreshToken,
             clientId: state.google.clientId,
@@ -72,8 +75,16 @@ export default new Vuex.Store({
         albums: [],
         viewedAlbum: null,
         updateAlbum: false,
+        showPhotoButtons: true,
+        videoMuted: false,
+        videoVolume: 1,
+        videoFullscreen: false,
     },
     mutations: {
+        videoFullscreen: (state, value) => state.videoFullscreen = value,
+        videoVolume: (state, value) => state.videoVolume = value,
+        videoMuted: (state, value) => state.videoMuted = value,
+        showPhotoButtons: (state, value) => state.showPhotoButtons = value,
         updateAlbum: (state, value) => state.updateAlbum = value,
         viewedAlbum: (state, value) => state.viewedAlbum = value,
         albums: (state, value) => state.albums = value,
@@ -141,7 +152,7 @@ export default new Vuex.Store({
         isLoggedIn: state => state.email !== '' && state.password !== '',
         isSelected: state => (mediaId: string) => state.photoSelection.hasOwnProperty(mediaId),
         isSelecting: state => Object.keys(state.photoSelection).length > 0,
-        selectionHeight: (state,getters) => getters.isSelecting ? 132 : 0,
+        selectionHeight: (state, getters) => vuetify.framework.breakpoint.mobile && getters.isSelecting ? 132 : 0,
     },
     actions: {
         async updateAlbums({commit, dispatch}) {

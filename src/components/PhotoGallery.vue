@@ -14,13 +14,14 @@
                 <div class="slide-container">
                     <v-zoomer
                         :zoomed.sync="imgZoomed"
-                        :max-scale="20"
+                        :max-scale="15"
                         :key="zoomerKeys[item.id]"
                         ref="zoomers"
                         :zooming-elastic="false"
                         class="element-item"
                         v-if="item && item.type === 'photo'">
                         <v-img :lazy-src="`${api}/photo/tiny/${item.id}.webp`"
+                               @click="togglePhotoButtons"
                                @mousedown.right="insertImg"
                                :src="imgSrc(item.id, zoomedImgs.has(item.id))"
                                :key="imgSrc(item.id, zoomedImgs.has(item.id))"
@@ -30,16 +31,22 @@
                                contain>
                         </v-img>
                     </v-zoomer>
-                    <video class="element-item"
-                           :style="{
-                                height: $vuetify.breakpoint.mobile ? 'calc(100% - 60px)' : '100%',
-                           }"
-                           :ref="`video${item.id}`"
-                           :poster="`${api}/photo/big/${item.id}.webp`"
-                           controls
-                           v-else-if="item"
-                           :src="`${api}/photo/webm/${item.id}.webm`">
-                    </video>
+                    <mobile-video
+                        class="element-item"
+                        :ref="`video${item.id}`"
+                        :poster="`${api}/photo/big/${item.id}.webp`"
+                        :media="item"
+                        :src="`${api}/photo/webm/${item.id}.webm`"
+                        v-else-if="item && isTouch"
+                    />
+                    <desktop-video
+                        class="element-item"
+                        :ref="`video${item.id}`"
+                        :poster="`${api}/photo/big/${item.id}.webp`"
+                        :media="item"
+                        :src="`${api}/photo/webm/${item.id}.webm`"
+                        v-else-if="item && !isTouch"
+                    />
                 </div>
             </swiper-slide>
         </swiper>
@@ -49,22 +56,25 @@
 <script lang="ts">
 import Vue, {PropType} from 'vue'
 import {api} from "@/ts/constants"
-import {Media, MediaType, MediaSubType} from "@/ts/Media";
+import {Media} from "@/ts/Media";
 import {Swiper, SwiperSlide} from 'vue-awesome-swiper'
 import 'swiper/css/swiper.css'
 import {isTouchDevice} from "@/ts/utils";
+import MobileVideo from "@/components/MobileVideo.vue";
+import DesktopVideo from "@/components/DesktopVideo.vue";
 
 const carouselBuffer = 3;
 
 export default Vue.extend({
     name: 'PhotoGallery',
-    components: {Swiper, SwiperSlide},
+    components: {DesktopVideo, MobileVideo, Swiper, SwiperSlide},
     props: {
         queue: {
             type: [] as PropType<Media[]>,
         },
     },
     data: () => ({
+        isTouch: isTouchDevice(),
         changeUrlTimeout: -1,
         allowTouch: true,
         api,
@@ -95,6 +105,8 @@ export default Vue.extend({
         document.removeEventListener('keyup', this.handleKeyUp);
     },
     mounted() {
+        console.log('is touch?', this.isTouch);
+
         document.addEventListener('keydown', this.handleKey, false);
         document.addEventListener('keyup', this.handleKeyUp, false);
 
@@ -122,6 +134,10 @@ export default Vue.extend({
                     if (video && video.length > 0) video[0].play();
                 });
             }
+        },
+        togglePhotoButtons() {
+            console.log('toggling photo buttons', this.$store.state.showPhotoButtons);
+            this.$store.commit('showPhotoButtons', !this.$store.state.showPhotoButtons)
         },
         handleKey(e: KeyboardEvent) {
             if (e.key === 'ArrowRight')
@@ -162,9 +178,11 @@ export default Vue.extend({
         slideChange() {
             this.viewedItem = this.swiper.activeIndex;
             this.id = this.items[this.viewedItem].id;
+            // console.log(this.$refs);
+            // this.$refs['video' + this.id][0].activate();
         },
         resetZoomer() {
-            console.log('resetzoomer, is touch device?', isTouchDevice())
+            console.log('resetzoomer, is touch device?', this.isTouch)
             if (this.id !== null) {
                 if (this.zoomerKeys.hasOwnProperty(this.id)) {
                     let keyVal: number = this.zoomerKeys[this.id];
@@ -218,7 +236,7 @@ export default Vue.extend({
             }
         },
         imgSrc(id: string, hasZoomed: boolean): string {
-            if ((this.imgZoomed || hasZoomed) && !isTouchDevice()) {
+            if ((this.imgZoomed || hasZoomed) && !this.isTouch) {
                 return `${api}/photos/full/${id}`
             }
             return `${api}/photo/big/${id}.webp`
@@ -236,6 +254,9 @@ export default Vue.extend({
         },
         index(): number {
             return this.queue.findIndex(i => i.id === this.id);
+        },
+        finalAllowTouch(): boolean {
+            return this.allowTouch && !this.$store.state.videoFullscreen;
         },
     },
     watch: {
@@ -256,10 +277,10 @@ export default Vue.extend({
         queue() {
             this.initialize(false);
         },
-        allowTouch() {
-            this.swiper.allowSlideNext = this.allowTouch;
-            this.swiper.allowSlidePrev = this.allowTouch;
-            this.swiper.allowTouchMove = this.allowTouch;
+        finalAllowTouch() {
+            this.swiper.allowSlideNext = this.finalAllowTouch;
+            this.swiper.allowSlidePrev = this.finalAllowTouch;
+            this.swiper.allowTouchMove = this.finalAllowTouch;
         },
         index() {
             if (this.index !== -1)
@@ -267,7 +288,7 @@ export default Vue.extend({
         },
         imgZoomed() {
             if (this.imgZoomed && !this.zoomedImgs.has(this.id)) {
-                if (!isTouchDevice()) {
+                if (!this.isTouch) {
                     console.log("this is not a touch device, resetting zoomer on zoom in")
                     this.resetZoomer();
                 }
@@ -283,7 +304,7 @@ export default Vue.extend({
                 oldVid[0].pause();
             // If switching to video video, play video
             let newVid = this.$refs['video' + newVal] as HTMLVideoElement[] | undefined;
-            if (newVid && newVid[0].currentTime === 0)
+            if (newVid)
                 newVid[0].play();
 
             if (this.id && this.$route.path.includes(this.id)) return;

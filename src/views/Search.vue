@@ -125,7 +125,7 @@ export default Vue.extend({
             return this.highResults.slice(0, this.endIndex);
         },
         lowSlice(): Media[] {
-            return this.lowResults.slice(0, this.endIndex - this.lowResults.length);
+            return this.lowResults.slice(0, this.endIndex - this.highResults.length);
         },
         highResults(): Media[] {
             return this.$store.state.searchResults.high;

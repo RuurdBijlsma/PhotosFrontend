@@ -7,12 +7,18 @@
             width: ($vuetify.breakpoint.mobile || !showInfo) ? '100%' : `calc(100% - ${infoPaneSize}px)`,
             minHeight: $vuetify.breakpoint.mobile ? '100vh' : null,
         }">
-            <div class="top-gradient"/>
+            <div class="top-gradient" :style="{
+                transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
+            }"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <v-btn icon dark @click="close" class="back-button btn">
+            <v-btn icon dark @click="close" class="back-button btn" :style="{
+                transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
+            }">
                 <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
-            <div class="top-right-buttons btn">
+            <div class="top-right-buttons btn" :style="{
+                transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
+            }">
                 <v-btn v-if="isSelecting && !selected" icon dark @click="addToSelection" title="Add to selection">
                     <v-icon>mdi-circle-outline</v-icon>
                 </v-btn>
@@ -104,7 +110,9 @@
                     <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
             </div>
-            <div class="bottom-buttons btn" v-if="$vuetify.breakpoint.mobile">
+            <div class="bottom-buttons btn" v-if="$vuetify.breakpoint.mobile" :style="{
+                transform: showPhotoButtons ? 'translateY(0)' : 'translateY(150px)',
+            }">
                 <v-btn icon dark @click="shareMedia" title="Share" :loading="shareLoading">
                     <v-icon>mdi-share-variant-outline</v-icon>
                 </v-btn>
@@ -819,6 +827,9 @@ export default Vue.extend({
         id(): string {
             return this.$route.params.id;
         },
+        showPhotoButtons(): boolean {
+            return this.$store.state.showPhotoButtons;
+        },
     },
     watch: {
         showInfo() {
@@ -878,6 +889,7 @@ export default Vue.extend({
     height: 100px;
     z-index: 2;
     background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.37), transparent);
+    transition: transform 0.4s;
 }
 
 .photo-gallery {
@@ -894,11 +906,13 @@ export default Vue.extend({
 .back-button {
     top: var(--button-padding);
     left: var(--button-padding);
+    transition: transform 0.4s;
 }
 
 .top-right-buttons {
     top: var(--button-padding);
     right: var(--button-padding);
+    transition: transform 0.4s;
     display: flex;
 }
 
@@ -908,11 +922,13 @@ export default Vue.extend({
 
 .bottom-buttons {
     padding: var(--button-padding);
+    padding-top:0;
     position: fixed;
     bottom: 0;
     width: 100%;
     display: flex;
     justify-content: space-evenly;
+    transition: transform 0.4s;
 }
 
 .skip-button-container {
