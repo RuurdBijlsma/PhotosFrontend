@@ -76,7 +76,7 @@ import MobileScrub from "@/components/MobileScrub.vue";
 // todo bugs
 // millimeters info hier: http://localhost:8080/photo/65db38b908f7aab58a8f540da858b97f
 // restore doesn't work
-// upload not working on ruurd.dev
+// upload not working on ruurd.dev (max file size not set properly somewhere in the reverse proxy)
 // orientation in web app
 // refresh /photo on search page dont work
 
