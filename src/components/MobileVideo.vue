@@ -329,6 +329,8 @@ export default Vue.extend({
             return secondsToHms(this.time);
         },
         showControls() {
+            if (this.buffering)
+                return true;
             if (this.seekDown)
                 return true;
             if (this.overrideHide)

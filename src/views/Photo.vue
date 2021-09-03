@@ -247,7 +247,7 @@
                         <v-icon>mdi-image-outline</v-icon>
                     </v-list-item-avatar>
                     <v-list-item-content>
-                        <v-list-item-title>
+                        <v-list-item-title :title="media.filename">
                             {{ media.filename }}
                         </v-list-item-title>
                         <v-list-item-subtitle>
