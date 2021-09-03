@@ -4,6 +4,7 @@
             maxHeight: `calc(100vh - ${$vuetify.application.top + $vuetify.application.bottom + $store.getters.selectionHeight}px)`,
             padding: pagePadding + 'px',
          }">
+        <router-view/>
         <div v-if="!loaded && !errored" class="error-container">
             <v-progress-circular color="primary" :width="5" :size="200" indeterminate></v-progress-circular>
             <p class="caption mt-3">Loading {{ api }}</p>
@@ -16,8 +17,6 @@
             </p>
         </div>
         <template v-else>
-            <router-view/>
-
             <div class="photos" :style="{
                 width: `calc(100% - ${scrubberWidth}px)`,
             }">
@@ -100,6 +99,8 @@ export default Vue.extend({
         this.homeElement = (this.$refs.home as HTMLElement);
 
         let loadingPhoto = this.$route.name === 'HomePhoto';
+        if (!this.$store.getters.isLoggedIn)
+            return;
         try {
             await this.updatePhotosPerMonth(!loadingPhoto && this.hasDate === null, [0]);
             this.loaded = true;

@@ -86,6 +86,7 @@ export default Vue.extend({
             spaceBetween: 5,
             zoom: true,
             lazy: true,
+            threshold: 50,
             keyboard: {
                 enabled: false,
             },

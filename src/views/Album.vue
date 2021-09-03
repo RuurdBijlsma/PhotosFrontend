@@ -89,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import {api, scrollBarWidth} from "@/ts/constants";
+import {api, defaultApi, scrollBarWidth} from "@/ts/constants";
 import Vue from "vue";
 import PhotoGrid from "@/components/PhotoGrid.vue";
 import {Media} from "@/ts/Media";
@@ -138,7 +138,7 @@ export default Vue.extend({
     },
     methods: {
         async shareAlbum() {
-            const url = location.href + '?api=' + api;
+            const url = location.href + ((defaultApi === api) ? '' : ('?api=' + api));
             if (isTouchDevice()) {
                 await navigator.share({
                     title: `Check out my photo album "${this.album.name}"`,

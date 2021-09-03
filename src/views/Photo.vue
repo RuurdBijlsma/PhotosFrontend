@@ -11,7 +11,7 @@
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <v-btn icon dark @click="close" class="back-button btn" :style="{
+            <v-btn icon dark @click="close" class="back-button btn" v-if="$store.getters.isLoggedIn" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }">
                 <v-icon>mdi-arrow-left</v-icon>
@@ -33,8 +33,12 @@
                     dark :to="$route.path + '/edit'">
                     <v-icon>mdi-image-edit-outline</v-icon>
                 </v-btn>
-                <v-btn icon dark @click="showInfo = !showInfo" title="Show information"
+                <v-btn icon dark @click="shareMedia" title="Share" :loading="shareLoading"
                        v-if="!$vuetify.breakpoint.mobile">
+                    <v-icon>mdi-share-variant-outline</v-icon>
+                </v-btn>
+                <v-btn v-if="!$vuetify.breakpoint.mobile" icon dark
+                       @click="showInfo = !showInfo" title="Show information">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
                 <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
@@ -113,9 +117,30 @@
             <div class="bottom-buttons btn" v-if="$vuetify.breakpoint.mobile" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(150px)',
             }">
-                <v-btn icon dark @click="shareMedia" title="Share" :loading="shareLoading">
-                    <v-icon>mdi-share-variant-outline</v-icon>
-                </v-btn>
+
+                <v-menu>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn v-bind="attrs" v-on="on" icon dark
+                               title="Share"
+                               :loading="shareLoading">
+                            <v-icon>mdi-share-variant-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-list>
+                        <v-list-item @click="shareLink">
+                            <v-list-item-icon>
+                                <v-icon>mdi-link</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-title>Share link</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="shareMedia">
+                            <v-list-item-icon>
+                                <v-icon>mdi-image-outline</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-title>Share {{ media.type }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
                 <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'"
                        icon title="Edit image"
                        dark :to="$route.path + '/edit'">
@@ -144,21 +169,6 @@
             </div>
             <v-list class="info-content" v-if="media" subheader>
                 <v-subheader>Details</v-subheader>
-                <v-list-item two-line v-if="media.filename">
-                    <v-list-item-avatar>
-                        <v-icon>mdi-image</v-icon>
-                    </v-list-item-avatar>
-                    <v-list-item-content>
-                        <v-list-item-title>
-                            {{ media.filename }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle>
-                            <span class="mr-3">{{ megaPixels }}MP</span>
-                            <span class="mr-3">{{ media.width }} × {{ media.height }}</span>
-                            <span>{{ readableBytes }}</span>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
                 <v-list-item two-line>
                     <v-list-item-avatar>
                         <v-icon>mdi-calendar</v-icon>
@@ -232,9 +242,38 @@
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
+                <v-list-item two-line v-if="media.filename">
+                    <v-list-item-avatar>
+                        <v-icon>mdi-image-outline</v-icon>
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                        <v-list-item-title>
+                            {{ media.filename }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                            <div class="photo-info">
+                                <span v-if="media.type === 'photo'">{{ megaPixels }}MP</span>
+                                <span v-else>{{ toHms(media.duration / 1000) }}</span>
+                                <span class="ml-2 mr-2">•</span>
+                                <span>{{ media.width }}×{{ media.height }}</span>
+                                <span class="ml-2 mr-2">•</span>
+                                <span>{{ readableBytes }}</span>
+                            </div>
+                            <div v-if="media.type==='video' && avgFps !== null" class="video-info"
+                                 title="Frames per second">
+                                <template v-if="originalFps && originalFps / avgFps > 1.9">
+                                    <v-icon small class="mr-2">mdi-motion-play-outline</v-icon>
+                                    <span>{{ originalFps }}fps</span>
+                                    <span class="ml-1 mr-1"> → </span>
+                                </template>
+                                <span class="mr-4">{{ avgFps }}fps</span>
+                            </div>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
                 <v-list-item two-line v-if="media.exif.Make && media.exif.Model">
                     <v-list-item-avatar>
-                        <v-icon>mdi-camera-iris</v-icon>
+                        <v-icon>mdi-camera-outline</v-icon>
                     </v-list-item-avatar>
                     <v-list-item-content>
                         <v-list-item-title>
@@ -257,7 +296,7 @@
                                      v-on="$store.getters.isLoggedIn ? on : {}"
                                      two-line v-if="classifications && classifications.length > 0">
                             <v-list-item-avatar>
-                                <v-icon>mdi-eye</v-icon>
+                                <v-icon>mdi-eye-outline</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
                                 <v-list-item-title :title="classifications[0].labels">
@@ -341,9 +380,9 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {api} from "@/ts/constants"
+import {api, defaultApi} from "@/ts/constants"
 import {Location, Media} from "@/ts/Media";
-import {bytesToReadable, downloadFromUrl, filenameToDate, isTouchDevice} from "@/ts/utils";
+import {bytesToReadable, downloadFromUrl, filenameToDate, isTouchDevice, secondsToHms} from "@/ts/utils";
 import {format, parseISO} from 'date-fns'
 import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
 import L from "leaflet";
@@ -395,17 +434,36 @@ export default Vue.extend({
         console.log(this.id);
 
         this.photoGallery = this.$refs.photoGallery;
-        this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
-        this.loadGpsIcon();
 
-        this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
+        if (this.$store.getters.isLoggedIn) {
+            this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
+            this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
+            this.loadGpsIcon().then();
+        }
+
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
-
-        this.loadGpsIcon().then();
+        if (!this.$store.getters.isLoggedIn) {
+            this.$store.commit('viewerQueue', [this.media]);
+        }
     },
     methods: {
+        async shareLink() {
+            const url = location.origin + '/view/' + this.id + ((defaultApi === api) ? '' : ('?api=' + api));
+            if (isTouchDevice()) {
+                await navigator.share({
+                    url,
+                });
+            } else {
+                await navigator.clipboard.writeText(url);
+                await this.$store.dispatch('addSnack', {text: 'Share URL copied to clipboard!'});
+            }
+        },
         async shareMedia() {
+            if (!isTouchDevice()) {
+                return await this.shareLink();
+            }
+
             this.shareLoading = true;
             try {
                 let mbs = (this.media?.size ?? 0) / 1024 / 1024;
@@ -698,7 +756,7 @@ export default Vue.extend({
                 return;
             this.isLoading.add(id);
 
-            let unauthorizedRequest = !this.$store.getters.isLoggedIn && this.$route.name === 'AlbumPhoto';
+            let unauthorizedRequest = !this.$store.getters.isLoggedIn && (this.$route.meta?.requiresAuth === false);
             let body = unauthorizedRequest ? {
                 albumId: this.$route.params.albumId
             } : {};
@@ -721,8 +779,25 @@ export default Vue.extend({
                 this.isLoading.delete(id);
             }
         },
+        toHms(s: number) {
+            return secondsToHms(s);
+        },
     },
     computed: {
+        originalFps(): number | null {
+            if (!this.media) return null;
+            let fps = +this.media.exif['com.android.capture.fps'];
+            return isNaN(fps) ? null : fps;
+        },
+        avgFps(): number | null {
+            if (!this.media) return null;
+            let avgRate = this.media.exif?.video?.avg_frame_rate;
+            if (avgRate) {
+                let [ff1, ff2] = avgRate.split('/').map((n: string) => +n);
+                return Math.round((ff1 / ff2) * 10) / 10;
+            }
+            return null;
+        },
         isSelecting(): boolean {
             return this.$store.getters.isSelecting;
         },
@@ -922,7 +997,7 @@ export default Vue.extend({
 
 .bottom-buttons {
     padding: var(--button-padding);
-    padding-top:0;
+    padding-top: 0;
     position: fixed;
     bottom: 0;
     width: 100%;
@@ -1000,6 +1075,18 @@ export default Vue.extend({
 
 .info-content {
     user-select: text;
+}
+
+.photo-info {
+    display: flex;
+    height: 22px;
+    align-items: center;
+}
+
+.video-info {
+    display: flex;
+    align-items: center;
+    height: 22px;
 }
 
 .location-map {

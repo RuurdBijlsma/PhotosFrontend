@@ -12,7 +12,10 @@ const routes: Array<RouteConfig> = [
         component: Home,
         meta: {title: 'Photos - Ruurd Photos'},
         children: [{
-            meta: {title: 'Photo - Ruurd Photos'},
+            meta: {
+                title: 'Photo - Ruurd Photos',
+                requiresAuth: false,
+            },
             path: '/photo/:id',
             name: 'HomePhoto',
             component: () => import('../views/Photo.vue'),
@@ -23,6 +26,15 @@ const routes: Array<RouteConfig> = [
                 component: () => import('../views/EditPhoto.vue'),
             }],
         }],
+    },
+    {
+        path: '/view/:id',
+        name: 'ViewPhoto',
+        component: () => import('../views/Photo.vue'),
+        meta: {
+            title: 'Photo - Ruurd Photos',
+            requiresAuth: false,
+        },
     },
     {
         path: '/search/:query',
