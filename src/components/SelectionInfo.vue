@@ -16,22 +16,31 @@
         <v-card-actions>
             <v-btn text plain small @click="clearSelection">Clear selection</v-btn>
             <v-spacer/>
-            <v-btn plain small @click="deleteItems" icon title="Delete" :loading="loading.delete">
+            <v-btn plain small @click="deleteItems" icon title="Delete"
+                   :loading="loading.delete"
+                   v-if="$store.getters.isLoggedIn">
                 <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
-            <v-btn plain small @click="reprocess" icon title="Reprocess" :loading="loading.reprocess">
+            <v-btn plain small @click="reprocess" icon title="Reprocess"
+                   :loading="loading.reprocess"
+                   v-if="$store.getters.isLoggedIn">
                 <v-icon>mdi-auto-fix</v-icon>
             </v-btn>
-            <v-btn plain small @click="fixDate" icon title="Fix date from filename" :loading="loading.fixDate">
+            <v-btn plain small @click="fixDate" icon title="Fix date from filename"
+                   :loading="loading.fixDate"
+                   v-if="$store.getters.isLoggedIn">
                 <v-icon>mdi-calendar-range</v-icon>
             </v-btn>
-            <v-btn plain small @click="downloadItems" icon title="Download" :loading="loading.download">
+            <v-btn plain small @click="downloadItems" icon title="Download"
+                   :loading="loading.download">
                 <v-icon>mdi-download-outline</v-icon>
             </v-btn>
-            <v-btn plain small @click="addToAlbum" icon title="Add to album" :loading="loading.album">
+            <v-btn plain small @click="addToAlbum" icon title="Add to album"
+                   :loading="loading.album"
+                   v-if="$store.getters.isLoggedIn">
                 <v-icon>mdi-plus-circle-outline</v-icon>
             </v-btn>
-            <v-btn v-if="$store.state.viewedAlbum !== null"
+            <v-btn v-if="$store.state.viewedAlbum !== null && $store.getters.isLoggedIn"
                    plain small @click="removeFromAlbum"
                    icon title="Remove from album" :loading="loading.removeAlbum">
                 <v-icon>mdi-minus-circle-outline</v-icon>
@@ -162,7 +171,7 @@ export default Vue.extend({
                 albumId: this.$route.params.albumId
             } : {};
 
-            console.log('body',body);
+            console.log('body', body);
             if (this.selectedMedias.length < 5) {
                 let fullMedias = await Promise.all(this.selectedMedias.map(
                     m => this.$store.dispatch('apiRequest', {

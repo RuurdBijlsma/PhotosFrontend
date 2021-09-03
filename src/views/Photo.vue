@@ -11,7 +11,8 @@
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <v-btn icon dark @click="close" class="back-button btn" v-if="$store.getters.isLoggedIn" :style="{
+            <v-btn icon dark @click="close" class="back-button btn"
+                   v-if="loggedOffUI" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }">
                 <v-icon>mdi-arrow-left</v-icon>
@@ -325,7 +326,7 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <a v-if="!$store.getters.isLoggedIn && coordinate"
+                <a v-if="leaflet.tileOptions.accessToken === '' && coordinate"
                    class="no-style"
                    target="_blank"
                    :href="`https://www.google.com/maps/place/${coordinate.lat},${coordinate.lng}`">
@@ -359,7 +360,7 @@
             </v-list>
 
             <l-map
-                v-if="coordinate && leaflet.zoom && $store.getters.isLoggedIn"
+                v-if="coordinate && leaflet.zoom && leaflet.tileOptions.accessToken !== ''"
                 class="location-map mt-5"
                 :zoom="leaflet.zoom"
                 ref="map"
@@ -429,13 +430,15 @@ export default Vue.extend({
         photoGallery: null as any,
         showPhotoMenu: false,
         shareLoading: false,
+        loggedOffUI: false,
     }),
     async mounted() {
         console.log(this.id);
 
         this.photoGallery = this.$refs.photoGallery;
+        this.loggedOffUI = !this.$store.getters.isLoggedIn && this.$route.name === 'ViewPhoto';
 
-        if (this.$store.getters.isLoggedIn) {
+        if (!this.loggedOffUI) {
             this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
             this.leaflet.tileOptions.accessToken = this.$store.state.mapboxKey;
             this.loadGpsIcon().then();
@@ -443,7 +446,7 @@ export default Vue.extend({
 
         this.media = this.queue.find(i => i.id === this.id) ?? null;
         await this.fullMediaLoad();
-        if (!this.$store.getters.isLoggedIn) {
+        if (this.loggedOffUI) {
             this.$store.commit('viewerQueue', [this.media]);
         }
     },
