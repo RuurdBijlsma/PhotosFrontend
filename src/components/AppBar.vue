@@ -24,7 +24,20 @@
                         ref="search"
                         return-object
                         :search-input.sync="query"
-                        v-model="querySelect"/>
+                        v-model="querySelect">
+            <template v-slot:item="e">
+                <v-list-item dense v-bind="e.attrs" v-on="e.on">
+                    <v-list-item-icon>
+                        <v-icon dense v-if="e.item.type === 'query'">mdi-magnify</v-icon>
+                        <!--                        <v-icon v-else-if="e.item.type === 'label'">mdi-cog</v-icon>-->
+                        <v-icon dense v-else-if="e.item.type === 'place'">mdi-map-marker-outline</v-icon>
+                        <v-icon dense v-else-if="e.item.type === 'date'">mdi-calendar</v-icon>
+                        <v-icon dense v-else-if="e.item.type === 'album'">mdi-image-album</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>{{ e.item.text }}</v-list-item-title>
+                </v-list-item>
+            </template>
+        </v-autocomplete>
 
         <v-spacer/>
 
@@ -111,22 +124,28 @@
 import {api, months, shortMonths} from "@/ts/constants";
 import Vue from "vue";
 
+interface SuggestionItem {
+    type: 'query' | 'album' | 'date' | 'place' | 'label',
+    text: string,
+    data: string | null,
+}
+
 export default Vue.extend({
     name: "AppBar",
     data: () => ({
         searchTip: '',
         query: '',
-        querySelect: null as string | null,
+        querySelect: null as SuggestionItem | null,
         loadingSuggestions: false,
-        items: [] as string[],
+        items: [] as SuggestionItem[],
         showMenu: false,
         uploadLoading: false,
     }),
     async mounted() {
         if (this.$route.params.query) {
             this.query = this.$route.params.query;
-            this.items = [this.query];
-            this.querySelect = this.query;
+            this.querySelect = {text: this.query, type: 'query', data: null};
+            this.items = [this.querySelect];
         }
         this.$store.dispatch('apiRequest', {url: 'photos/searchTip'})
             .then(tip => this.searchTip = tip?.text ?? '');
@@ -184,24 +203,26 @@ export default Vue.extend({
             }, {once: true})
         },
         enterPressed() {
-            this.querySelect = this.query
+            this.querySelect = {text: this.query, type: 'query', data: null}
             let searchComponent: any = this.$refs.search;
             searchComponent.isMenuActive = false;
         },
         async loadSuggestions() {
             this.loadingSuggestions = true;
-            this.items = [this.query];
+            this.items = [{text: this.query, type: 'query', data: null}];
             this.loadingSuggestions = false;
             let query = this.query;
             let suggestions = await this.$store.dispatch('apiRequest', {
                 url: `photos/suggestions?q=${query}`
-            });
-            // this.items = results.map((r: any) => ({
-            //     text: r.text,
-            // }));
-            let items = suggestions.map((r: any) => r.text);
-            if (!items.includes(query)) {
-                items.unshift(query);
+            }) as SuggestionItem[];
+            console.log(suggestions);
+            let items = suggestions.map(r => ({
+                text: r.text,
+                type: r.type,
+                data: r.data,
+            }));
+            if (!items.find(i => i.text === query)) {
+                items.unshift({text: query, type: 'query', data: null});
             }
             this.items = items;
         },
@@ -253,15 +274,19 @@ export default Vue.extend({
             return {isDate: !isNaN(date.getDate()), date};
         },
         startSearch() {
-            if (this.querySelect === '' || this.querySelect === undefined || this.querySelect === null)
+            if (this.querySelect === undefined || this.querySelect === null || this.querySelect.text === '')
                 return;
             let newPath = null;
 
-            let {isDate, date} = this.isScrubDate(this.querySelect);
-            if (isDate) {
-                newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            if (this.querySelect.type === "album") {
+                newPath = `/album/${this.querySelect.data}`;
             } else {
-                newPath = `/search/${this.querySelect}`;
+                let {isDate, date} = this.isScrubDate(this.querySelect.text);
+                if (isDate) {
+                    newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                } else {
+                    newPath = `/search/${this.querySelect}`;
+                }
             }
 
             if (this.$route.path !== newPath && newPath !== null)
@@ -279,7 +304,7 @@ export default Vue.extend({
         },
         '$route.params.query'() {
             this.query = this.$route.params.query;
-            this.querySelect = this.query;
+            this.querySelect = {text: this.query, type: 'query', data: null};
         },
     }
 });

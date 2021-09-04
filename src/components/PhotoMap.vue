@@ -55,6 +55,8 @@ export default Vue.extend({
             tileOptions: {
                 id: 'mapbox/streets-v11',
                 accessToken: '',
+                tileSize: 512,
+                zoomOffset: -1,
             },
             bounds: null as L.LatLngBounds | null,
             markers: [] as L.CircleMarker[],

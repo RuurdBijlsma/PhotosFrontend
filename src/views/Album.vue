@@ -202,7 +202,7 @@ export default Vue.extend({
             });
             if (success) {
                 this.album.name = this.editedTitle;
-                this.$store.commit('updateAlbums', true);
+                this.$store.dispatch('updateAlbums').then();
                 this.editTitle = false;
             } else {
                 await this.$store.dispatch('addSnack', {text: "Couldn't change title."});

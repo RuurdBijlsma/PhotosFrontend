@@ -12,7 +12,7 @@
             }"/>
             <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
             <v-btn icon dark @click="close" class="back-button btn"
-                   v-if="loggedOffUI" :style="{
+                   v-if="$store.getters.isLoggedIn || loggedOffUI" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }">
                 <v-icon>mdi-arrow-left</v-icon>
@@ -422,6 +422,8 @@ export default Vue.extend({
             tileOptions: {
                 id: 'mapbox/streets-v11',
                 accessToken: '',
+                tileSize: 512,
+                zoomOffset: -1,
             },
             bounds: null as L.LatLngBounds | null,
             markers: [] as L.CircleMarker[],
@@ -437,6 +439,7 @@ export default Vue.extend({
 
         this.photoGallery = this.$refs.photoGallery;
         this.loggedOffUI = !this.$store.getters.isLoggedIn && this.$route.name === 'ViewPhoto';
+        console.log('loggedoffui', this.loggedOffUI)
 
         if (!this.loggedOffUI) {
             this.leaflet.tileOptions.id = this.$vuetify.theme.dark ? 'mapbox/dark-v10' : 'mapbox/streets-v11';
