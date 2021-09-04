@@ -352,7 +352,7 @@ export default Vue.extend({
     watch: {
         buffering() {
             if (!this.buffering && this.tempShow)
-                return;
+                this.tempShowControls();
             this.tempShow = this.buffering;
         },
         showControls() {
