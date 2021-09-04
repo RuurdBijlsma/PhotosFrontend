@@ -285,7 +285,7 @@ export default Vue.extend({
                 if (isDate) {
                     newPath = `/?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
                 } else {
-                    newPath = `/search/${this.querySelect}`;
+                    newPath = `/search/${this.querySelect.text}`;
                 }
             }
 
