@@ -135,6 +135,7 @@ export default Vue.extend({
     async mounted() {
         await this.loadAlbum();
         this.$store.commit('viewedAlbum', this.album);
+        this.setTitle();
     },
     methods: {
         async shareAlbum() {
@@ -215,6 +216,11 @@ export default Vue.extend({
             this.photos = this.album.Media.map(Media.fromObject);
             console.log('this album', this.album);
         },
+        setTitle(){
+            console.log(this.$route.name);
+            if (this.$route.name && !this.$route.name.includes('Edit'))
+                document.title = `${this.album.name} - Ruurd Photos`;
+        },
     },
     computed: {
         tinyWidth() {
@@ -236,6 +242,9 @@ export default Vue.extend({
         },
     },
     watch: {
+        '$route.name'() {
+            this.setTitle();
+        },
         '$store.state.reloadPhotos'() {
             if (this.$store.state.reloadPhotos) {
                 this.$store.commit('reloadPhotos', false);

@@ -129,13 +129,13 @@ const routes: Array<RouteConfig> = [
         path: '/album/:albumId',
         name: 'Album',
         meta: {
-            title: 'Album - Ruurd Photos',
+            title: '',
             requiresAuth: false,
         },
         component: () => import('../views/Album.vue'),
         children: [{
             meta: {
-                title: 'Photo - Ruurd Photos',
+                title: '',
                 requiresAuth: false,
             },
             path: '/album/:albumId/photo/:id',
