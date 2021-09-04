@@ -176,7 +176,8 @@ export default Vue.extend({
             this.tempShow = true;
             clearTimeout(this.mouseMovedTimeout);
             this.mouseMovedTimeout = setTimeout(() => {
-                this.tempShow = false;
+                if (!this.buffering)
+                    this.tempShow = false;
             }, 1500);
         },
         moveMouse(e: MouseEvent) {
@@ -349,6 +350,11 @@ export default Vue.extend({
         },
     },
     watch: {
+        buffering() {
+            if (!this.buffering && this.tempShow)
+                return;
+            this.tempShow = this.buffering;
+        },
         showControls() {
             this.$store.commit('showPhotoButtons', this.showControls);
         },
