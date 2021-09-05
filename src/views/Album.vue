@@ -134,8 +134,6 @@ export default Vue.extend({
     },
     async mounted() {
         await this.loadAlbum();
-        this.$store.commit('viewedAlbum', this.album);
-        this.setTitle();
     },
     methods: {
         async shareAlbum() {
@@ -215,6 +213,8 @@ export default Vue.extend({
             this.editedTitle = this.album.name;
             this.photos = this.album.Media.map(Media.fromObject);
             console.log('this album', this.album);
+            this.$store.commit('viewedAlbum', this.album);
+            this.setTitle();
         },
         setTitle(){
             console.log(this.$route.name);
