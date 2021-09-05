@@ -131,7 +131,6 @@ export default Vue.extend({
         moveMouse(e: MouseEvent) {
             e.stopPropagation();
             if (this.seekDown) {
-                console.log('move', e.pageX, this.seekDown, this.media.id);
                 this.eventSeek(e);
             }
         },
@@ -149,7 +148,6 @@ export default Vue.extend({
         moveTouch(e: TouchEvent) {
             e.stopPropagation();
             if (this.seekDown) {
-                console.log('move', e.touches[0].pageX, this.seekDown, this.media.id);
                 this.eventSeek(e.touches[0]);
             }
         },

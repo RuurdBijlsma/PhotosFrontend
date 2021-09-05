@@ -21,8 +21,8 @@
                         <v-list-item-title>{{ page.name }}</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
-                <v-subheader v-if="isExpanded">Library</v-subheader>
-                <v-divider v-else class="mt-6 mb-5"></v-divider>
+                <v-subheader v-if="isExpanded && albums.length > 0">Library</v-subheader>
+                <v-divider v-else-if="albums.length > 0" class="mt-6 mb-5"></v-divider>
                 <template v-if="albums.length > 0">
                     <v-list-group
                         color="default"
@@ -42,8 +42,8 @@
                                      :key="album.id"
                                      :to="`/album/${album.id}`">
                             <v-list-item-avatar class="avatar" :size="isExpanded ? 32 : 24" rounded>
-                                <v-img v-if="album.MediumId !== null"
-                                       :src="`${api}/photo/tiny/${album.MediumId}.webp`"/>
+                                <v-img v-if="album.cover !== ''"
+                                       :src="`${api}/photo/tiny/${album.cover}.webp`"/>
                                 <v-icon v-else>mdi-alpha-{{
                                         album.name.substr(0, 1).toLowerCase()
                                     }}-box-outline

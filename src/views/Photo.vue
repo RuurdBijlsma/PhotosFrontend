@@ -169,6 +169,18 @@
                 <span class="ml-3">Info</span>
             </div>
             <v-list class="info-content" v-if="media" subheader>
+                <template v-if="media.albums.length > 0">
+                    <v-subheader>Albums</v-subheader>
+                    <v-list-item two-line v-for="album in media.albums" :key="album.id" :to="`/album/${album.id}`">
+                        <v-list-item-avatar>
+                            <v-img :src="`${api}/photo/tiny/${album.cover}.webp`"/>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                            <v-list-item-title>{{ album.name }}</v-list-item-title>
+                            <v-list-item-subtitle>{{ album.count }} items</v-list-item-subtitle>
+                        </v-list-item-content>
+                    </v-list-item>
+                </template>
                 <v-subheader>Details</v-subheader>
                 <v-list-item two-line>
                     <v-list-item-avatar>

@@ -183,7 +183,6 @@ export default Vue.extend({
         moveMouse(e: MouseEvent) {
             this.tempShowControls();
             if (this.seekDown) {
-                console.log('move', e.pageX, this.seekDown, this.media.id);
                 this.eventSeek(e);
             }
         },

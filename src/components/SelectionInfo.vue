@@ -3,7 +3,7 @@
             v-if="isSelecting"
             :style="{
                 bottom: $vuetify.application.bottom + ($vuetify.breakpoint.mobile ? 0 : 10) + 'px',
-                width: $vuetify.breakpoint.mobile ? '100%' : '420px',
+                width: $vuetify.breakpoint.mobile ? '100%' : '440px',
                 left: $vuetify.breakpoint.mobile ? '0' : 'calc(50% - 210px)',
             }">
         <v-card-title>Selected {{ selectionCount }} item{{ selectionCount === 1 ? '' : 's' }}</v-card-title>
@@ -45,6 +45,11 @@
                    icon title="Remove from album" :loading="loading.removeAlbum">
                 <v-icon>mdi-minus-circle-outline</v-icon>
             </v-btn>
+            <v-btn v-if="$store.state.viewedAlbum !== null && $store.getters.isLoggedIn && selectionCount === 1"
+                   plain small @click="setAlbumCover"
+                   icon title="Set as album cover" :loading="loading.setAlbumCover">
+                <v-icon>mdi-image-frame</v-icon>
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -66,9 +71,31 @@ export default Vue.extend({
             download: false,
             album: false,
             removeAlbum: false,
+            setAlbumCover: false,
         },
     }),
     methods: {
+        async setAlbumCover() {
+            if (this.selectedMedias.length !== 1)
+                return;
+            this.loading.setAlbumCover = true;
+            let success = await this.$store.dispatch('apiRequest', {
+                url: 'photos/setAlbumCover',
+                body: {
+                    id: this.$store.state.viewedAlbum.id,
+                    cover: this.selectedMedias[0].id,
+                },
+            });
+            if (!success) {
+                await this.$store.dispatch('addSnack', {text: "Couldn't set album cover"});
+            } else {
+                await this.$store.dispatch('addSnack', {text: "Album cover updated!"});
+                this.clearSelection();
+                this.$store.commit('updateAlbum', true);
+                this.$store.dispatch('updateAlbums').then();
+            }
+            this.loading.setAlbumCover = false;
+        },
         async removeFromAlbum() {
             this.loading.removeAlbum = true;
             let accepted = await this.$store.dispatch('showPrompt', {

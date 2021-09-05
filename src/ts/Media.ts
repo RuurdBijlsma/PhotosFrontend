@@ -15,6 +15,13 @@ export interface Location {
     places: { type: string, name: string }[],
 }
 
+export interface Album {
+    id: string,
+    name: string,
+    count: number,
+    cover: string,
+}
+
 export class Media {
     id: string;
     createDate: Date;
@@ -29,6 +36,7 @@ export class Media {
     filename: string | null;
     size: number | null;
     exif: any;
+    albums: Album[];
 
     constructor(id: string,
                 filename: string,
@@ -41,7 +49,8 @@ export class Media {
                 classifications: Classification[] | null = null,
                 location: Location | null = null,
                 size: number | null = null,
-                exif: any = {}) {
+                exif: any = {},
+                albums: Album[]) {
         this.id = id;
         this.filename = filename;
         this.createDate = createDate;
@@ -54,6 +63,7 @@ export class Media {
         this.location = location;
         this.size = size;
         this.exif = exif;
+        this.albums = albums;
     }
 
     get ratio() {
@@ -75,6 +85,7 @@ export class Media {
                           Location = null as any,
                           bytes = '-1',
                           exif = {},
+                          Albums = [],
                       }) {
         subType = subType.toLowerCase();
         type = type.toLowerCase();
@@ -106,6 +117,12 @@ export class Media {
             type === 'image' ? 'photo' : 'video',
             (subTypes.includes(subType) ? subType : 'none') as MediaSubType,
             durationMs, classifications, location, isFinite(+bytes) ? +bytes : null, exif,
+            Albums.map((a: any) => ({
+                id: a.id,
+                name: a.name,
+                count: a.count,
+                cover: a.cover,
+            }))
         );
     }
 }

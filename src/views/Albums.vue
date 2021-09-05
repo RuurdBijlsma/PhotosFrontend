@@ -4,7 +4,7 @@
         <h3 class="mb-6 text-center">Albums</h3>
         <v-divider class="mb-3"/>
 
-        <div class="cards-grid">
+        <div class="cards-grid" v-if="albums.length > 0">
             <v-img height="250" width="250"
                    @click.left="goToAlbum('left', album.id)"
                    @click.middle.prevent="goToAlbum('middle', album.id)"
@@ -12,13 +12,16 @@
                    v-for="album in albums" :key="album.id"
                    aspect-ratio="1"
                    gradient="to top right, rgba(50,62,100,.6), rgba(25,32,72,0)"
-                   :src="`${api}/photo/small/${album.MediumId}.webp`"
-                   :lazy-src="`${api}/photo/tiny/${album.MediumId}.webp`">
+                   :src="`${api}/photo/small/${album.cover}.webp`"
+                   :lazy-src="`${api}/photo/tiny/${album.cover}.webp`">
                 <div class="item-text">
                     <div>{{ album.name }}</div>
                     <div class="caption">{{ album.count }} item{{ +album.count === 1 ? '' : 's' }}</div>
                 </div>
             </v-img>
+        </div>
+        <div v-else>
+            <h2>You don't have any albums yet!</h2>
         </div>
     </div>
 </template>
@@ -43,6 +46,7 @@ export default Vue.extend({
     },
     computed: {
         albums() {
+            console.log('albums', this.$store.state.albums)
             return this.$store.state.albums;
         },
     },

@@ -145,12 +145,10 @@ export default Vue.extend({
                 this.keyDown = 'right';
             if (e.key === 'ArrowLeft')
                 this.keyDown = 'left';
-            console.log('down', e.key);
         },
         handleKeyUp(e: KeyboardEvent) {
             if (e.key === 'ArrowRight' || e.key === 'ArrowLeft')
                 this.keyDown = 'none';
-            console.log('up', e.key);
         },
         insertImg(e: MouseEvent) {
             if (this.id === null) return;
