@@ -138,7 +138,7 @@
                             <v-list-item-icon>
                                 <v-icon>mdi-image-outline</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-title>Share {{ media.type }}</v-list-item-title>
+                            <v-list-item-title v-if="media">Share {{ media.type }}</v-list-item-title>
                         </v-list-item>
                     </v-list>
                 </v-menu>

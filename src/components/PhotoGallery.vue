@@ -31,22 +31,24 @@
                                contain>
                         </v-img>
                     </v-zoomer>
-                    <mobile-video
-                        class="element-item"
-                        :ref="`video${item.id}`"
-                        :poster="`${api}/photo/big/${item.id}.webp`"
-                        :media="item"
-                        :src="`${api}/photo/webm/${item.id}.webm`"
-                        v-else-if="item && isTouch"
-                    />
-                    <desktop-video
-                        class="element-item"
-                        :ref="`video${item.id}`"
-                        :poster="`${api}/photo/big/${item.id}.webp`"
-                        :media="item"
-                        :src="`${api}/photo/webm/${item.id}.webm`"
-                        v-else-if="item && !isTouch"
-                    />
+                    <v-lazy v-else-if="item" class="lazy-video">
+                        <mobile-video
+                            class="element-item"
+                            :ref="`video${item.id}`"
+                            :poster="`${api}/photo/big/${item.id}.webp`"
+                            :media="item"
+                            :src="`${api}/photo/webm/${item.id}.webm`"
+                            v-if="isTouch"
+                        />
+                        <desktop-video
+                            class="element-item"
+                            :ref="`video${item.id}`"
+                            :poster="`${api}/photo/big/${item.id}.webp`"
+                            :media="item"
+                            :src="`${api}/photo/webm/${item.id}.webm`"
+                            v-else
+                        />
+                    </v-lazy>
                 </div>
             </swiper-slide>
         </swiper>
@@ -86,7 +88,7 @@ export default Vue.extend({
             spaceBetween: 5,
             zoom: true,
             lazy: true,
-            threshold: 50,
+            threshold: isTouchDevice() ? 0 : 50,
             keyboard: {
                 enabled: false,
             },
@@ -128,13 +130,6 @@ export default Vue.extend({
             this.items = this.queue.slice(this.startIndex, this.startIndex + carouselBuffer * 2 + 1);
             let viewedItem = this.index >= carouselBuffer ? carouselBuffer : this.index;
             this.swiper.slideTo(viewedItem, 0, false);
-            if (this.items[viewedItem]?.type === 'video' && autoplay) {
-                this.$nextTick(() => {
-                    console.log("Autoplaying video!", this.$refs['video' + this.id]);
-                    let video = this.$refs['video' + this.id] as HTMLVideoElement[];
-                    if (video && video.length > 0) video[0].play();
-                });
-            }
         },
         togglePhotoButtons() {
             console.log('toggling photo buttons', this.$store.state.showPhotoButtons);
@@ -333,6 +328,11 @@ export default Vue.extend({
 
 .slide-container {
     position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.lazy-video {
     width: 100%;
     height: 100%;
 }

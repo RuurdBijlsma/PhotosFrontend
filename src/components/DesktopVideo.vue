@@ -8,7 +8,18 @@
             }">
             <v-progress-circular size="52" width="2" color="white" dark indeterminate></v-progress-circular>
         </div>
-        <v-sheet color="transparent" dark class="bottom-controls" :style="{
+        <div v-else class="center-button" :style="{
+            opacity: `${1 - statusAnimation}`,
+            transform: `scale(${1.5 * statusAnimation})`,
+            transition: `${transitionTime}ms`,
+        }">
+            <v-icon large v-if="playing">mdi-play</v-icon>
+            <v-icon large v-else>mdi-pause</v-icon>
+        </div>
+        <v-sheet color="transparent" dark class="bottom-controls"
+                 @mouseenter="overControls=true"
+                 @mouseleave="overControls=false"
+                 :style="{
                 opacity: showControls ? 1 : 0,
                 pointerEvents: showControls ? 'all' : 'none',
             }">
@@ -16,13 +27,8 @@
                 <v-icon v-if="playing">mdi-pause</v-icon>
                 <v-icon v-else>mdi-play</v-icon>
             </v-btn>
-            <div class="time-current" :style="{
-                width: (timeHms.length + durationHms.length + 1) * 10 + 'px',
-            }">
-                {{ timeHms }} / {{ durationHms }}
-            </div>
 
-            <v-menu absolute nudge-left="30" nudge-top="30">
+            <v-menu absolute open-on-hover nudge-left="30" nudge-top="30">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn icon dark class="mr-4"
                            v-bind="attrs"
@@ -43,19 +49,14 @@
                     <v-slider hide-details min="0" max="1" step="0.01" v-model="videoVolume"></v-slider>
                 </v-sheet>
             </v-menu>
-            <div @mouseenter="overControls=true"
-                 @mouseleave="overControls=false"
-                 @pointerdown="startMouse"
-                 ref="seekField" class="seek-field">
-                <v-sheet rounded class="seek-background" color="grey">
-                    <v-sheet rounded color="white" class="seek-progress" :style="{
-                        width: `calc(${progress * 100}% - 6px)`,
-                    }"/>
-                    <v-sheet color="white" class="seek-thumb" :style="{
-                        left: `calc(${progress * 100}% - 6px)`,
-                    }"/>
-                </v-sheet>
-            </div>
+            <seek-bar class="seek-bar"
+                      :active="isActive"
+                      v-if="video && media"
+                      :video="video"
+                      :media="media"
+                      @play="play"
+                      @pause="pause"
+                      @mousemove="tempShowControls"/>
         </v-sheet>
         <video @dblclick="toggleFullscreen" @click="togglePlay()" ref="video" :src="src" :poster="poster"/>
     </div>
@@ -66,9 +67,11 @@ import Vue, {PropType} from "vue";
 import {secondsToHms} from "@/ts/utils";
 import {Media} from "@/ts/Media";
 import {api} from "@/ts/constants";
+import SeekBar from "@/components/SeekBar.vue";
 
 export default Vue.extend({
     name: 'DesktopVideo',
+    components: {SeekBar},
     props: {
         media: {
             type: Object as PropType<Media>,
@@ -86,55 +89,45 @@ export default Vue.extend({
     data: () => ({
         delayedPlaying: false,
         playing: false,
-        video: {} as HTMLVideoElement,
-        seekField: {} as HTMLElement,
+        video: null as HTMLVideoElement | null,
         controlVideo: {} as HTMLElement,
         mouseMovedTimeout: -1,
-        progress: 0,
-        duration: 1,
         buffering: false,
-        seekDown: false,
         tempShow: false,
         overControls: false,
         prevVolume: 1,
         isFullscreen: false,
+        statusAnimation: 1, //set to 0 then to 1 to animate play pause status
+        transitionTime: 0,
     }),
     beforeDestroy() {
         clearTimeout(this.mouseMovedTimeout);
-        this.video.removeEventListener('play', this.handlePlay);
-        this.video.removeEventListener('pause', this.handlePause);
-        this.video.removeEventListener('durationchange', this.handleDuration);
-        this.video.removeEventListener('timeupdate', this.handleTime);
-        this.video.removeEventListener('volumechange', this.handleVolume);
-        this.video.removeEventListener('waiting', this.handleWaiting);
-        this.video.removeEventListener('playing', this.handlePlaying);
+        if (this.video) {
+            this.video.removeEventListener('play', this.handlePlay);
+            this.video.removeEventListener('pause', this.handlePause);
+            this.video.removeEventListener('volumechange', this.handleVolume);
+            this.video.removeEventListener('waiting', this.handleWaiting);
+            this.video.removeEventListener('playing', this.handlePlaying);
+        }
 
-        document.removeEventListener('mousemove', this.moveMouse);
-        document.removeEventListener('mouseup', this.endMouse);
         document.removeEventListener('fullscreenchange', this.changeFullscreen);
         document.removeEventListener('keydown', this.handleKey);
     },
     mounted() {
         this.video = this.$refs.video as HTMLVideoElement;
         this.controlVideo = this.$refs.controlVideo as HTMLElement;
-        this.seekField = this.$refs.seekField as HTMLElement;
-        console.log(this.seekField);
 
         this.video.addEventListener('play', this.handlePlay);
         this.video.addEventListener('pause', this.handlePause);
-        this.video.addEventListener('durationchange', this.handleDuration);
-        this.video.addEventListener('timeupdate', this.handleTime);
         this.video.addEventListener('volumechange', this.handleVolume);
         this.video.addEventListener('waiting', this.handleWaiting);
         this.video.addEventListener('playing', this.handlePlaying);
         this.video.volume = this.videoVolume;
 
-        document.addEventListener('mousemove', this.moveMouse, false);
-        document.addEventListener('mouseup', this.endMouse, false);
+        this.video.play();
+
         document.addEventListener('fullscreenchange', this.changeFullscreen, false);
         document.addEventListener('keydown', this.handleKey, false);
-
-        this.activate();
     },
     methods: {
         handleKey(e: KeyboardEvent) {
@@ -160,38 +153,13 @@ export default Vue.extend({
                 this.videoVolume = this.prevVolume;
             }
         },
-        eventSeek({pageX = 0}) {
-            let rect = this.seekField.getBoundingClientRect();
-            let progress = (pageX - rect.left) / rect.width;
-            this.video.currentTime = this.duration * progress;
-            this.progress = progress;
-        },
-        startMouse(e: MouseEvent) {
-            e.stopPropagation();
-            console.log('start mouse');
-            this.seekDown = true;
-            this.eventSeek(e);
-        },
         tempShowControls() {
             this.tempShow = true;
             clearTimeout(this.mouseMovedTimeout);
             this.mouseMovedTimeout = setTimeout(() => {
                 if (!this.buffering)
                     this.tempShow = false;
-            }, 1500);
-        },
-        moveMouse(e: MouseEvent) {
-            this.tempShowControls();
-            if (this.seekDown) {
-                this.eventSeek(e);
-            }
-        },
-        endMouse() {
-            console.log('end');
-            this.seekDown = false;
-        },
-        activate() {
-            this.setMetadata();
+            }, 3500);
         },
         loadImg(src: string): Promise<HTMLImageElement> {
             return new Promise(resolve => {
@@ -201,96 +169,9 @@ export default Vue.extend({
                 img.onload = () => resolve(img);
             });
         },
-        async setMetadata() {
-            if (!('mediaSession' in navigator))
-                return;
-
-
-            let sizes = ['small'];
-            let images = await Promise.all(sizes.map(type => new Promise(async resolve => {
-                let canvas = document.createElement('canvas');
-                let context = canvas.getContext('2d') as CanvasRenderingContext2D;
-                let url = `${api}/photo/${type}/${this.media.id}.webp`;
-                let img = await this.loadImg(url);
-                let size = 512;
-                // noinspection JSSuspiciousNameCombination
-                canvas.width = size;
-                canvas.height = size;
-                context.drawImage(img, 0, 0);
-                resolve({size, url: canvas.toDataURL()});
-                // canvas.toBlob(blob => {
-                //     resolve({size, url: URL.createObjectURL(blob)});
-                // });
-            }))) as { size: number, url: string }[];
-            console.log(images);
-            let artwork = images.map(i => ({
-                src: i.url,
-                sizes: `${i.size}x${i.size}`,
-                type: 'image/png',
-            }));
-
-            //@ts-ignore
-            const mediaSession = navigator.mediaSession as any;
-            console.log('media session', mediaSession);
-            console.log('artwork', artwork);
-
-            //@ts-ignore
-            mediaSession.metadata = new MediaMetadata({
-                artwork
-            });
-
-            let defaultSkipTime = 10;
-            mediaSession.setActionHandler('seekbackward', (event: any) => {
-                const skipTime = event.seekOffset || defaultSkipTime;
-                this.video.currentTime -= skipTime;
-            });
-
-            mediaSession.setActionHandler('seekforward', (event: any) => {
-                const skipTime = event.seekOffset || defaultSkipTime;
-                this.video.currentTime += skipTime;
-            });
-
-            mediaSession.setActionHandler('play', () => {
-                this.play();
-            });
-
-            mediaSession.setActionHandler('pause', () => {
-                this.pause();
-            });
-
-            try {
-                mediaSession.setActionHandler('stop', () => {
-                    this.pause();
-                });
-            } catch (error) {
-                console.warn('Warning! The "stop" media session action is not supported.');
-            }
-
-            try {
-                mediaSession.setActionHandler('seekto', (event: any) => {
-                    this.video.currentTime = event.seekTime;
-                });
-            } catch (error) {
-                console.warn('Warning! The "seekto" media session action is not supported.');
-            }
-        },
-        handleDuration() {
-            this.duration = this.video.duration;
-        },
-        handleTime() {
-            this.progress = this.video.currentTime / this.duration;
-
-            if (this.duration !== Infinity && !isNaN(this.duration) && !isNaN(this.time) && this.time !== Infinity) {
-                //@ts-ignore
-                navigator?.mediaSession?.setPositionState?.({
-                    duration: this.duration,
-                    playbackRate: this.video.playbackRate,
-                    position: this.time,
-                });
-            }
-        },
         handleVolume() {
-            this.videoVolume = this.video.volume;
+            if (this.video)
+                this.videoVolume = this.video.volume;
         },
         handleWaiting() {
             this.buffering = true;
@@ -305,22 +186,33 @@ export default Vue.extend({
                 this.play();
         },
         play() {
-            this.video.play();
+            if (this.video)
+                this.video.play();
         },
         pause() {
-            this.video.pause();
+            if (this.video)
+                this.video.pause();
         },
         handlePlay() {
+            this.showPlayStatus();
             this.tempShowControls();
             //@ts-ignore
             navigator.mediaSession.playbackState = 'playing';
             this.playing = true;
         },
         handlePause() {
+            this.showPlayStatus();
             this.tempShowControls();
             //@ts-ignore
             navigator.mediaSession.playbackState = 'paused';
             this.playing = false;
+        },
+        async showPlayStatus() {
+            this.transitionTime = 0;
+            this.statusAnimation = 0;
+            await this.$nextTick();
+            this.transitionTime = 600;
+            this.statusAnimation = 1;
         },
     },
     computed: {
@@ -331,15 +223,6 @@ export default Vue.extend({
             get(): number {
                 return this.$store.state.videoVolume;
             },
-        },
-        durationHms(): string {
-            return secondsToHms(this.duration);
-        },
-        time(): number {
-            return this.progress * this.duration;
-        },
-        timeHms(): string {
-            return secondsToHms(this.time);
         },
         showControls(): boolean {
             return this.tempShow || !this.playing || this.overControls;
@@ -357,13 +240,9 @@ export default Vue.extend({
         showControls() {
             this.$store.commit('showPhotoButtons', this.showControls);
         },
-        '$route.params.id'() {
-            console.log('id change, matches?', this.media.id === this.$route.params.id);
-            if (this.isActive)
-                this.activate();
-        },
         videoVolume() {
-            this.video.volume = this.videoVolume;
+            if (this.video)
+                this.video.volume = this.videoVolume;
         },
     },
 })
@@ -411,47 +290,10 @@ export default Vue.extend({
     align-items: center;
 }
 
-.time-current {
-    font-family: "Roboto", sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    width: 80px;
-    display: flex;
-    align-items: center;
-    padding: 0 5px 0 10px;
-}
-
-.seek-field {
+.seek-bar {
     position: relative;
     flex-grow: 1;
-    margin-right: 20px;
     height: 100%;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.seek-field > * {
-    pointer-events: none;
-}
-
-.seek-background {
-    height: 4px;
-    position: absolute;
-    width: 100%;
-}
-
-.seek-progress {
-    height: 4px;
-    position: absolute;
-}
-
-.seek-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    position: absolute;
-    margin-top: -4px;
 }
 
 .volume-sheet {
