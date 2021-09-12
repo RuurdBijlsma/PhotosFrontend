@@ -7,6 +7,13 @@ import {MonthPhotos} from "@/ts/MediaInterfaces";
 import router from "@/plugins/router";
 import vuetify from "@/plugins/vuetify";
 
+if (document.querySelectorAll(`head link[rel='manifest']`).length === 0) {
+    let manifestLink = document.createElement('link');
+    manifestLink.setAttribute('rel', 'manifest');
+    manifestLink.setAttribute('href', './manifest.json');
+    document.querySelector('head')?.appendChild?.(manifestLink);
+}
+
 const vuexLocal = new VuexPersistence({
     reducer: (state: any) => ({
         email: state.email,
