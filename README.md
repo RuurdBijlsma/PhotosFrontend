@@ -1,4 +1,4 @@
-# photos
+# Photos Frontend
 
 ## Project setup
 ```

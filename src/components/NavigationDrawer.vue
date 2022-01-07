@@ -1,6 +1,5 @@
 <template>
-    <v-navigation-drawer :expand-on-hover="$vuetify.breakpoint.width < 1600"
-                         :width="205"
+    <v-navigation-drawer :width="205"
                          @mouseenter.native="hover = true"
                          @mouseleave.native="hover = false"
                          permanent app
@@ -13,10 +12,10 @@
             <v-list dense nav>
                 <v-list-item v-for="page in pages" exact
                              :to="page.to" :key="page.to"
-                             @mousedown="$emit('scroll-to-top')">
+                             @mousedown="$emit(page.to === '/' ? 'scroll-to-top' : '')">
                     <v-list-item-icon>
                         <v-icon>{{ page.icon }}</v-icon>
-                    </v-list-item-icon>
+                    </v-list-item-icon> 
                     <v-list-item-content>
                         <v-list-item-title>{{ page.name }}</v-list-item-title>
                     </v-list-item-content>
