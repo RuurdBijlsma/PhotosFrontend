@@ -60,7 +60,7 @@
                     <v-img height="200" :src="`${album.coverPhotoBaseUrl}=w512-h512-c`"></v-img>
                     <v-card-actions>
                         <v-spacer/>
-                        <v-btn text @click="importAlbum(album.title, album.id)">
+                        <v-btn text @click="importAlbum(album.title, album.id, album.coverPhotoMediaItemId)">
                             <v-icon class="mr-2">mdi-import</v-icon>
                             Import
                         </v-btn>
@@ -97,12 +97,12 @@ export default Vue.extend({
             for (let i = this.albums.length - 1; i >= 0; i--) {
                 let album = this.albums[i];
                 this.statusText = `[${i + 1} / ${this.albums.length}] Importing "${album.title}...`
-                await this.importAlbum(album.title, album.id, false);
+                await this.importAlbum(album.title, album.id, album.coverPhotoMediaItemId, false);
             }
             this.statusText = 'Done importing all';
             this.allImportLoading = false;
         },
-        async importAlbum(title: string, albumId: string, redirect = true) {
+        async importAlbum(title: string, albumId: string, coverMediaItemId: string, redirect = true) {
             this.importLoading = true;
             this.loadingAlbumIds.push(albumId);
             let response = null as null | { mediaItems: any[], nextPageToken: string };
@@ -125,11 +125,14 @@ export default Vue.extend({
                 }
             } while (response?.nextPageToken);
             console.log('import response', response);
+            let coverFilename = mediaItems.find((m: any) => m.id === coverMediaItemId)?.filename;
+            console.log("Cover file name", coverFilename);
             let result = await this.$store.dispatch('apiRequest', {
                 url: 'photos/importAlbum',
                 body: {
                     name: title,
                     filenames: mediaItems.map((m: any) => m.filename),
+                    coverFilename,
                 },
             });
             if (!result.success) {

@@ -109,7 +109,7 @@
                 </v-list-item>
                 <v-list-item @click="$store.dispatch('logout')" v-if="$store.getters.isLoggedIn">
                     <v-list-item-icon>
-                        <v-icon>mdi-face</v-icon>
+                        <v-icon>mdi-logout</v-icon>
                     </v-list-item-icon>
                     <v-list-item-content>
                         <v-list-item-title>Log out</v-list-item-title>
