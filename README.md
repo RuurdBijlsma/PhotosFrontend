@@ -1,5 +1,8 @@
 # Photos Frontend
 
+Main repo for this project:
+https://github.com/RuurdBijlsma/Photos
+
 ## Project setup
 ```
 npm install

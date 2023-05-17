@@ -164,6 +164,7 @@ export default new Vuex.Store({
     actions: {
         async updateAlbums({commit, dispatch}) {
             let albums = await dispatch('apiRequest', {url: 'photos/getAlbums'});
+            albums = albums.sort((a: any, b: any) => a.createdAt < b.createdAt ? 1 : -1);
             commit('albums', albums);
         },
         logout({commit}) {
