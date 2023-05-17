@@ -2,17 +2,16 @@
     <div class="media-photo" :style="{
         flexDirection: $vuetify.breakpoint.mobile ? 'column' : 'row',
     }">
-        <router-view/>
+        <router-view />
         <div class="left-pane" :style="{
             width: ($vuetify.breakpoint.mobile || !showInfo) ? '100%' : `calc(100% - ${infoPaneSize}px)`,
             minHeight: $vuetify.breakpoint.mobile ? '100vh' : null,
         }">
             <div class="top-gradient" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
-            }"/>
-            <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery"/>
-            <v-btn icon dark @click="close" class="back-button btn"
-                   v-if="$store.getters.isLoggedIn || loggedOffUI" :style="{
+            }" />
+            <photo-gallery ref="photoGallery" :queue="queue" class="photo-gallery" />
+            <v-btn icon dark @click="close" class="back-button btn" v-if="$store.getters.isLoggedIn || loggedOffUI" :style="{
                 transform: showPhotoButtons ? 'translateY(0)' : 'translateY(-150px)',
             }">
                 <v-icon>mdi-arrow-left</v-icon>
@@ -23,29 +22,22 @@
                 <v-btn v-if="isSelecting && !selected" icon dark @click="addToSelection" title="Add to selection">
                     <v-icon>mdi-circle-outline</v-icon>
                 </v-btn>
-                <v-btn v-if="isSelecting && selected" icon dark @click="removeFromSelection"
-                       title="Remove from selection">
+                <v-btn v-if="isSelecting && selected" icon dark @click="removeFromSelection" title="Remove from selection">
                     <v-icon>mdi-check-circle</v-icon>
                 </v-btn>
-                <v-btn
-                    v-if="!$vuetify.breakpoint.mobile && $store.getters.isLoggedIn && media && media.type === 'photo'"
-                    icon
-                    title="Edit image"
-                    dark :to="$route.path + '/edit'">
+                <v-btn v-if="!$vuetify.breakpoint.mobile && $store.getters.isLoggedIn && media && media.type === 'photo'"
+                    icon title="Edit image" dark :to="$route.path + '/edit'">
                     <v-icon>mdi-image-edit-outline</v-icon>
                 </v-btn>
                 <v-btn icon dark @click="shareMedia" title="Share" :loading="shareLoading"
-                       v-if="!$vuetify.breakpoint.mobile">
+                    v-if="!$vuetify.breakpoint.mobile">
                     <v-icon>mdi-share-variant-outline</v-icon>
                 </v-btn>
-                <v-btn v-if="!$vuetify.breakpoint.mobile" icon dark
-                       @click="showInfo = !showInfo" title="Show information">
+                <v-btn v-if="!$vuetify.breakpoint.mobile" icon dark @click="showInfo = !showInfo" title="Show information">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-menu :close-on-content-click="!$store.getters.isLoggedIn"
-                        v-model="showPhotoMenu"
-                        :nudge-left="$store.getters.isLoggedIn ? 180 : 110"
-                        min-width="auto">
+                <v-menu :close-on-content-click="!$store.getters.isLoggedIn" v-model="showPhotoMenu"
+                    :nudge-left="$store.getters.isLoggedIn ? 180 : 110" min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn dark icon v-bind="attrs" v-on="on">
                             <v-icon>mdi-dots-vertical</v-icon>
@@ -54,7 +46,7 @@
                     <v-list dense>
                         <v-list-item @click="reprocess(media)" v-if="$store.getters.isLoggedIn">
                             <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading"/>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="reprocessLoading" />
                                 <v-icon v-else>mdi-auto-fix</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
@@ -65,7 +57,7 @@
                         </v-list-item>
                         <v-list-item @click="fixDateFromFile()" v-if="$store.getters.isLoggedIn">
                             <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading"/>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="fixDateLoading" />
                                 <v-icon v-else>mdi-calendar-range</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
@@ -76,7 +68,7 @@
                         </v-list-item>
                         <v-list-item @click="deleteItem()" v-if="$store.getters.isLoggedIn">
                             <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading"/>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="deleteLoading" />
                                 <v-icon v-else>mdi-delete-outline</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
@@ -87,7 +79,7 @@
                         </v-list-item>
                         <v-list-item @click="downloadItem()">
                             <v-list-item-avatar>
-                                <v-progress-circular :size="25" :width="2" indeterminate v-if="downloadLoading"/>
+                                <v-progress-circular :size="25" :width="2" indeterminate v-if="downloadLoading" />
                                 <v-icon v-else>mdi-download</v-icon>
                             </v-list-item-avatar>
                             <v-list-item-content>
@@ -99,19 +91,15 @@
                     </v-list>
                 </v-menu>
             </div>
-            <div class="prev-button-container skip-button-container"
-                 @click="previous"
-                 v-if="photoGallery && !isTouch && canSkipLeft && !photoGallery.imgZoomed">
-                <v-btn fab dark
-                       class="prev-button btn">
+            <div class="prev-button-container skip-button-container" @click="previous"
+                v-if="photoGallery && !isTouch && canSkipLeft && !photoGallery.imgZoomed">
+                <v-btn fab dark class="prev-button btn">
                     <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
             </div>
-            <div class="next-button-container skip-button-container"
-                 @click="next"
-                 v-if="photoGallery && !isTouch && canSkipRight && !photoGallery.imgZoomed">
-                <v-btn fab dark
-                       class="next-button btn">
+            <div class="next-button-container skip-button-container" @click="next"
+                v-if="photoGallery && !isTouch && canSkipRight && !photoGallery.imgZoomed">
+                <v-btn fab dark class="next-button btn">
                     <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
             </div>
@@ -121,9 +109,7 @@
 
                 <v-menu>
                     <template v-slot:activator="{ on, attrs }">
-                        <v-btn v-bind="attrs" v-on="on" icon dark
-                               title="Share"
-                               :loading="shareLoading">
+                        <v-btn v-bind="attrs" v-on="on" icon dark title="Share" :loading="shareLoading">
                             <v-icon>mdi-share-variant-outline</v-icon>
                         </v-btn>
                     </template>
@@ -142,9 +128,8 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'"
-                       icon title="Edit image"
-                       dark :to="$route.path + '/edit'">
+                <v-btn v-if="$store.getters.isLoggedIn && media && media.type === 'photo'" icon title="Edit image" dark
+                    :to="$route.path + '/edit'">
                     <v-icon>mdi-image-edit-outline</v-icon>
                 </v-btn>
                 <v-btn icon dark @click="showInfo = !showInfo" title="Show information">
@@ -173,7 +158,7 @@
                     <v-subheader>Albums</v-subheader>
                     <v-list-item two-line v-for="album in media.albums" :key="album.id" :to="`/album/${album.id}`">
                         <v-list-item-avatar>
-                            <v-img :src="`${api}/photo/tiny/${album.cover}.webp`"/>
+                            <v-img :src="`${api}/photo/tiny/${album.cover}.webp`" />
                         </v-list-item-avatar>
                         <v-list-item-content>
                             <v-list-item-title>{{ album.name }}</v-list-item-title>
@@ -188,30 +173,19 @@
                     </v-list-item-avatar>
                     <v-list-item-content>
                         <v-list-item-title>
-                            <v-menu
-                                :close-on-content-click="false"
-                                transition="scale-transition"
-                                offset-y
-                                v-model="dateMenu"
-                                :nudge-left="50"
-                                min-width="auto">
+                            <v-menu :close-on-content-click="false" transition="scale-transition" offset-y
+                                v-model="dateMenu" :nudge-left="50" min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
                                     <span class="mr-4" v-bind="attrs" v-on="on">{{ formattedCreateDate }}</span>
                                 </template>
                                 <v-card>
-                                    <v-date-picker
-                                        :readonly="!$store.getters.isLoggedIn"
-                                        class="roboto"
-                                        max-width="360"
-                                        v-model="createDate"
-                                        :max="new Date().toISOString().substr(0, 10)"
-                                        min="1950-01-01"/>
+                                    <v-date-picker :readonly="!$store.getters.isLoggedIn" class="roboto" max-width="360"
+                                        v-model="createDate" :max="new Date().toISOString().substr(0, 10)"
+                                        min="1950-01-01" />
                                     <v-card-actions v-if="$store.getters.isLoggedIn">
-                                        <v-spacer/>
-                                        <v-btn text @click="dateMenu=false">Cancel</v-btn>
-                                        <v-btn color="primary" text
-                                               :loading="dateLoading"
-                                               @click="saveEditedDate">
+                                        <v-spacer />
+                                        <v-btn text @click="dateMenu = false">Cancel</v-btn>
+                                        <v-btn color="primary" text :loading="dateLoading" @click="saveEditedDate">
                                             Save
                                         </v-btn>
                                     </v-card-actions>
@@ -219,34 +193,21 @@
                             </v-menu>
                         </v-list-item-title>
                         <v-list-item-subtitle>
-                            <v-menu
-                                :close-on-content-click="false"
-                                transition="scale-transition"
-                                offset-y
-                                v-model="timeMenu"
-                                :nudge-left="50"
-                                min-width="auto">
+                            <v-menu :close-on-content-click="false" transition="scale-transition" offset-y
+                                v-model="timeMenu" :nudge-left="50" min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
                                     <span v-bind="attrs" v-on="on">{{ formattedCreateTime }}</span>
                                 </template>
                                 <v-card>
-                                    <v-time-picker
-                                        :readonly="!$store.getters.isLoggedIn"
-                                        class="roboto"
-                                        format="24hr"
-                                        use-seconds
-                                        scrollable
-                                        v-model="createTime"
-                                        max-width="360"/>
+                                    <v-time-picker :readonly="!$store.getters.isLoggedIn" class="roboto" format="24hr"
+                                        use-seconds scrollable v-model="createTime" max-width="360" />
                                     <v-card-title class="error--text" v-if="dateError && $store.getters.isLoggedIn">
                                         {{ dateError }}
                                     </v-card-title>
                                     <v-card-actions v-if="$store.getters.isLoggedIn">
-                                        <v-spacer/>
-                                        <v-btn text @click="timeMenu=false">Cancel</v-btn>
-                                        <v-btn color="primary" text
-                                               :loading="dateLoading"
-                                               @click="saveEditedDate">
+                                        <v-spacer />
+                                        <v-btn text @click="timeMenu = false">Cancel</v-btn>
+                                        <v-btn color="primary" text :loading="dateLoading" @click="saveEditedDate">
                                             Save
                                         </v-btn>
                                     </v-card-actions>
@@ -272,8 +233,8 @@
                                 <span class="ml-2 mr-2">•</span>
                                 <span>{{ readableBytes }}</span>
                             </div>
-                            <div v-if="media.type==='video' && avgFps !== null" class="video-info"
-                                 title="Frames per second">
+                            <div v-if="media.type === 'video' && avgFps !== null" class="video-info"
+                                title="Frames per second">
                                 <template v-if="originalFps && originalFps / avgFps > 1.9">
                                     <v-icon small class="mr-2">mdi-motion-play-outline</v-icon>
                                     <span>{{ originalFps }}fps</span>
@@ -300,14 +261,11 @@
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
-                <v-menu
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    min-width="auto">
+                <v-menu :close-on-content-click="false" transition="scale-transition" min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <v-list-item v-bind="$store.getters.isLoggedIn ? attrs : {}"
-                                     v-on="$store.getters.isLoggedIn ? on : {}"
-                                     two-line v-if="classifications && classifications.length > 0">
+                            v-on="$store.getters.isLoggedIn ? on : {}" two-line
+                            v-if="classifications && classifications.length > 0">
                             <v-list-item-avatar>
                                 <v-icon>mdi-eye-outline</v-icon>
                             </v-list-item-avatar>
@@ -323,7 +281,7 @@
                     </template>
                     <v-list max-width="360">
                         <v-list-item two-line v-for="(classification, i) in classifications" :key="i"
-                                     :to="classification.firstLabel ? `/search/${classification.firstLabel}` : null">
+                            :to="classification.firstLabel ? `/search/${classification.firstLabel}` : null">
                             <v-list-item-avatar>
                                 <v-icon>mdi-alpha-{{ 'abcdefg'[i] }}-circle-outline</v-icon>
                             </v-list-item-avatar>
@@ -338,10 +296,8 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <a v-if="leaflet.tileOptions.accessToken === '' && coordinate"
-                   class="no-style"
-                   target="_blank"
-                   :href="`https://www.google.com/maps/place/${coordinate.lat},${coordinate.lng}`">
+                <a v-if="leaflet.tileOptions.accessToken === '' && coordinate" class="no-style" target="_blank"
+                    :href="`https://www.google.com/maps/place/${coordinate.lat},${coordinate.lng}`">
                     <v-list-item two-line @click="0">
                         <v-list-item-avatar>
                             <v-icon>mdi-open-in-new</v-icon>
@@ -368,24 +324,17 @@
                             <span>{{ subPlace }}</span>
                         </v-list-item-subtitle>
                     </v-list-item-content>
+                    <v-btn title="Open location in Google Maps" @click.stop.prevent="goMaps(coordinate)" default
+                        color="primary" icon>
+                        <v-icon>mdi-google</v-icon>
+                    </v-btn>
                 </v-list-item>
             </v-list>
 
-            <l-map
-                v-if="coordinate && leaflet.zoom && leaflet.tileOptions.accessToken !== ''"
-                class="location-map mt-5"
-                :zoom="leaflet.zoom"
-                ref="map"
-                :center="coordinate"
-                :options="leaflet.options">
-                <l-tile-layer
-                    :options="leaflet.tileOptions"
-                    :url="leaflet.url"
-                    :attribution="leaflet.attribution"/>
-                <l-marker
-                    v-if="gpsIcon"
-                    :lat-lng="coordinate"
-                    :icon="gpsIcon"/>
+            <l-map v-if="coordinate && leaflet.zoom && leaflet.tileOptions.accessToken !== ''" class="location-map mt-5"
+                :zoom="leaflet.zoom" ref="map" :center="coordinate" :options="leaflet.options">
+                <l-tile-layer :options="leaflet.tileOptions" :url="leaflet.url" :attribution="leaflet.attribution" />
+                <l-marker v-if="gpsIcon" :lat-lng="coordinate" :icon="gpsIcon" />
             </l-map>
         </v-sheet>
     </div>
@@ -393,18 +342,18 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {api, defaultApi} from "@/ts/constants"
-import {Location, Media} from "@/ts/Media";
-import {bytesToReadable, downloadFromUrl, filenameToDate, isTouchDevice, secondsToHms} from "@/ts/utils";
-import {format, parseISO} from 'date-fns'
-import {LMap, LMarker, LTileLayer} from "vue2-leaflet";
+import { api, defaultApi } from "@/ts/constants"
+import { Location, Media } from "@/ts/Media";
+import { bytesToReadable, downloadFromUrl, filenameToDate, isTouchDevice, secondsToHms } from "@/ts/utils";
+import { format, parseISO } from 'date-fns'
+import { LMap, LMarker, LTileLayer } from "vue2-leaflet";
 import L from "leaflet";
 import PhotoGallery from "@/components/PhotoGallery.vue";
 
 
 export default Vue.extend({
     name: 'Photo',
-    components: {PhotoGallery, LMap, LTileLayer, LMarker},
+    components: { PhotoGallery, LMap, LTileLayer, LMarker },
     props: {},
     data: () => ({
         isTouch: isTouchDevice(),
@@ -466,6 +415,10 @@ export default Vue.extend({
         }
     },
     methods: {
+        async goMaps(coordinate: L.LatLng | null) {
+            if (coordinate === null) return;
+            window.open(`https://www.google.com/maps/place/${coordinate.lat},${coordinate.lng}`, '_blank');
+        },
         async shareLink() {
             const url = location.origin + '/view/' + this.id + ((defaultApi === api) ? '' : ('?api=' + api));
             if (isTouchDevice()) {
@@ -474,7 +427,7 @@ export default Vue.extend({
                 });
             } else {
                 await navigator.clipboard.writeText(url);
-                await this.$store.dispatch('addSnack', {text: 'Share URL copied to clipboard!'});
+                await this.$store.dispatch('addSnack', { text: 'Share URL copied to clipboard!' });
             }
         },
         async shareMedia() {
@@ -499,11 +452,11 @@ export default Vue.extend({
                             const file = new File(
                                 [blob],
                                 filename,
-                                {type: mimeType},
+                                { type: mimeType },
                             );
                             const filesArray = [file];
                             //@ts-ignore
-                            if (navigator.canShare && navigator.canShare({files: filesArray})) {
+                            if (navigator.canShare && navigator.canShare({ files: filesArray })) {
                                 console.log('sharing', filesArray)
                                 await navigator.share({
                                     title: this.media?.filename ?? 'Media',
@@ -532,7 +485,7 @@ export default Vue.extend({
                 if (e.message === 'Share canceled')
                     return;
                 console.warn("Cant share", e);
-                await this.$store.dispatch('addSnack', {text: `Can't share, ${e.message}`})
+                await this.$store.dispatch('addSnack', { text: `Can't share, ${e.message}` })
             }
             this.shareLoading = false;
         },
@@ -665,7 +618,7 @@ export default Vue.extend({
             if (filename === null) return;
             let newDate = filenameToDate(filename);
             if (newDate === null) {
-                this.$store.dispatch('addSnack', {text: "Couldn't retrieve date from filename"}).then();
+                this.$store.dispatch('addSnack', { text: "Couldn't retrieve date from filename" }).then();
                 return;
             }
             this.fixDateLoading = true;
@@ -701,11 +654,11 @@ export default Vue.extend({
                 url: `photos/deleteItem/${this.media.id}`
             });
             if (success) {
-                this.$store.dispatch('addSnack', {text: 'Deleted ' + this.media.filename}).then();
+                this.$store.dispatch('addSnack', { text: 'Deleted ' + this.media.filename }).then();
                 this.next();
                 this.$store.commit('reloadPhotos', this.media);
             } else {
-                this.$store.dispatch('addSnack', {text: 'Failed to delete ' + this.media.filename}).then();
+                this.$store.dispatch('addSnack', { text: 'Failed to delete ' + this.media.filename }).then();
             }
             this.showPhotoMenu = false;
             this.deleteLoading = false;
@@ -714,7 +667,7 @@ export default Vue.extend({
             if (this.media === null) return;
             let success = await this.$store.dispatch('apiRequest', {
                 url: `photos/changeDate/${this.media.id}`,
-                body: {date: date.getTime()}
+                body: { date: date.getTime() }
             });
             if (success === true) {
                 this.dateError = '';
@@ -747,7 +700,7 @@ export default Vue.extend({
         },
         async reprocess(media: Media) {
             this.reprocessLoading = true;
-            let {id} = await this.$store.dispatch('apiRequest', {url: `photos/reprocess/${media.id}`});
+            let { id } = await this.$store.dispatch('apiRequest', { url: `photos/reprocess/${media.id}` });
             let path = this.$route.path.split('/').filter(p => p.length !== 0);
             path[path.length - 1] = id;
             await this.$router.replace(`/${path.join('/')}`);
@@ -1009,7 +962,7 @@ export default Vue.extend({
     display: flex;
 }
 
-.top-right-buttons > * {
+.top-right-buttons>* {
     margin-left: 16px;
 }
 
@@ -1113,5 +1066,4 @@ export default Vue.extend({
     height: 350px;
     opacity: 0.8;
 }
-
 </style>
